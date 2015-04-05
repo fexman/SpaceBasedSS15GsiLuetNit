@@ -1,1 +1,1 @@
-java -Dlogback.configurationFile=logback.xm -cp libs/mozartspaces-dist-2.3-SNAPSHOT-r14098-all-with-dependencies.jar org.mozartspaces.core.Server 12345
+java -Dlogback.configurationFile=src/logback.xml -cp libs/mozartspaces-dist-2.3-SNAPSHOT-r14098-all-with-dependencies.jar org.mozartspaces.core.Server 12345
