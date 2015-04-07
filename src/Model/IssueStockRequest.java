@@ -11,8 +11,8 @@ public class IssueStockRequest implements Serializable {
     private static final long serialVersionUID = 545149035659778572L;
 
     private String companyId;
-    private Double price;
-    private Integer amount;
+    private double price;
+    private int amount;
 
     public IssueStockRequest(String companyId, Integer amount, Double price) {
         this.companyId = companyId;
@@ -24,15 +24,11 @@ public class IssueStockRequest implements Serializable {
         return companyId;
     }
 
-    public Stock toStock () {
-        return new Stock(companyId, amount);
-    }
-
-    public Integer getAmount() {
+    public int getAmount() {
         return amount;
     }
 
-    public Double getPrice() {
+    public double getPrice() {
         return price;
     }
 
