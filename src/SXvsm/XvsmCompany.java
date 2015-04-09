@@ -12,12 +12,11 @@ import java.util.List;
 /**
  * Created by Felix on 06.04.2015.
  */
-public class XvsmCompany implements ICompany{
+public class XvsmCompany extends XvsmService implements ICompany{
 
-    private XvsmUtil.XvsmConnection xc;
 
-    public XvsmCompany(XvsmUtil.XvsmConnection xc) {
-        this.xc = xc;
+    public XvsmCompany(String uri) throws ConnectionError {
+        super(uri);
     }
 
     @Override
@@ -27,14 +26,13 @@ public class XvsmCompany implements ICompany{
 
             //Get comapny-depot ontainer
             tx = xc.getCapi().createTransaction(XvsmUtil.ACTION_TIMEOUT, xc.getSpace());
-            ContainerReference depotContainer = XvsmUtil.getContainer(XvsmUtil.Container.COMPANY_DEPOT);
+            ContainerReference depotContainer = XvsmUtil.getDepot(isr.getCompany());
 
             //Write to company-depot
             System.out.print("Writing new stocks to depot ... ");
-            CoordinationData coordData = LabelCoordinator.newCoordinationData(isr.getCompanyId());
             List<Stock> stocks = isr.toStocks();
             for (Stock s : stocks) {
-                xc.getCapi().write(depotContainer, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(s, coordData));
+                xc.getCapi().write(depotContainer, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(s));
             }
             System.out.println("done.");
 
@@ -58,5 +56,6 @@ public class XvsmCompany implements ICompany{
             }
         }
     }
+
 
 }

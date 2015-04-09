@@ -7,17 +7,18 @@ import java.io.Serializable;
  */
 public class Stock implements Serializable {
 
-    private String companyId;
+    private static final long serialVersionUID = 7338860624387847800L;
+    private Company company;
 
     public Stock(String companyId) {
-        this.companyId = companyId;
+        this.company = company;
     }
 
-    public String getCompanyId() {
-        return companyId;
+    public Company getCompany() {
+        return company;
     }
 
     public String toString() {
-        return companyId+"-Stock";
+        return company.getId()+"-Stock";
     }
 }
