@@ -1,6 +1,7 @@
 package TUI;
 
 import org.mozartspaces.capi3.FifoCoordinator;
+import org.mozartspaces.capi3.KeyCoordinator;
 import org.mozartspaces.capi3.Selector;
 import org.mozartspaces.core.*;
 import org.mozartspaces.notifications.Notification;
@@ -62,15 +63,15 @@ public class SimpleSpaceViewer implements NotificationListener {
                 System.out.println("Now observing "+container+".");
                 //Alles ausgeben was derzeit in container it
                 ArrayList<Selector> selectors = new ArrayList<Selector>();
-                selectors.add(FifoCoordinator.newSelector(MzsConstants.Selecting.COUNT_ALL));
-                ArrayList<String> resultEntries = null;
+                selectors.add(KeyCoordinator.newSelector("GOOG"));
+                ArrayList<Entry> resultEntries = null;
                 try {
                     resultEntries = capi.read(cref, selectors, MzsConstants.RequestTimeout.INFINITE, null);
                 } catch (MzsCoreException e) {
                     e.printStackTrace();
                 }
-                for (String entry : resultEntries) {
-                    System.out.println(container+": "+entry);
+                for (Entry entry : resultEntries) {
+                    System.out.println(container+": "+String.valueOf(entry));
                 }
 
             } else {
@@ -94,7 +95,7 @@ public class SimpleSpaceViewer implements NotificationListener {
     @Override
     public void entryOperationFinished(Notification source, Operation operation, List<? extends Serializable> entries) {
         for (Serializable entry : entries) {
-            System.out.println(source.getObservedContainer().getId()+": "+((Entry)entry).getValue());
+            System.out.println(source.getObservedContainer().getId()+": "+String.valueOf(((Entry)entry).getValue()));
         }
     }
 }

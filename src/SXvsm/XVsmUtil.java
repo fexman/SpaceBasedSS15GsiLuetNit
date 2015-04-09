@@ -17,7 +17,7 @@ import java.util.List;
 
 public class XvsmUtil {
 
-    public static int TRANSACTION_TIMEOUT = 5000;
+    public static int ACTION_TIMEOUT = 2500;
 
 
     private static HashMap<Container, ContainerReference> containers = new HashMap<>();
@@ -54,6 +54,7 @@ public class XvsmUtil {
     }
 
 
+
     /**
      * Connects to a XVSM-Space and returns XvsmConnection.
      * @param spaceUri Uri of the XVSM-Space
@@ -68,7 +69,7 @@ public class XvsmUtil {
         xc = new XvsmConnection(spaceUri);
         System.out.println("XvsmUtil: Connection initialized - XVSM up and running.");
 
-        containers.put(Container.COMPANY_DEPOT, lookUpOrCreateContainer(Container.COMPANY_DEPOT.toString(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>() {{add(CoordinatorType.KEY_COORDINATOR);}}));
+        containers.put(Container.COMPANY_DEPOT, lookUpOrCreateContainer(Container.COMPANY_DEPOT.toString(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>() {{add(CoordinatorType.LABEL_COORDINATOR);}}));
         containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(),  new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR);}}));
 
         return xc;
@@ -134,7 +135,8 @@ public class XvsmUtil {
         RANDOM_COORDINATOR,
         FIFO_COORDINATOR,
         LIFO_COORDINATOR,
-        KEY_COORDINATOR;
+        KEY_COORDINATOR,
+        LABEL_COORDINATOR;
 
         public static Coordinator getCoordinator(CoordinatorType type) {
             switch (type) {
@@ -148,6 +150,8 @@ public class XvsmUtil {
                     return new LifoCoordinator();
                 case KEY_COORDINATOR:
                     return new KeyCoordinator();
+                case LABEL_COORDINATOR:
+                    return new LabelCoordinator();
                 default:
                     return new AnyCoordinator();
             }

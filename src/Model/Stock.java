@@ -8,26 +8,16 @@ import java.io.Serializable;
 public class Stock implements Serializable {
 
     private String companyId;
-    private Integer amount;
 
-    public Stock(String companyId, Integer amount) {
+    public Stock(String companyId) {
         this.companyId = companyId;
-        this.amount = amount;
     }
 
     public String getCompanyId() {
         return companyId;
     }
 
-    public Integer getAmount() {
-        return amount;
-    }
-
-    public IssueStockRequest toIssueStockRequest(Double price) {
-        return new IssueStockRequest(companyId, amount, price);
-    }
-
     public String toString() {
-        return companyId+"-Stocks: #"+amount;
+        return companyId+"-Stock";
     }
 }

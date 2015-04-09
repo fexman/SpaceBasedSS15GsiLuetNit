@@ -42,23 +42,30 @@ public class Company {
             case 0:
                 try {
                     comp = new XvsmCompany(XvsmUtil.initConnection(args[1]));
+                    issueStocks(comp, new IssueStockRequest(args[2],amount,price));
+                    XvsmUtil.getXvsmConnection().getCapi().shutdown(XvsmUtil.getXvsmConnection().getSpace());
                 } catch (MzsCoreException e) {
                     System.out.println("XVSM-connection could not be established: "+e.getMessage());
                 }
                 break;
             case 1:
                 //TODO: RMI SERVICE
+                issueStocks(comp, new IssueStockRequest(args[2],amount,price));
                 break;
             default: showUsage(); break;
-
         }
 
+
+
+
+    }
+
+    public static void issueStocks(ICompany comp, IssueStockRequest isr) {
         try {
-            comp.issueStocks(new IssueStockRequest(args[2],amount,price));
+            comp.issueStocks(isr);
         } catch (ConnectionError connectionError) {
             connectionError.printStackTrace();
         }
-
     }
 
     public static void showUsage() {

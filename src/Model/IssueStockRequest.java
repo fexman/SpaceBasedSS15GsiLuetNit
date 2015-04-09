@@ -1,6 +1,8 @@
 package Model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Felix on 06.04.2015.
@@ -11,8 +13,8 @@ public class IssueStockRequest implements Serializable {
     private static final long serialVersionUID = 545149035659778572L;
 
     private String companyId;
-    private double price;
-    private int amount;
+    private Double price;
+    private Integer amount;
 
     public IssueStockRequest(String companyId, Integer amount, Double price) {
         this.companyId = companyId;
@@ -24,12 +26,20 @@ public class IssueStockRequest implements Serializable {
         return companyId;
     }
 
-    public int getAmount() {
+    public Integer getAmount() {
         return amount;
     }
 
-    public double getPrice() {
+    public Double getPrice() {
         return price;
+    }
+
+    public List<Stock> toStocks() {
+        List<Stock> stocks = new ArrayList<>();
+        for (int i = 1; i <= amount; i++) {
+            stocks.add(new Stock(getCompanyId()));
+        }
+        return stocks;
     }
 
     public String toString() {
