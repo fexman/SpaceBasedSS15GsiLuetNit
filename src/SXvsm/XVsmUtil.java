@@ -130,7 +130,7 @@ public class XvsmUtil {
     }
 
     public enum Container {
-        DEPOT_TOKEN("DEPOT_"),
+        DEPOT_TOKEN("-depot"),
         ISSUED_STOCK_REQUESTS("issuedStockRequests");
 
         private final String text;
