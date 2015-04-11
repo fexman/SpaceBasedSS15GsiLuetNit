@@ -23,7 +23,7 @@ public class Company implements Serializable {
     public List<Stock> createStocks(int amount) {
         List<Stock> stocks = new ArrayList<>();
         for (int i = 1; i <= amount; i++) {
-            stocks.add(new Stock(getId()));
+            stocks.add(new Stock(this));
         }
         return stocks;
     }

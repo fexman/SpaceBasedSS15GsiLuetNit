@@ -24,7 +24,7 @@ public class XvsmCompany extends XvsmService implements ICompany{
         TransactionReference tx = null;
         try {
 
-            //Get comapny-depot ontainer
+            //Get company-depot container
             tx = xc.getCapi().createTransaction(XvsmUtil.ACTION_TIMEOUT, xc.getSpace());
             ContainerReference depotContainer = XvsmUtil.getDepot(isr.getCompany());
 
@@ -36,7 +36,7 @@ public class XvsmCompany extends XvsmService implements ICompany{
             }
             System.out.println("done.");
 
-            //Get issue-stock-request ontainer
+            //Get issue-stock-request container
             ContainerReference isrContainer = XvsmUtil.getContainer(XvsmUtil.Container.ISSUED_STOCK_REQUESTS);
             System.out.print("Writing IS-request to container ... ");
             xc.getCapi().write(isrContainer, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(isr));

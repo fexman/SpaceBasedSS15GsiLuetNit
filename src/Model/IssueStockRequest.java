@@ -11,6 +11,7 @@ public class IssueStockRequest implements Serializable {
 
 
     private static final long serialVersionUID = 545149035659778572L;
+    //TODO Kürzel verwenden, nicht company (company mittels id als Key im Space speichern)
     private Company company;
     private Double price;
     private Integer amount;
@@ -36,7 +37,7 @@ public class IssueStockRequest implements Serializable {
     public List<Stock> toStocks() {
         List<Stock> stocks = new ArrayList<>();
         for (int i = 1; i <= amount; i++) {
-            stocks.add(new Stock(company.getId()));
+            stocks.add(new Stock(getCompany()));
         }
         return stocks;
     }

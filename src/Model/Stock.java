@@ -10,7 +10,7 @@ public class Stock implements Serializable {
     private static final long serialVersionUID = 7338860624387847800L;
     private Company company;
 
-    public Stock(String companyId) {
+    public Stock(Company company) {
         this.company = company;
     }
 
