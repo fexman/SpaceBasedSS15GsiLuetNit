@@ -20,7 +20,7 @@ public class XvsmUtil {
     public static int TRANSACTION_TIMEOUT = 5000;
 
 
-    private static HashMap<Container, ContainerReference> containers = new HashMap<>();
+    private static HashMap<Container, ContainerReference> containers = new HashMap<Container, ContainerReference>();
 
 
     private static XvsmConnection xc;
