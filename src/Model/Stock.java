@@ -7,27 +7,18 @@ import java.io.Serializable;
  */
 public class Stock implements Serializable {
 
-    private String companyId;
-    private Integer amount;
+    private static final long serialVersionUID = 7338860624387847800L;
+    private Company company;
 
-    public Stock(String companyId, Integer amount) {
-        this.companyId = companyId;
-        this.amount = amount;
+    public Stock(String companyId) {
+        this.company = company;
     }
 
-    public String getCompanyId() {
-        return companyId;
-    }
-
-    public Integer getAmount() {
-        return amount;
-    }
-
-    public IssueStockRequest toIssueStockRequest(Double price) {
-        return new IssueStockRequest(companyId, amount, price);
+    public Company getCompany() {
+        return company;
     }
 
     public String toString() {
-        return companyId+"-Stocks: #"+amount;
+        return company.getId()+"-Stock";
     }
 }

@@ -1,5 +1,7 @@
 package SXvsm;
 
+import Model.Company;
+import Model.Investor;
 import org.mozartspaces.capi3.*;
 import org.mozartspaces.core.ContainerReference;
 import org.mozartspaces.core.MzsConstants;
@@ -17,14 +19,10 @@ import java.util.List;
 
 public class XvsmUtil {
 
-    public static int TRANSACTION_TIMEOUT = 5000;
+    public static int ACTION_TIMEOUT = 2500;
 
-
-    private static HashMap<Container, ContainerReference> containers = new HashMap<Container, ContainerReference>();
-
-
+    private static HashMap<Container, ContainerReference> containers = new HashMap<>();
     private static XvsmConnection xc;
-
 
     /**
      * Looks up container from space with given capi and uri, or creates new one if not existent.
@@ -48,11 +46,6 @@ public class XvsmUtil {
         return cref;
     }
 
-    //Public and "still there" for SimpleSpaceWriter/SimpleSpaceViewer
-    public static ContainerReference lookUpOrCreateContainer(String containerName, URI space, Capi capi) throws MzsCoreException {
-        return lookUpOrCreateContainer(containerName, space, capi,  new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR);}});
-    }
-
 
     /**
      * Connects to a XVSM-Space and returns XvsmConnection.
@@ -68,14 +61,44 @@ public class XvsmUtil {
         xc = new XvsmConnection(spaceUri);
         System.out.println("XvsmUtil: Connection initialized - XVSM up and running.");
 
-        containers.put(Container.COMPANY_DEPOT, lookUpOrCreateContainer(Container.COMPANY_DEPOT.toString(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>() {{add(CoordinatorType.KEY_COORDINATOR);}}));
+        //Create "hardcoded" containers
         containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(),  new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR);}}));
 
         return xc;
     }
 
+    /**
+     * Returns "hardcoded" container-instances, like ISSUED_STOCK_REQUESTS.
+     * For "dynamic" container-instances like Company and Investor-Depots use see getDepot(Company)/getDepot(Investor)
+     * @param cont
+     * @return
+     */
     public static ContainerReference getContainer(Container cont) {
         return containers.get(cont);
+    }
+
+    /**
+     * Creates or looks up a company-stock-depot
+     * @param company
+     * @return
+     * @throws MzsCoreException
+     */
+    public static ContainerReference getDepot(Company company) throws MzsCoreException {
+        return lookUpOrCreateContainer(Container.DEPOT_TOKEN.toString() + company.getId(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>());
+    }
+
+    /**
+     * Creates or looks up a investor-stock-depot
+     * @param investor
+     * @return
+     * @throws MzsCoreException
+     */
+    public static ContainerReference getDepot(Investor investor) throws MzsCoreException {
+        //TODO: COMPLETE!!! (DEPOT_TOKEN)
+        return lookUpOrCreateContainer(Container.DEPOT_TOKEN.toString(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>() {{
+            add(CoordinatorType.LABEL_COORDINATOR);
+        }});
+
     }
 
     /**
@@ -107,7 +130,7 @@ public class XvsmUtil {
     }
 
     public enum Container {
-        COMPANY_DEPOT("companyDepots"),
+        DEPOT_TOKEN("DEPOT_"),
         ISSUED_STOCK_REQUESTS("issuedStockRequests");
 
         private final String text;
@@ -134,7 +157,8 @@ public class XvsmUtil {
         RANDOM_COORDINATOR,
         FIFO_COORDINATOR,
         LIFO_COORDINATOR,
-        KEY_COORDINATOR;
+        KEY_COORDINATOR,
+        LABEL_COORDINATOR;
 
         public static Coordinator getCoordinator(CoordinatorType type) {
             switch (type) {
@@ -148,6 +172,8 @@ public class XvsmUtil {
                     return new LifoCoordinator();
                 case KEY_COORDINATOR:
                     return new KeyCoordinator();
+                case LABEL_COORDINATOR:
+                    return new LabelCoordinator();
                 default:
                     return new AnyCoordinator();
             }

@@ -1,5 +1,6 @@
 package TUI;
 
+import Model.Company;
 import Model.IssueStockRequest;
 import Model.Stock;
 import SInterface.ConnectionError;
@@ -11,8 +12,10 @@ import org.mozartspaces.core.MzsCoreException;
 /**
  * Created by Felix on 06.04.2015.
  */
-public class Company {
+public class TUICompany {
     public static void main(String[] args) {
+
+        //Input checking
         if (args.length != 5) {
             showUsage();
         }
@@ -22,14 +25,12 @@ public class Company {
         } catch (NumberFormatException e) {
             showUsage();
         }
-
         Integer amount = null;
         try {
             amount = Integer.parseInt(args[3]);
         } catch (NumberFormatException e) {
             showUsage();
         }
-
         Double price = null;
         try {
             price = Double.parseDouble(args[4]);
@@ -37,26 +38,35 @@ public class Company {
             showUsage();
         }
 
-        ICompany comp = null;
-        switch (mode) {
-            case 0:
-                try {
-                    comp = new XvsmCompany(XvsmUtil.initConnection(args[1]));
-                } catch (MzsCoreException e) {
-                    System.out.println("XVSM-connection could not be established: "+e.getMessage());
-                }
-                break;
-            case 1:
-                //TODO: RMI SERVICE
-                break;
-            default: showUsage(); break;
-
+        //Init connection
+        Company comp = new Company(args[2]);
+        ICompany compService = null;
+        try{
+            switch (mode) {
+                case 0:
+                    compService = new XvsmCompany(args[1]);
+                    break;
+                case 1:
+                    compService = null;//TODO: RMI SERVICE
+                    break;
+                default: showUsage();
+            }
+        } catch (ConnectionError connectionError) {
+            System.out.println("Error while connecting: "+connectionError.getMessage());
         }
 
+        //Issue stocks
         try {
-            comp.issueStocks(new IssueStockRequest(args[2],amount,price));
+            compService.issueStocks(comp.createIssueStockRequest(amount,price));
         } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
+            System.out.println("Error while issuing stocks: " + connectionError.getMessage());
+        }
+
+        //Terminate connection
+        try {
+            compService.shutdown();
+        } catch (ConnectionError connectionError) {
+            System.out.println("Error while shutting down: "+connectionError.getMessage());
         }
 
     }
