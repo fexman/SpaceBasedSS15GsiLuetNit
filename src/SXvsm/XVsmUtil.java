@@ -3,9 +3,6 @@ package SXvsm;
 import Model.Company;
 import Model.Investor;
 import org.mozartspaces.capi3.*;
-import org.mozartspaces.core.ContainerReference;
-import org.mozartspaces.core.MzsConstants;
-import org.mozartspaces.core.MzsCoreException;
 import org.mozartspaces.core.*;
 
 import java.net.URI;
