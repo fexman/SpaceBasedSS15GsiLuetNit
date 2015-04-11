@@ -5,5 +5,6 @@ package SInterface;
  */
 public interface IBroker extends Service {
 
+    void startBroking();
 
 }

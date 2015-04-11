@@ -110,12 +110,15 @@ public class XvsmUtil {
 
         private URI space;
         private Capi capi;
+        private MzsCore core;
 
         public XvsmConnection(String spaceUri) {
             space = URI.create(spaceUri);
             MzsCore core = DefaultMzsCore.newInstanceWithoutSpace();
             capi = new Capi(core);
         }
+
+        public MzsCore getCore() { return core; }
 
         public URI getSpace() {
             return space;
