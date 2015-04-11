@@ -178,6 +178,5 @@ public class XvsmUtil {
                     return new AnyCoordinator();
             }
         }
-
     }
 }
