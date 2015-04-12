@@ -1,61 +1,88 @@
 package SXvsm;
 
+import Model.IssueStockRequest;
 import SInterface.ConnectionError;
 import SInterface.IBroker;
-import org.mozartspaces.core.ContainerReference;
+import org.mozartspaces.capi3.FifoCoordinator;
+import org.mozartspaces.capi3.Selector;
+import org.mozartspaces.core.*;
+import org.mozartspaces.notifications.Notification;
+import org.mozartspaces.notifications.NotificationListener;
 import org.mozartspaces.notifications.NotificationManager;
+import org.mozartspaces.notifications.Operation;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Felix on 11.04.2015.
  */
-public class XvsmBroker extends XvsmService implements IBroker {
+public class XvsmBroker extends XvsmService implements IBroker, NotificationListener {
+
+    private ContainerReference issuedStocksContainer;
 
     public XvsmBroker(String uri) throws ConnectionError {
         super(uri);
+        this.issuedStocksContainer = XvsmUtil.getContainer(XvsmUtil.Container.ISSUED_STOCK_REQUESTS);
     }
 
     @Override
-    public void startBroking() {
-        // Ensure that the container "products" exists
-        ContainerReference cref = XvsmUtil.getContainer(XvsmUtil.Container.ISSUED_STOCK_REQUESTS);
+    public void startBroking() throws ConnectionError {
+
+
 
         // Create notification
-        NotificationManager notifManager = new NotificationManager(core);
+        NotificationManager notifManager = new NotificationManager(xc.getCore());
         Set<Operation> operations = new HashSet<Operation>();
         operations.add(Operation.WRITE);
-        notifManager.createNotification(cref, this, operations, null, null);
-
-        // Read all existing entries
-        ArrayList<Selector> selectors = new ArrayList<Selector>();
-        selectors.add(FifoCoordinator.newSelector(Selecting.COUNT_ALL));
-        ArrayList<String> resultEntries = capi.read(cref, selectors, RequestTimeout.INFINITE, null);
-
-        // output
-        for (String entry : resultEntries) {
-            System.out.println(entry);
-            textArea.append(entry);
-            textArea.append("\n");
+        try {
+            notifManager.createNotification(issuedStocksContainer, this, operations, null, null);
+        } catch (Exception e) {
+                throw new ConnectionError(e);
         }
 
-    } catch (MzsCoreException ex) {
-        ex.printStackTrace();
-    } catch (InterruptedException ex) {
-        ex.printStackTrace();
+    }
+
+    @Override
+    public void entryOperationFinished(Notification source, Operation operation, List<? extends Serializable> entries) {
+        try {
+            takeISRs();
+        } catch (ConnectionError e) {
+            System.out.println("FATAL: CONNECTION ERROR ON LISTENING.");
+        }
+    }
+
+    private void takeISRs() throws ConnectionError{
+
+        TransactionReference tx = null;
+
+        try {
+            //Get company-depot container
+            tx = xc.getCapi().createTransaction(XvsmUtil.ACTION_TIMEOUT, xc.getSpace());
+
+            //Take all existing ISRs
+            ArrayList<Selector> selectors = new ArrayList<Selector>();
+            selectors.add(FifoCoordinator.newSelector(MzsConstants.Selecting.COUNT_ALL));
+            ArrayList<IssueStockRequest> resultEntries = xc.getCapi().take(issuedStocksContainer, selectors, XvsmUtil.ACTION_TIMEOUT, tx);
+            // output
+            for (IssueStockRequest isr : resultEntries) {
+
+                //TODO: PROCESS ISRs!!!!
+
+                System.out.println(isr.toString());
+            }
+            xc.getCapi().commitTransaction(tx);
+
+        } catch (MzsCoreException e) {
+            try {
+                xc.getCapi().rollbackTransaction(tx);
+                throw new ConnectionError(e);
+            } catch (MzsCoreException ex) {
+                throw new ConnectionError(ex);
+            }
+        }
     }
 }
-    }
-
-
-
-// Callback method (NotificationListener)
-@Override
-public void entryOperationFinished(final Notification arg0, final Operation arg1,
-final List<? extends Serializable> entries) {
-        for (Serializable entry : entries) {
-        String message = ((Entry) entry).getValue().toString();
-        System.out.println(message);
-        textArea.append(message);
-        textArea.append("\n");
-        }
-
-        }
