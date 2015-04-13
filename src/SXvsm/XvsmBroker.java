@@ -31,9 +31,6 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
 
     @Override
     public void startBroking() throws ConnectionError {
-
-
-
         // Create notification
         NotificationManager notifManager = new NotificationManager(xc.getCore());
         Set<Operation> operations = new HashSet<Operation>();
@@ -64,9 +61,10 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
             tx = xc.getCapi().createTransaction(XvsmUtil.ACTION_TIMEOUT, xc.getSpace());
 
             //Take all existing ISRs
-            ArrayList<Selector> selectors = new ArrayList<Selector>();
+            ArrayList<Selector> selectors = new ArrayList<>();
             selectors.add(FifoCoordinator.newSelector(MzsConstants.Selecting.COUNT_ALL));
             ArrayList<IssueStockRequest> resultEntries = xc.getCapi().take(issuedStocksContainer, selectors, XvsmUtil.ACTION_TIMEOUT, tx);
+
             // output
             for (IssueStockRequest isr : resultEntries) {
 
