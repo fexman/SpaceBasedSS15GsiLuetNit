@@ -3,7 +3,9 @@ package SXvsm;
 import Model.IssueStockRequest;
 import SInterface.ConnectionError;
 import SInterface.IBroker;
+import org.mozartspaces.capi3.CoordinationData;
 import org.mozartspaces.capi3.FifoCoordinator;
+import org.mozartspaces.capi3.KeyCoordinator;
 import org.mozartspaces.capi3.Selector;
 import org.mozartspaces.core.*;
 import org.mozartspaces.notifications.Notification;
@@ -32,15 +34,15 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
     @Override
     public void startBroking() throws ConnectionError {
         // Create notification
-        NotificationManager notifManager = new NotificationManager(xc.getCore());
-        Set<Operation> operations = new HashSet<Operation>();
+        NotificationManager notificationManager = new NotificationManager(xc.getCore());
+        Set<Operation> operations = new HashSet<>();
         operations.add(Operation.WRITE);
-        try {
-            notifManager.createNotification(issuedStocksContainer, this, operations, null, null);
-        } catch (Exception e) {
-                throw new ConnectionError(e);
-        }
 
+        try {
+            notificationManager.createNotification(issuedStocksContainer, this, operations, null, null);
+        } catch (Exception e) {
+            throw new ConnectionError(e);
+        }
     }
 
     @Override
@@ -52,7 +54,7 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
         }
     }
 
-    private void takeISRs() throws ConnectionError{
+    private void takeISRs() throws ConnectionError {
 
         TransactionReference tx = null;
 
@@ -65,10 +67,33 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
             selectors.add(FifoCoordinator.newSelector(MzsConstants.Selecting.COUNT_ALL));
             ArrayList<IssueStockRequest> resultEntries = xc.getCapi().take(issuedStocksContainer, selectors, XvsmUtil.ACTION_TIMEOUT, tx);
 
-            // output
-            for (IssueStockRequest isr : resultEntries) {
+            // get container for market values
+            ContainerReference marketValuesContainer = XvsmUtil.getContainer(XvsmUtil.Container.MARKET_VALUES);
 
-                //TODO: PROCESS ISRs!!!!
+            for (IssueStockRequest isr : resultEntries) {
+                // check if stock of company is already in market values container
+                KeyCoordinator.KeySelector marketValueSelector = KeyCoordinator.newSelector(isr.getCompany().getId());
+                ArrayList<Serializable> stockMarketValue = xc.getCapi().read(marketValuesContainer, marketValueSelector, XvsmUtil.ACTION_TIMEOUT, tx);
+
+                if (stockMarketValue != null && stockMarketValue.size() > 0) {
+                    // market value for this company already existing, reject price of ISR and take the price from market value container
+                    Double marketValue = (Double) stockMarketValue.get(0); // there should only be one object associated to the company id as key
+                    isr.setPrice(marketValue);
+                } else {
+                    // stock is new, insert new field for it's market value in market value container
+                    Entry marketValueForStock = new Entry(isr.getPrice(), new CoordinationData() {
+                        @Override
+                        public String getName() {
+                            return isr.getCompany().getId();
+                        }
+                    });
+                    xc.getCapi().write(marketValuesContainer, XvsmUtil.ACTION_TIMEOUT, tx, marketValueForStock);
+                }
+
+                // TODO price of ISR is now adjusted to the market value (not tested); write ISR to another container?
+                // TODO or set a flag in every stock that says "tradeable" and leave it in the company depot?
+                // TODO imo the idea of having a seperate container for that shit wasn't all that stupid after all
+                // TODO (so the broker has to only observe one single container instead of every companies depot) - we rejected that idea IIRC
 
                 System.out.println(isr.toString());
             }

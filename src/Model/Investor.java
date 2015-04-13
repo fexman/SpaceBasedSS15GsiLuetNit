@@ -9,7 +9,6 @@ public class Investor implements Serializable {
 
     private static final long serialVersionUID = -9218736705752854815L;
     private String id;
-    private Double budget;
 
     public Investor(String id) {
 
@@ -19,8 +18,5 @@ public class Investor implements Serializable {
         return id;
     }
 
-    public Double getBudget() {
-        return budget;
-    }
 
 }

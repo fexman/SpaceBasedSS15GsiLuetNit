@@ -34,6 +34,10 @@ public class IssueStockRequest implements Serializable {
         return price;
     }
 
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
     public List<Stock> toStocks() {
         List<Stock> stocks = new ArrayList<>();
         for (int i = 1; i <= amount; i++) {

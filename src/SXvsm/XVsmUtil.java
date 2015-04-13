@@ -16,7 +16,7 @@ import java.util.List;
 
 public class XvsmUtil {
 
-    public static int ACTION_TIMEOUT = 2500;
+    public static final int ACTION_TIMEOUT = 2500;
 
     private static HashMap<Container, ContainerReference> containers = new HashMap<>();
     private static XvsmConnection xc;
@@ -59,7 +59,11 @@ public class XvsmUtil {
         System.out.println("XvsmUtil: Connection initialized - XVSM up and running.");
 
         //Create "hardcoded" containers
-        containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(),  new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR);}}));
+        containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(),
+                new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR); }}));
+        containers.put(Container.TRANSACTION_HISTORY, lookUpOrCreateContainer(Container.TRANSACTION_HISTORY.toString(), xc.getSpace(), xc.getCapi(),  null));
+        containers.put(Container.MARKET_VALUES, lookUpOrCreateContainer(Container.MARKET_VALUES.toString(), xc.getSpace(), xc.getCapi(),
+                new ArrayList<CoordinatorType>() {{ add(CoordinatorType.KEY_COORDINATOR); }}));
 
         return xc;
     }
@@ -81,21 +85,18 @@ public class XvsmUtil {
      * @throws MzsCoreException
      */
     public static ContainerReference getDepot(Company company) throws MzsCoreException {
-        return lookUpOrCreateContainer(Container.DEPOT_TOKEN.toString() + company.getId(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>());
+        return lookUpOrCreateContainer(company.getId() + Container.DEPOT_TOKEN.toString(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
     }
 
     /**
-     * Creates or looks up a investor-stock-depot
+     * Creates or looks up an investor-stock-depot
      * @param investor
      * @return
      * @throws MzsCoreException
      */
     public static ContainerReference getDepot(Investor investor) throws MzsCoreException {
         //TODO: COMPLETE!!! (DEPOT_TOKEN)
-        return lookUpOrCreateContainer(Container.DEPOT_TOKEN.toString(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>() {{
-            add(CoordinatorType.LABEL_COORDINATOR);
-        }});
-
+        return lookUpOrCreateContainer(investor.getId() + Container.DEPOT_TOKEN.toString(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
     }
 
     /**
@@ -131,14 +132,16 @@ public class XvsmUtil {
 
     public enum Container {
         DEPOT_TOKEN("-depot"),
-        ISSUED_STOCK_REQUESTS("issuedStockRequests");
+        ISSUED_STOCK_REQUESTS("issuedStockRequests"),
+        TRANSACTION_HISTORY("transactionHistory"),
+        MARKET_VALUES("marketValues");
 
         private final String text;
 
         /**
          * @param text
          */
-        private Container(final String text) {
+        Container(final String text) {
             this.text = text;
         }
 
