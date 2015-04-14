@@ -1,4 +1,4 @@
-package SInterface;
+package Service;
 
 import Model.IssueStockRequest;
 

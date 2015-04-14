@@ -1,8 +1,8 @@
 package TUI;
 
-import SInterface.ConnectionError;
-import SInterface.IBroker;
-import SXvsm.XvsmBroker;
+import Service.ConnectionError;
+import Service.IBroker;
+import Service.XVSM.XvsmBroker;
 
 /**
  * Created by Felix on 12.04.2015.
@@ -40,7 +40,7 @@ public class TUIBroker {
         try {
             brokerService.startBroking();
         } catch (ConnectionError connectionError) {
-            System.out.println("Error while issuing stocks: " + connectionError.getMessage());
+            System.out.println("Error on startup: " + connectionError.getMessage());
         }
 
         //Terminate connection

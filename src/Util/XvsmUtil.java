@@ -1,4 +1,4 @@
-package SXvsm;
+package Util;
 
 import Model.Company;
 import Model.Investor;
@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Felix on 05.04.2015.
@@ -16,8 +17,9 @@ import java.util.List;
 
 public class XvsmUtil {
 
-    public static final int ACTION_TIMEOUT = 2500;
+    public static final int ACTION_TIMEOUT = 5000;
 
+    private static HashMap<String, TransactionReference> transactions = new HashMap<>();
     private static HashMap<Container, ContainerReference> containers = new HashMap<>();
     private static XvsmConnection xc;
 
@@ -29,16 +31,16 @@ public class XvsmUtil {
      * @return
      * @throws MzsCoreException Thrown if container could neither be looked up, nor created.
      */
-    private static ContainerReference lookUpOrCreateContainer(String containerName, URI space, Capi capi, List<CoordinatorType> types) throws MzsCoreException {
+    private static ContainerReference lookUpOrCreateContainer(String containerName, URI space, Capi capi, TransactionReference tx, List<CoordinatorType> types) throws MzsCoreException {
         ContainerReference cref;
         try {
-            cref = capi.lookupContainer(containerName, space, MzsConstants.RequestTimeout.DEFAULT, null);
+            cref = capi.lookupContainer(containerName, space, MzsConstants.RequestTimeout.DEFAULT, tx);
         } catch (MzsCoreException e) {
             ArrayList<Coordinator> obligatoryCoords = new ArrayList<Coordinator>();
             for (CoordinatorType ct: types) {
                 obligatoryCoords.add(CoordinatorType.getCoordinator(ct));
             }
-            cref = capi.createContainer(containerName, space, MzsConstants.Container.UNBOUNDED, obligatoryCoords, null, null);
+            cref = capi.createContainer(containerName, space, MzsConstants.Container.UNBOUNDED, obligatoryCoords, null, tx);
         }
         return cref;
     }
@@ -59,10 +61,10 @@ public class XvsmUtil {
         System.out.println("XvsmUtil: Connection initialized - XVSM up and running.");
 
         //Create "hardcoded" containers
-        containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(),
+        containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(),null,
                 new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR); }}));
-        containers.put(Container.TRANSACTION_HISTORY, lookUpOrCreateContainer(Container.TRANSACTION_HISTORY.toString(), xc.getSpace(), xc.getCapi(),  null));
-        containers.put(Container.MARKET_VALUES, lookUpOrCreateContainer(Container.MARKET_VALUES.toString(), xc.getSpace(), xc.getCapi(),
+        containers.put(Container.TRANSACTION_HISTORY, lookUpOrCreateContainer(Container.TRANSACTION_HISTORY.toString(), xc.getSpace(), xc.getCapi(),null,  new ArrayList<CoordinatorType>()));
+        containers.put(Container.MARKET_VALUES, lookUpOrCreateContainer(Container.MARKET_VALUES.toString(), xc.getSpace(), xc.getCapi(),null,
                 new ArrayList<CoordinatorType>() {{ add(CoordinatorType.KEY_COORDINATOR); }}));
 
         return xc;
@@ -84,8 +86,8 @@ public class XvsmUtil {
      * @return
      * @throws MzsCoreException
      */
-    public static ContainerReference getDepot(Company company) throws MzsCoreException {
-        return lookUpOrCreateContainer(company.getId() + Container.DEPOT_TOKEN.toString(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
+    public static ContainerReference getDepot(Company company, TransactionReference tx) throws MzsCoreException {
+        return lookUpOrCreateContainer("DEPOT_COMPANY_" + company.getId(), xc.getSpace(), xc.getCapi(), tx, new ArrayList<CoordinatorType>());
     }
 
     /**
@@ -94,9 +96,34 @@ public class XvsmUtil {
      * @return
      * @throws MzsCoreException
      */
-    public static ContainerReference getDepot(Investor investor) throws MzsCoreException {
+    public static ContainerReference getDepot(Investor investor, TransactionReference tx) throws MzsCoreException {
         //TODO: COMPLETE!!! (DEPOT_TOKEN)
-        return lookUpOrCreateContainer(investor.getId() + Container.DEPOT_TOKEN.toString(), xc.getSpace(), xc.getCapi(), new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
+        return lookUpOrCreateContainer("DEPOT_INVESTOR_"+investor.getId(), xc.getSpace(), xc.getCapi(), tx, new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
+    }
+
+    public static String createTransaction() throws MzsCoreException {
+        TransactionReference tx = xc.getCapi().createTransaction(ACTION_TIMEOUT, xc.getSpace());
+        UUID transactionId = UUID.randomUUID();
+        transactions.put(transactionId.toString(), tx);
+        return transactionId.toString();
+    }
+
+    public static TransactionReference getTransaction(String transactionId) {
+        return transactions.get(transactionId);
+    }
+
+    public static void deleteTransaction(String transactionId) {
+        transactions.remove(transactionId);
+    }
+
+    public static void commitTransaction(String transactionId) throws MzsCoreException {
+        xc.getCapi().commitTransaction(getTransaction(transactionId));
+        deleteTransaction(transactionId);
+    }
+
+    public static void rollbackTransaction(String transactionId) throws MzsCoreException {
+        xc.getCapi().rollbackTransaction(getTransaction(transactionId));
+        deleteTransaction(transactionId);
     }
 
     /**
@@ -131,7 +158,6 @@ public class XvsmUtil {
     }
 
     public enum Container {
-        DEPOT_TOKEN("-depot"),
         ISSUED_STOCK_REQUESTS("issuedStockRequests"),
         TRANSACTION_HISTORY("transactionHistory"),
         MARKET_VALUES("marketValues");

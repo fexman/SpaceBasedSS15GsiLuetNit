@@ -1,8 +1,11 @@
-package SXvsm;
+package Service.XVSM;
 
+import MarketEntities.ISRContainer;
+import MarketEntities.XVSM.XvsmISRContainer;
 import Model.IssueStockRequest;
-import SInterface.ConnectionError;
-import SInterface.IBroker;
+import Service.ConnectionError;
+import Service.IBroker;
+import Util.XvsmUtil;
 import org.mozartspaces.capi3.CoordinationData;
 import org.mozartspaces.capi3.FifoCoordinator;
 import org.mozartspaces.capi3.KeyCoordinator;
@@ -24,56 +27,64 @@ import java.util.Set;
  */
 public class XvsmBroker extends XvsmService implements IBroker, NotificationListener {
 
-    private ContainerReference issuedStocksContainer;
+    private ISRContainer isrContainer;
 
     public XvsmBroker(String uri) throws ConnectionError {
         super(uri);
-        this.issuedStocksContainer = XvsmUtil.getContainer(XvsmUtil.Container.ISSUED_STOCK_REQUESTS);
+        this.isrContainer = new XvsmISRContainer();
     }
 
     @Override
     public void startBroking() throws ConnectionError {
-        // Create notification
-        NotificationManager notificationManager = new NotificationManager(xc.getCore());
-        Set<Operation> operations = new HashSet<>();
-        operations.add(Operation.WRITE);
+
+        String transactionId;
 
         try {
-            notificationManager.createNotification(issuedStocksContainer, this, operations, null, null);
-        } catch (Exception e) {
+
+            transactionId = XvsmUtil.createTransaction();
+            takeISRs(transactionId);
+
+            XvsmUtil.commitTransaction(transactionId);
+
+            isrContainer.subscribe(this,null);
+
+        } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
+
     }
 
     @Override
     public void entryOperationFinished(Notification source, Operation operation, List<? extends Serializable> entries) {
+
+        String transactionId;
+
         try {
-            takeISRs();
-        } catch (ConnectionError e) {
+
+            transactionId = XvsmUtil.createTransaction();
+            takeISRs(transactionId);
+
+            XvsmUtil.commitTransaction(transactionId);
+
+        } catch (Exception  e) {
             System.out.println("FATAL: CONNECTION ERROR ON LISTENING.");
         }
     }
 
-    private void takeISRs() throws ConnectionError {
-
-        TransactionReference tx = null;
+    private void takeISRs(String transactionId) throws ConnectionError {
 
         try {
-            //Get company-depot container
-            tx = xc.getCapi().createTransaction(XvsmUtil.ACTION_TIMEOUT, xc.getSpace());
 
-            //Take all existing ISRs
-            ArrayList<Selector> selectors = new ArrayList<>();
-            selectors.add(FifoCoordinator.newSelector(MzsConstants.Selecting.COUNT_ALL));
-            ArrayList<IssueStockRequest> resultEntries = xc.getCapi().take(issuedStocksContainer, selectors, XvsmUtil.ACTION_TIMEOUT, tx);
+
+            List<IssueStockRequest> isrs = isrContainer.takeIssueStockRequests(transactionId);
 
             // get container for market values
             ContainerReference marketValuesContainer = XvsmUtil.getContainer(XvsmUtil.Container.MARKET_VALUES);
 
-            for (final IssueStockRequest isr : resultEntries) {
+            for (final IssueStockRequest isr : isrs) {
                 // check if stock of company is already in market values container
                 KeyCoordinator.KeySelector marketValueSelector = KeyCoordinator.newSelector(isr.getCompany().getId());
-                ArrayList<Serializable> stockMarketValue = xc.getCapi().read(marketValuesContainer, marketValueSelector, XvsmUtil.ACTION_TIMEOUT, tx);
+                ArrayList<Serializable> stockMarketValue = xc.getCapi().read(marketValuesContainer, marketValueSelector, XvsmUtil.ACTION_TIMEOUT, XvsmUtil.getTransaction(transactionId));
 
                 if (stockMarketValue != null && stockMarketValue.size() > 0) {
                     // market value for this company already existing, reject price of ISR and take the price from market value container
@@ -87,7 +98,7 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
                             return isr.getCompany().getId();
                         }
                     });
-                    xc.getCapi().write(marketValuesContainer, XvsmUtil.ACTION_TIMEOUT, tx, marketValueForStock);
+                    xc.getCapi().write(marketValuesContainer, XvsmUtil.ACTION_TIMEOUT, XvsmUtil.getTransaction(transactionId), marketValueForStock);
                 }
 
                 // TODO price of ISR is now adjusted to the market value (not tested); write ISR to another container?
@@ -97,15 +108,9 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
 
                 System.out.println(isr.toString());
             }
-            xc.getCapi().commitTransaction(tx);
 
         } catch (MzsCoreException e) {
-            try {
-                xc.getCapi().rollbackTransaction(tx);
                 throw new ConnectionError(e);
-            } catch (MzsCoreException ex) {
-                throw new ConnectionError(ex);
-            }
         }
     }
 }

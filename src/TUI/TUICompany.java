@@ -1,13 +1,9 @@
 package TUI;
 
 import Model.Company;
-import Model.IssueStockRequest;
-import Model.Stock;
-import SInterface.ConnectionError;
-import SInterface.ICompany;
-import SXvsm.XvsmCompany;
-import SXvsm.XvsmUtil;
-import org.mozartspaces.core.MzsCoreException;
+import Service.ConnectionError;
+import Service.ICompany;
+import Service.XVSM.XvsmCompany;
 
 /**
  * Created by Felix on 06.04.2015.

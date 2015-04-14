@@ -1,7 +1,8 @@
-package SXvsm;
+package Service.XVSM;
 
-import SInterface.ConnectionError;
-import SInterface.Service;
+import Service.ConnectionError;
+import Service.Service;
+import Util.XvsmUtil;
 import org.mozartspaces.core.MzsCoreException;
 
 /**
@@ -21,6 +22,6 @@ public abstract class XvsmService implements Service {
 
     @Override
     public void shutdown() throws ConnectionError {
-        //TODO: Close capi, is it possible/necessary?
+        xc.getCore().shutdown(false);
     }
 }

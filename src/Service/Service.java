@@ -1,4 +1,4 @@
-package SInterface;
+package Service;
 
 /**
  * Created by Felix on 09.04.2015.
