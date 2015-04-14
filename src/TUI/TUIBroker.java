@@ -50,7 +50,6 @@ public class TUIBroker {
             System.out.println("Error while shutting down: " + connectionError.getMessage());
         }
 
-
     }
 
     public static void showUsage() {

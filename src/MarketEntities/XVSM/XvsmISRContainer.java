@@ -39,7 +39,6 @@ public class XvsmISRContainer extends ISRContainer {
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
-
     }
 
     @Override
@@ -50,12 +49,10 @@ public class XvsmISRContainer extends ISRContainer {
         selectors.add(FifoCoordinator.newSelector(MzsConstants.Selecting.COUNT_ALL));
 
         try {
-            ArrayList<IssueStockRequest> isrs = xc.getCapi().take(isrContainer, selectors, MzsConstants.RequestTimeout.ZERO, tx);
-            return isrs;
+            return xc.getCapi().take(isrContainer, selectors, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
-
     }
 
     @Override

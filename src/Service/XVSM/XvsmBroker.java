@@ -36,11 +36,9 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
 
     @Override
     public void startBroking() throws ConnectionError {
-
         String transactionId;
 
         try {
-
             transactionId = XvsmUtil.createTransaction();
             takeISRs(transactionId);
 
@@ -51,7 +49,6 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
-
     }
 
     @Override
@@ -60,12 +57,10 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
         String transactionId;
 
         try {
-
             transactionId = XvsmUtil.createTransaction();
             takeISRs(transactionId);
 
             XvsmUtil.commitTransaction(transactionId);
-
         } catch (Exception  e) {
             System.out.println("FATAL: CONNECTION ERROR ON LISTENING.");
         }
@@ -73,44 +68,43 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
 
     private void takeISRs(String transactionId) throws ConnectionError {
 
-        try {
-
-
+//        try {
             List<IssueStockRequest> isrs = isrContainer.takeIssueStockRequests(transactionId);
 
             // get container for market values
             ContainerReference marketValuesContainer = XvsmUtil.getContainer(XvsmUtil.Container.MARKET_VALUES);
 
             for (final IssueStockRequest isr : isrs) {
-                // check if stock of company is already in market values container
-                KeyCoordinator.KeySelector marketValueSelector = KeyCoordinator.newSelector(isr.getCompany().getId());
-                ArrayList<Serializable> stockMarketValue = xc.getCapi().read(marketValuesContainer, marketValueSelector, XvsmUtil.ACTION_TIMEOUT, XvsmUtil.getTransaction(transactionId));
+//                // check if stock of company is already in market values container
+//                try {
+//                    ArrayList<Entry> stockMarketValue = xc.getCapi().read(marketValuesContainer, KeyCoordinator.newSelector(isr.getCompany().getId()), XvsmUtil.ACTION_TIMEOUT, XvsmUtil.getTransaction(transactionId));
+//                } catch (MzsCoreException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                if (stockMarketValue != null && stockMarketValue.size() > 0) {
+//                    // market value for this company already existing, reject price of ISR and take the price from market value container
+//                    Double marketValue = (Double) stockMarketValue.get(0); // there should only be one object associated to the company id as key
+//                    isr.setPrice(marketValue);
+//                } else {
+//                    // stock is new, insert new field for it's market value in market value container
+//                    Entry marketValueForStock = new Entry(isr.getPrice(), new CoordinationData() {
+//                        @Override
+//                        public String getName() {
+//                            return isr.getCompany().getId();
+//                        }
+//                    });
+//                    xc.getCapi().write(marketValuesContainer, XvsmUtil.ACTION_TIMEOUT, XvsmUtil.getTransaction(transactionId), marketValueForStock);
+//                }
 
-                if (stockMarketValue != null && stockMarketValue.size() > 0) {
-                    // market value for this company already existing, reject price of ISR and take the price from market value container
-                    Double marketValue = (Double) stockMarketValue.get(0); // there should only be one object associated to the company id as key
-                    isr.setPrice(marketValue);
-                } else {
-                    // stock is new, insert new field for it's market value in market value container
-                    Entry marketValueForStock = new Entry(isr.getPrice(), new CoordinationData() {
-                        @Override
-                        public String getName() {
-                            return isr.getCompany().getId();
-                        }
-                    });
-                    xc.getCapi().write(marketValuesContainer, XvsmUtil.ACTION_TIMEOUT, XvsmUtil.getTransaction(transactionId), marketValueForStock);
-                }
-
-                // TODO price of ISR is now adjusted to the market value (not tested); write ISR to another container?
-                // TODO or set a flag in every stock that says "tradeable" and leave it in the company depot?
-                // TODO imo the idea of having a seperate container for that shit wasn't all that stupid after all
-                // TODO (so the broker has to only observe one single container instead of every companies depot) - we rejected that idea IIRC
+                //TODO add order to TRADEABLE_ORDERS container
 
                 System.out.println(isr.toString());
             }
 
-        } catch (MzsCoreException e) {
-                throw new ConnectionError(e);
         }
-    }
+//    catch (MzsCoreException e) {
+//                throw new ConnectionError(e);
+//        }
+//    }
 }
