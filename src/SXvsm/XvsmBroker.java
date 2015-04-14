@@ -70,7 +70,7 @@ public class XvsmBroker extends XvsmService implements IBroker, NotificationList
             // get container for market values
             ContainerReference marketValuesContainer = XvsmUtil.getContainer(XvsmUtil.Container.MARKET_VALUES);
 
-            for (IssueStockRequest isr : resultEntries) {
+            for (final IssueStockRequest isr : resultEntries) {
                 // check if stock of company is already in market values container
                 KeyCoordinator.KeySelector marketValueSelector = KeyCoordinator.newSelector(isr.getCompany().getId());
                 ArrayList<Serializable> stockMarketValue = xc.getCapi().read(marketValuesContainer, marketValueSelector, XvsmUtil.ACTION_TIMEOUT, tx);
