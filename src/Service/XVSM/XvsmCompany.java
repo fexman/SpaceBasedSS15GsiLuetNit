@@ -33,7 +33,6 @@ public class XvsmCompany extends XvsmService implements ICompany {
             //Init transaction
             transactionId = XvsmUtil.createTransaction();
 
-            ContainerReference depotContainer = XvsmUtil.getDepot(isr.getCompany(),XvsmUtil.getTransaction(transactionId));
             DepotCompany depotCompany = new XvsmDepotCompany(isr.getCompany(),transactionId);
 
             //Write to company-depot
