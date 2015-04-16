@@ -2,7 +2,9 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.ISRContainer;
+import MarketEntities.TradeOrdersContainer;
 import Model.IssueStockRequest;
+import Model.TradeOrder;
 
 import java.util.List;
 
@@ -12,18 +14,20 @@ import java.util.List;
 public class Broker extends Service {
 
     private ISRContainer isrContainer;
+    private TradeOrdersContainer tradeOrdersContainer;
 
     public Broker(IFactory factory) {
         super(factory);
         isrContainer = factory.newISRContainer();
+        tradeOrdersContainer = factory.newTradeOrdersContainer();
     }
 
     public void startBroking() throws ConnectionError {
-            takeISRs();
+            takeAndProcessISRs();
             isrContainer.subscribe(factory.newSubscriber(this),null);
     }
 
-    public void takeISRs() throws ConnectionError {
+    public void takeAndProcessISRs() throws ConnectionError {
         String transactionId = null;
         try {
 
@@ -33,7 +37,11 @@ public class Broker extends Service {
                 System.out.println("Got "+isrs.size()+" new ISRs!");
                 for (IssueStockRequest isr : isrs) {
 
+                    //TODO: GET MARKET VALUE INSTEAD OF ISR PRICE DIRECTLY
+                    TradeOrder order = new TradeOrder(isr.getCompany(),isr.getCompany(),isr.getAmount(),isr.getPrice());
+                    tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
                 }
+
             }
 
             factory.commitTransaction(transactionId);

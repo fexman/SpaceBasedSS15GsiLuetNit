@@ -2,8 +2,10 @@ package Factory;
 
 import MarketEntities.DepotCompany;
 import MarketEntities.ISRContainer;
+import MarketEntities.TradeOrdersContainer;
 import MarketEntities.XVSM.XvsmDepotCompany;
 import MarketEntities.XVSM.XvsmISRContainer;
+import MarketEntities.XVSM.XvsmTradeOrdersContainer;
 import Model.Company;
 import Model.Investor;
 import Service.Broker;
@@ -29,6 +31,11 @@ public class XvsmFactory implements IFactory {
     @Override
     public ISRContainer newISRContainer() {
         return new XvsmISRContainer();
+    }
+
+    @Override
+    public TradeOrdersContainer newTradeOrdersContainer() {
+        return new XvsmTradeOrdersContainer();
     }
 
     @Override

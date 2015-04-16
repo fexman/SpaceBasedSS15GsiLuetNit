@@ -21,7 +21,7 @@ public class XvsmSubscriber extends AbstractSubscriber implements NotificationLi
     @Override
     public void entryOperationFinished(Notification source, Operation operation, List<? extends Serializable> entries) {
         try {
-            broker.takeISRs();
+            broker.takeAndProcessISRs();
         } catch (ConnectionError connectionError) {
             System.out.println("FATAL ERROR: TAKEISR THREW CONNECTION ERROR IN SUBSCRIPTION!!!\n"+ connectionError.getMessage());
         }

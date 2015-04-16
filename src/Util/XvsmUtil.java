@@ -65,7 +65,7 @@ public class XvsmUtil {
                 new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR); }}));
         containers.put(Container.TRANSACTION_HISTORY, lookUpOrCreateContainer(Container.TRANSACTION_HISTORY.toString(), xc.getSpace(), xc.getCapi(),null,  new ArrayList<CoordinatorType>()));
         containers.put(Container.TRADE_ORDERS, lookUpOrCreateContainer(Container.TRADE_ORDERS.toString(), xc.getSpace(), xc.getCapi(),null,
-                new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }}));
+                new ArrayList<CoordinatorType>() {{ add(CoordinatorType.QUERY_COORDINATOR); }}));
         containers.put(Container.MARKET_VALUES, lookUpOrCreateContainer(Container.MARKET_VALUES.toString(), xc.getSpace(), xc.getCapi(), null,
                 new ArrayList<CoordinatorType>() {{
                     add(CoordinatorType.KEY_COORDINATOR);
@@ -192,7 +192,8 @@ public class XvsmUtil {
         FIFO_COORDINATOR,
         LIFO_COORDINATOR,
         KEY_COORDINATOR,
-        LABEL_COORDINATOR;
+        LABEL_COORDINATOR,
+        QUERY_COORDINATOR;
 
         public static Coordinator getCoordinator(CoordinatorType type) {
             switch (type) {
@@ -208,6 +209,8 @@ public class XvsmUtil {
                     return new KeyCoordinator();
                 case LABEL_COORDINATOR:
                     return new LabelCoordinator();
+                case QUERY_COORDINATOR:
+                    return new QueryCoordinator();
                 default:
                     return new AnyCoordinator();
             }

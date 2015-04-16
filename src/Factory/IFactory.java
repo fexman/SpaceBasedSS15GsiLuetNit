@@ -2,6 +2,7 @@ package Factory;
 
 import MarketEntities.DepotCompany;
 import MarketEntities.ISRContainer;
+import MarketEntities.TradeOrdersContainer;
 import Model.Company;
 import Model.Investor;
 import Service.Broker;
@@ -15,6 +16,8 @@ public interface IFactory {
     //Static containers + more
 
     ISRContainer newISRContainer();
+
+    TradeOrdersContainer newTradeOrdersContainer();
 
     AbstractSubscriber newSubscriber(Broker broker);
 

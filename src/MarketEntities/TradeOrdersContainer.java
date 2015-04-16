@@ -2,6 +2,7 @@ package MarketEntities;
 
 import Model.Company;
 import Model.TradeOrder;
+import Service.ConnectionError;
 
 import java.util.List;
 
@@ -10,9 +11,9 @@ import java.util.List;
  */
 public abstract class TradeOrdersContainer {
 
-    public abstract void addOrUpdateOrder(TradeOrder order, String transactionId);
+    public abstract void addOrUpdateOrder(TradeOrder order, String transactionId) throws ConnectionError;
 
-    public abstract List<TradeOrder> getOrders(TradeOrder order, String transactionId);
+    public abstract List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws ConnectionError;
 
-    public abstract List<TradeOrder> getAllorders(String transactionId);
+    public abstract List<TradeOrder> getAllorders(String transactionId) throws ConnectionError;
 }
