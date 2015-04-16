@@ -19,10 +19,8 @@ public class Broker extends Service {
     }
 
     public void startBroking() throws ConnectionError {
-
             takeISRs();
             isrContainer.subscribe(factory.newSubscriber(this),null);
-
     }
 
     public void takeISRs() throws ConnectionError {
@@ -31,13 +29,13 @@ public class Broker extends Service {
 
             transactionId = factory.createTransaction();
             List<IssueStockRequest> isrs = isrContainer.takeIssueStockRequests(transactionId);
+            if (isrs.size() > 0) {
+                System.out.println("Got "+isrs.size()+" new ISRs!");
+                for (IssueStockRequest isr : isrs) {
 
-            for (IssueStockRequest isr : isrs) {
-
-                //TODO add order to TRADEABLE_ORDERS container
-
-                System.out.println(isr.toString());
+                }
             }
+
             factory.commitTransaction(transactionId);
         } catch (ConnectionError e) {
             try {

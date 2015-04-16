@@ -12,18 +12,18 @@ public class IssueStockRequest implements Serializable {
 
     private static final long serialVersionUID = 545149035659778572L;
     //TODO Kürzel verwenden, nicht company (company mittels id als Key im Space speichern)
-    private Company company;
+    private String companyId;
     private Double price;
     private Integer amount;
 
     public IssueStockRequest(Company company, Integer amount, Double price) {
-        this.company = company;
+        this.companyId = company.getId();
         this.price = price;
         this.amount = amount;
     }
 
     public Company getCompany() {
-        return company;
+        return new Company(companyId);
     }
 
     public Integer getAmount() {
@@ -41,13 +41,33 @@ public class IssueStockRequest implements Serializable {
     public List<Stock> toStocks() {
         List<Stock> stocks = new ArrayList<>();
         for (int i = 1; i <= amount; i++) {
-            stocks.add(new Stock(getCompany()));
+            stocks.add(new Stock(new Company(companyId)));
         }
         return stocks;
     }
 
     public String toString() {
-        return company.getId()+"-Stocks: #"+amount+" for "+price+",-";
+        return companyId+"-Stocks: #"+amount+" for "+price+",-";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        IssueStockRequest that = (IssueStockRequest) o;
+
+        if (companyId != null ? !companyId.equals(that.companyId) : that.companyId != null) return false;
+        if (price != null ? !price.equals(that.price) : that.price != null) return false;
+        return !(amount != null ? !amount.equals(that.amount) : that.amount != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = companyId != null ? companyId.hashCode() : 0;
+        result = 31 * result + (price != null ? price.hashCode() : 0);
+        result = 31 * result + (amount != null ? amount.hashCode() : 0);
+        return result;
+    }
 }

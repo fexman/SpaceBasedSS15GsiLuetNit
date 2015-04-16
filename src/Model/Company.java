@@ -31,4 +31,20 @@ public class Company implements Serializable {
     public IssueStockRequest createIssueStockRequest(int amount, double price) {
         return new IssueStockRequest(this,amount,price);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Company company = (Company) o;
+
+        return !(id != null ? !id.equals(company.id) : company.id != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }

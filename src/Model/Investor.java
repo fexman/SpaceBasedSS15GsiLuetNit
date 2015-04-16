@@ -11,7 +11,7 @@ public class Investor implements Serializable {
     private String id;
 
     public Investor(String id) {
-
+        this.id = id;
     }
 
     public String getId() {

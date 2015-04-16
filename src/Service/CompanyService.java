@@ -25,7 +25,9 @@ public class CompanyService extends Service {
             //Init transaction
             transactionId = factory.createTransaction();
 
+            //Create containers
             DepotCompany depotCompany = factory.newDepotCompany(isr.getCompany(), transactionId);
+            ISRContainer isrContainer = factory.newISRContainer();
 
             //Write to company-depot
             System.out.print("Writing new stocks to depot ... ");
@@ -34,7 +36,6 @@ public class CompanyService extends Service {
 
             //Issue Stocks
             System.out.print("Writing IS-request to container ... ");
-            ISRContainer isrContainer = factory.newISRContainer();
             isrContainer.addIssueStocksRequest(isr, transactionId);
             System.out.println("done.");
 

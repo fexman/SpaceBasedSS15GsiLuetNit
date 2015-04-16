@@ -41,13 +41,12 @@ public class TUIBroker {
 
         //Issue stocks
         Broker broker = new Broker(factory);
+        System.out.println("Will broke now. Press any key at any time to shutdown.");
         try {
             broker.startBroking();
         } catch (ConnectionError connectionError) {
             System.out.println("Error on startup: " + connectionError.getMessage());
         }
-
-        System.out.println("Will broke now. Press any key at any time to shutdown.");
         try {
             System.in.read();
         } catch (IOException e) {
@@ -55,6 +54,8 @@ public class TUIBroker {
         }
         //Terminate connection
         factory.destroy();
+        //
+        // System.exit(0);
 
     }
 
