@@ -1,45 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="481.0" prefWidth="733.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-   <center>
-      <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <SplitPane dividerPositions="0.7" layoutX="194.0" layoutY="80.0" prefHeight="520.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <SplitPane dividerPositions="0.66" orientation="VERTICAL" prefHeight="598.0" prefWidth="594.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <items>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                           <children>
+                              <TitledPane animated="false" collapsible="false" layoutX="92.0" prefHeight="337.0" prefWidth="553.0" text="Orders" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <content>
+                                    <TableView prefHeight="200.0" prefWidth="200.0">
+                                      <columns>
+                                        <TableColumn prefWidth="75.0" text="C1" />
+                                        <TableColumn prefWidth="75.0" text="C2" />
+                                      </columns>
+                                    </TableView>
+                                 </content>
+                                 <font>
+                                    <Font size="13.0" />
+                                 </font>
+                              </TitledPane>
+                           </children>
+                        </AnchorPane>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                           <children>
+                              <TitledPane animated="false" collapsible="false" layoutX="129.0" layoutY="-14.0" prefHeight="171.0" prefWidth="553.0" text="Stock Prices" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <content>
+                                    <TableView prefHeight="200.0" prefWidth="200.0">
+                                      <columns>
+                                        <TableColumn prefWidth="75.0" text="C1" />
+                                        <TableColumn prefWidth="75.0" text="C2" />
+                                      </columns>
+                                    </TableView>
+                                 </content>
+                                 <font>
+                                    <Font size="13.0" />
+                                 </font>
+                              </TitledPane>
+                           </children>
+                        </AnchorPane>
+                    </items>
+                  </SplitPane>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <TitledPane animated="false" collapsible="false" layoutX="7.0" layoutY="34.0" prefHeight="518.0" prefWidth="235.0" text="History" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <content>
+                        <TableView prefHeight="200.0" prefWidth="200.0">
+                          <columns>
+                            <TableColumn prefWidth="75.0" text="C1" />
+                            <TableColumn prefWidth="75.0" text="C2" />
+                          </columns>
+                        </TableView>
+                     </content>
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </TitledPane>
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+      <Label layoutX="14.0" layoutY="14.0" text="MarketInspector" textFill="#3c3c3c" AnchorPane.leftAnchor="14.0">
+         <font>
+            <Font name="Verdana" size="43.0" />
+         </font>
+      </Label>
+      <HBox layoutX="564.0" layoutY="26.0" prefHeight="29.0" prefWidth="222.0" spacing="7.0" AnchorPane.rightAnchor="14.0">
          <children>
-            <Label text="Orders" />
-            <TableView prefHeight="200.0" prefWidth="472.0">
-              <columns>
-                <TableColumn prefWidth="75.0" text="C1" />
-                <TableColumn prefWidth="75.0" text="C2" />
-              </columns>
-            </TableView>
+            <TextField layoutX="461.0" layoutY="25.0" prefHeight="29.0" prefWidth="148.0" text="xvsm://localhost:12345">
+
+            </TextField>
+            <Button layoutX="722.0" layoutY="25.0" mnemonicParsing="false" text="connect">
+               <font>
+                  <Font size="13.0" />
+               </font>
+            </Button>
          </children>
-      </VBox>
-   </center>
-   <right>
-      <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
-         <children>
-            <Label text="Transaktionen" />
-            <TableView prefHeight="200.0" prefWidth="0.0">
-              <columns>
-                <TableColumn prefWidth="75.0" text="C1" />
-                <TableColumn prefWidth="75.0" text="C2" />
-              </columns>
-            </TableView>
-         </children>
-      </VBox>
-   </right>
-   <bottom>
-      <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
-         <children>
-            <Label text="Aktienkurs" />
-            <TableView prefHeight="200.0" prefWidth="200.0">
-              <columns>
-                <TableColumn prefWidth="75.0" text="C1" />
-                <TableColumn prefWidth="75.0" text="C2" />
-              </columns>
-            </TableView>
-         </children>
-      </VBox>
-   </bottom>
-</BorderPane>
+      </HBox>
+   </children>
+</AnchorPane>
