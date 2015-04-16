@@ -1,7 +1,7 @@
 package MarketEntities.XVSM;
 
-import Factory.AbstractSubscriber;
-import MarketEntities.ISRContainer;
+import Service.Subscribing.IssueStockRequests.AIssueStockRequestSubManager;
+import MarketEntities.IssueStockRequestContainer;
 import Model.IssueStockRequest;
 import Service.ConnectionError;
 import Util.XvsmUtil;
@@ -20,12 +20,12 @@ import java.util.Set;
 /**
  * Created by Felix on 14.04.2015.
  */
-public class XvsmISRContainer extends ISRContainer {
+public class XvsmIssueStockRequestContainer extends IssueStockRequestContainer {
 
     private ContainerReference isrContainer;
     private XvsmUtil.XvsmConnection xc;
 
-    public XvsmISRContainer() {
+    public XvsmIssueStockRequestContainer() {
         isrContainer = XvsmUtil.getContainer(XvsmUtil.Container.ISSUED_STOCK_REQUESTS);
         xc = XvsmUtil.getXvsmConnection();
     }
@@ -56,7 +56,7 @@ public class XvsmISRContainer extends ISRContainer {
     }
 
     @Override
-    public void subscribe(AbstractSubscriber subscriber, String transactionId) throws ConnectionError {
+    public void subscribe(AIssueStockRequestSubManager subscriber, String transactionId) throws ConnectionError {
 
         NotificationManager notificationManager = new NotificationManager(xc.getCore());
         Set<Operation> operations = new HashSet<>();

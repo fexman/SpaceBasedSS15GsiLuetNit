@@ -1,20 +1,21 @@
 package Service;
 
 import Factory.IFactory;
-import MarketEntities.ISRContainer;
-import MarketEntities.TradeOrdersContainer;
+import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.TradeOrderContainer;
 import Model.IssueStockRequest;
 import Model.TradeOrder;
+import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
 
 import java.util.List;
 
 /**
  * Created by Felix on 11.04.2015.
  */
-public class Broker extends Service {
+public class Broker extends Service implements IIssueStockRequestSub{
 
-    private ISRContainer isrContainer;
-    private TradeOrdersContainer tradeOrdersContainer;
+    private IssueStockRequestContainer isrContainer;
+    private TradeOrderContainer tradeOrdersContainer;
 
     public Broker(IFactory factory) {
         super(factory);
@@ -24,7 +25,7 @@ public class Broker extends Service {
 
     public void startBroking() throws ConnectionError {
             takeAndProcessISRs();
-            isrContainer.subscribe(factory.newSubscriber(this),null);
+            isrContainer.subscribe(factory.newIssueStockRequestSubManager(this),null);
     }
 
     public void takeAndProcessISRs() throws ConnectionError {
@@ -54,5 +55,14 @@ public class Broker extends Service {
             }
         }
 
+    }
+
+    @Override
+    public void pushNewISRs(List<IssueStockRequest> newISRs) {
+        try {
+            takeAndProcessISRs();
+        } catch (ConnectionError connectionError) {
+            System.out.println("FATAL ERROR: Connection Error on subscription-PUSH.");
+        }
     }
 }

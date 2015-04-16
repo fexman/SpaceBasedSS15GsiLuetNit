@@ -1,25 +1,33 @@
 package Factory;
 
 import MarketEntities.DepotCompany;
-import MarketEntities.ISRContainer;
-import MarketEntities.TradeOrdersContainer;
+import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.TradeOrderContainer;
 import Model.Company;
 import Model.Investor;
 import Service.Broker;
 import Service.ConnectionError;
+import Service.Subscribing.IssueStockRequests.AIssueStockRequestSubManager;
+import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
+import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
+import Service.Subscribing.TradeOrders.ITradeOrderSub;
 
 /**
  * Created by Felix on 16.04.2015.
  */
 public interface IFactory {
 
-    //Static containers + more
+    //Static containers
 
-    ISRContainer newISRContainer();
+    IssueStockRequestContainer newISRContainer();
 
-    TradeOrdersContainer newTradeOrdersContainer();
+    TradeOrderContainer newTradeOrdersContainer();
 
-    AbstractSubscriber newSubscriber(Broker broker);
+    //Subscription-manager
+
+    AIssueStockRequestSubManager newIssueStockRequestSubManager(IIssueStockRequestSub subscription);
+
+    ATradeOrderSubManager newTradeOrderSubManager(ITradeOrderSub subscription);
 
     //Dynamic containers
 

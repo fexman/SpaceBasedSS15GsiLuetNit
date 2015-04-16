@@ -1,15 +1,21 @@
 package Factory;
 
 import MarketEntities.DepotCompany;
-import MarketEntities.ISRContainer;
-import MarketEntities.TradeOrdersContainer;
+import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.TradeOrderContainer;
 import MarketEntities.XVSM.XvsmDepotCompany;
-import MarketEntities.XVSM.XvsmISRContainer;
+import MarketEntities.XVSM.XvsmIssueStockRequestContainer;
 import MarketEntities.XVSM.XvsmTradeOrdersContainer;
 import Model.Company;
 import Model.Investor;
 import Service.Broker;
 import Service.ConnectionError;
+import Service.Subscribing.IssueStockRequests.AIssueStockRequestSubManager;
+import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
+import Service.Subscribing.IssueStockRequests.XvsmIssueStockRequestSubManager;
+import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
+import Service.Subscribing.TradeOrders.ITradeOrderSub;
+import Service.Subscribing.TradeOrders.XvsmTradeOrderSubManager;
 import Util.XvsmUtil;
 import org.mozartspaces.core.MzsCoreException;
 
@@ -29,18 +35,23 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public ISRContainer newISRContainer() {
-        return new XvsmISRContainer();
+    public IssueStockRequestContainer newISRContainer() {
+        return new XvsmIssueStockRequestContainer();
     }
 
     @Override
-    public TradeOrdersContainer newTradeOrdersContainer() {
+    public TradeOrderContainer newTradeOrdersContainer() {
         return new XvsmTradeOrdersContainer();
     }
 
     @Override
-    public AbstractSubscriber newSubscriber(Broker broker) {
-        return new XvsmSubscriber(broker);
+    public AIssueStockRequestSubManager newIssueStockRequestSubManager(IIssueStockRequestSub subscription) {
+        return new XvsmIssueStockRequestSubManager(subscription);
+    }
+
+    @Override
+    public ATradeOrderSubManager newTradeOrderSubManager(ITradeOrderSub subscription) {
+        return new XvsmTradeOrderSubManager(subscription);
     }
 
     @Override

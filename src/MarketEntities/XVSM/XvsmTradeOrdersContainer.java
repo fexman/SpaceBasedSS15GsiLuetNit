@@ -1,8 +1,9 @@
 package MarketEntities.XVSM;
 
-import MarketEntities.TradeOrdersContainer;
+import MarketEntities.TradeOrderContainer;
 import Model.TradeOrder;
 import Service.ConnectionError;
+import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.Query;
 import org.mozartspaces.capi3.QueryCoordinator;
@@ -11,15 +12,20 @@ import org.mozartspaces.core.ContainerReference;
 import org.mozartspaces.core.Entry;
 import org.mozartspaces.core.MzsCoreException;
 import org.mozartspaces.core.TransactionReference;
+import org.mozartspaces.notifications.NotificationListener;
+import org.mozartspaces.notifications.NotificationManager;
+import org.mozartspaces.notifications.Operation;
 import org.mozartspaces.util.parser.sql.javacc.ParseException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Felix on 16.04.2015.
  */
-public class XvsmTradeOrdersContainer extends TradeOrdersContainer {
+public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
     private ContainerReference tradeOrdersContainer;
     private XvsmUtil.XvsmConnection xc;
@@ -135,7 +141,21 @@ public class XvsmTradeOrdersContainer extends TradeOrdersContainer {
     }
 
     @Override
-    public List<TradeOrder> getAllorders(String transactionId) throws ConnectionError {
+    public List<TradeOrder> getAllOrders(String transactionId) throws ConnectionError {
         return getOrders(new TradeOrder(),transactionId);
+    }
+
+    @Override
+    public void subscribe(ATradeOrderSubManager subscriber, String transactionId) throws ConnectionError {
+        NotificationManager notificationManager = new NotificationManager(xc.getCore());
+        Set<Operation> operations = new HashSet<>();
+        operations.add(Operation.WRITE);
+        operations.add(Operation.TAKE);
+
+        try {
+            notificationManager.createNotification(tradeOrdersContainer, (NotificationListener)subscriber, operations, null, null);
+        } catch (Exception e) {
+            throw new ConnectionError(e);
+        }
     }
 }
