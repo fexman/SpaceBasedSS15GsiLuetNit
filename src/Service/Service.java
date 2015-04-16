@@ -1,9 +1,15 @@
 package Service;
 
+import Factory.IFactory;
+
 /**
  * Created by Felix on 09.04.2015.
  */
-public interface Service {
+public abstract class Service {
 
-    public void shutdown() throws ConnectionError;
+    protected IFactory factory;
+
+    public Service(IFactory factory) {
+        this.factory = factory;
+    }
 }

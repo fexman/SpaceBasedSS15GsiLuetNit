@@ -1,8 +1,8 @@
 package MarketEntities;
 
+import Factory.AbstractSubscriber;
 import Model.IssueStockRequest;
 import Service.ConnectionError;
-import Service.IBroker;
 
 import java.util.List;
 
@@ -15,6 +15,6 @@ public abstract class ISRContainer {
 
     public abstract List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws ConnectionError;
 
-    public abstract void subscribe(IBroker broker, String transactionId) throws ConnectionError;
+    public abstract void subscribe(AbstractSubscriber subscriber, String transactionId) throws ConnectionError;
 
 }

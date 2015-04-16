@@ -1,9 +1,10 @@
 package TUI;
 
+import Factory.IFactory;
+import Factory.XvsmFactory;
 import Model.Company;
+import Service.CompanyService;
 import Service.ConnectionError;
-import Service.ICompany;
-import Service.XVSM.XvsmCompany;
 
 /**
  * Created by Felix on 06.04.2015.
@@ -36,14 +37,14 @@ public class TUICompany {
 
         //Init connection
         Company comp = new Company(args[2]);
-        ICompany compService = null;
+        IFactory factory = null;
         try{
             switch (mode) {
                 case 0:
-                    compService = new XvsmCompany(args[1]);
+                    factory = new XvsmFactory(args[1]);
                     break;
                 case 1:
-                    compService = null;//TODO: RMI SERVICE
+                    factory = null;//TODO: RMI FACTORY
                     break;
                 default: showUsage();
             }
@@ -52,6 +53,7 @@ public class TUICompany {
         }
 
         //Issue stocks
+        CompanyService compService = new CompanyService(factory);
         try {
             compService.issueStocks(comp.createIssueStockRequest(amount,price));
         } catch (ConnectionError connectionError) {
@@ -59,11 +61,7 @@ public class TUICompany {
         }
 
         //Terminate connection
-        try {
-            compService.shutdown();
-        } catch (ConnectionError connectionError) {
-            System.out.println("Error while shutting down: "+connectionError.getMessage());
-        }
+        factory.destroy();
 
     }
 

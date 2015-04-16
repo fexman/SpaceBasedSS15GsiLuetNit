@@ -1,8 +1,11 @@
 package TUI;
 
+import Factory.IFactory;
+import Factory.XvsmFactory;
+import Service.Broker;
 import Service.ConnectionError;
-import Service.IBroker;
-import Service.XVSM.XvsmBroker;
+
+import java.io.IOException;
 
 /**
  * Created by Felix on 12.04.2015.
@@ -21,14 +24,14 @@ public class TUIBroker {
         }
 
         //Init connection
-        IBroker brokerService = null;
+        IFactory factory = null;
         try{
             switch (mode) {
                 case 0:
-                    brokerService = new XvsmBroker(args[1]);
+                    factory = new XvsmFactory(args[1]);
                     break;
                 case 1:
-                    brokerService = null;//TODO: RMI SERVICE
+                    factory = null;//TODO: RMI FACTORY
                     break;
                 default: showUsage();
             }
@@ -37,18 +40,21 @@ public class TUIBroker {
         }
 
         //Issue stocks
+        Broker broker = new Broker(factory);
         try {
-            brokerService.startBroking();
+            broker.startBroking();
         } catch (ConnectionError connectionError) {
             System.out.println("Error on startup: " + connectionError.getMessage());
         }
 
-        //Terminate connection
+        System.out.println("Will broke now. Press any key at any time to shutdown.");
         try {
-            brokerService.shutdown();
-        } catch (ConnectionError connectionError) {
-            System.out.println("Error while shutting down: " + connectionError.getMessage());
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        //Terminate connection
+        factory.destroy();
 
     }
 

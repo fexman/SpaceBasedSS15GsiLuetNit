@@ -1,9 +1,9 @@
 package MarketEntities.XVSM;
 
+import Factory.AbstractSubscriber;
 import MarketEntities.ISRContainer;
 import Model.IssueStockRequest;
 import Service.ConnectionError;
-import Service.IBroker;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.FifoCoordinator;
 import org.mozartspaces.capi3.Selector;
@@ -25,7 +25,7 @@ public class XvsmISRContainer extends ISRContainer {
     private ContainerReference isrContainer;
     private XvsmUtil.XvsmConnection xc;
 
-    public XvsmISRContainer() throws ConnectionError {
+    public XvsmISRContainer() {
         isrContainer = XvsmUtil.getContainer(XvsmUtil.Container.ISSUED_STOCK_REQUESTS);
         xc = XvsmUtil.getXvsmConnection();
     }
@@ -56,14 +56,14 @@ public class XvsmISRContainer extends ISRContainer {
     }
 
     @Override
-    public void subscribe(IBroker broker, String transactionId) throws ConnectionError {
+    public void subscribe(AbstractSubscriber subscriber, String transactionId) throws ConnectionError {
 
         NotificationManager notificationManager = new NotificationManager(xc.getCore());
         Set<Operation> operations = new HashSet<>();
         operations.add(Operation.WRITE);
 
         try {
-            notificationManager.createNotification(isrContainer, (NotificationListener)broker, operations, null, null);
+            notificationManager.createNotification(isrContainer, (NotificationListener)subscriber, operations, null, null);
         } catch (Exception e) {
             throw new ConnectionError(e);
         }
