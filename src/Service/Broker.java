@@ -6,13 +6,14 @@ import MarketEntities.TradeOrderContainer;
 import Model.IssueStockRequest;
 import Model.TradeOrder;
 import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
+import Service.Subscribing.TradeOrders.ITradeOrderSub;
 
 import java.util.List;
 
 /**
  * Created by Felix on 11.04.2015.
  */
-public class Broker extends Service implements IIssueStockRequestSub{
+public class Broker extends Service implements IIssueStockRequestSub, ITradeOrderSub{
 
     private IssueStockRequestContainer isrContainer;
     private TradeOrderContainer tradeOrdersContainer;
@@ -25,7 +26,8 @@ public class Broker extends Service implements IIssueStockRequestSub{
 
     public void startBroking() throws ConnectionError {
             takeAndProcessISRs();
-            isrContainer.subscribe(factory.newIssueStockRequestSubManager(this),null);
+            isrContainer.subscribe(factory.newIssueStockRequestSubManager(this), null);
+            tradeOrdersContainer.subscribe(factory.newTradeOrderSubManager(this),null);
     }
 
     public void takeAndProcessISRs() throws ConnectionError {
@@ -64,5 +66,10 @@ public class Broker extends Service implements IIssueStockRequestSub{
         } catch (ConnectionError connectionError) {
             System.out.println("FATAL ERROR: Connection Error on subscription-PUSH.");
         }
+    }
+
+    @Override
+    public void pushNewTradeOrders(List<TradeOrder> newTradeOrders) {
+            System.out.println("Trade Orders Callback.");
     }
 }

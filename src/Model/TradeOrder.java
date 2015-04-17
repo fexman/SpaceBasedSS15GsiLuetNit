@@ -147,13 +147,14 @@ public class TradeOrder implements Serializable {
     public enum Status {
         //"Real" stati
         OPEN("open"),
-        PARTIALLY_COMPLETED("partiallyCompleted"),
+        PARTIALLY_COMPLETED("partially completed"),
         COMPLETED("completed"),
         DELETED("deleted"),
 
         //For querying
         ANY("any"),
-        NOT_COMPLETED("notCompleted");
+        NOT_COMPLETED("notCompleted"),
+        NOT_DELETED("notDeleted");
 
 
         private final String text;
@@ -175,8 +176,8 @@ public class TradeOrder implements Serializable {
     }
 
     public enum Type {
-        SELL_ORDER("sellOrder"),
-        BUY_ORDER("buyOrder"),
+        SELL_ORDER("SELL"),
+        BUY_ORDER("BUY"),
         ANY("any");
 
         private final String text;

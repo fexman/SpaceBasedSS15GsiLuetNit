@@ -19,6 +19,9 @@ import Service.Subscribing.TradeOrders.XvsmTradeOrderSubManager;
 import Util.XvsmUtil;
 import org.mozartspaces.core.MzsCoreException;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * Created by Felix on 16.04.2015.
  */
@@ -94,5 +97,15 @@ public class XvsmFactory implements IFactory {
     @Override
     public void destroy() {
         xc.getCore().shutdown(true);
+
+        TimerTask shutdownTask = new TimerTask() {
+
+            @Override
+            public void run() {
+                System.exit(0);
+            }
+        };
+        Timer shutdownTimer = new Timer();
+        shutdownTimer.schedule(shutdownTask,250);
     }
 }

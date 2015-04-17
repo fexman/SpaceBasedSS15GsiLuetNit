@@ -21,9 +21,11 @@ public class XvsmTradeOrderSubManager extends ATradeOrderSubManager implements N
 
     @Override
     public void entryOperationFinished(Notification source, Operation operation, List<? extends Serializable> entries) {
-        List<TradeOrder> tradeOrders = new ArrayList<>();
+        List<TradeOrder> newTradeOrders = new ArrayList<>();
         for (Serializable e: entries) {
             TradeOrder to = (TradeOrder)((Entry) e).getValue();
+            newTradeOrders.add(to);
         }
+        subscription.pushNewTradeOrders(newTradeOrders);
     }
 }

@@ -75,21 +75,22 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
         //Query building
         Query query = new Query();
+        System.out.print("[XvsmTradeOrdersContainer] WILL QUERY FOR:");
         try {
             if (order.getId() != null) { //LOOKING FOR SPECIFIC ORDER WITH ID
                     query.sql("id = '"+order.getId()+"'");
-                    System.out.println("WILL QUERY ID");
+                    System.out.print(" ID");
             }
             if (order.getInvestorId() != null) { //LOOKING FOR INVESTORT/TRADER WITH ID XYZ (COMPANY OR INVESTOR)
                 query.sql("investorId = '"+order.getInvestorId()+"'");
-                System.out.println("WILL QUERY INVESTORID");
+                System.out.print(" INVESTORID");
             }
             if (order.getCompanyId() != null) { //LOOKING FOR STOCKS OF COMPANY XYZ
                 query.sql("companyId = '"+order.getCompanyId()+"'");
-                System.out.println("WILL QUERY COMPANYID");
+                System.out.print(" COMPANYID");
             }
             if (order.getPriceLimit() != null) {
-                System.out.println("WILL QUERY PRICELIMIT");
+                System.out.print(" PRICELIMIT");
                 switch (order.getType()) {
                     case BUY_ORDER: //LOOKING FOR BUY ORDER, I AM TRYING TO SELL SOMETHING -> PRICE SHOULD BY ABOVE (OR EQUAL TO) MY LIMIT
                         query.sql("priceLimit >= "+order.getPriceLimit());
@@ -105,27 +106,31 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
             switch (order.getStatus()) { //LOOKING FOR ORDERS WITH STATUS ...
                 case OPEN: // OPEN
                     query.sql("status = "+TradeOrder.Status.OPEN);
-                    System.out.println("WILL QUERY STATUS FOR OPEN");
+                    System.out.print(" STATUS=OPEN");
                     break;
                 case PARTIALLY_COMPLETED: // PARTIALLY COMPLETED
                     query.sql("status = "+TradeOrder.Status.PARTIALLY_COMPLETED);
-                    System.out.println("WILL QUERY STATUS FOR PARTIALLY COMPLETED");
+                    System.out.print(" STATUS=PARTIALLY_COMPLETED");
                     break;
                 case NOT_COMPLETED: //OPEN OR PARTIALLY COMPLETED
                     query.sql("status = "+TradeOrder.Status.OPEN+" OR status = "+TradeOrder.Status.PARTIALLY_COMPLETED);
-                    System.out.println("WILL QUERY STATUS FOR OPEN OR PARTIALLY COMPLETED");
+                    System.out.print(" STATUS=NOT_COMPLETED");
                     break;
                 case COMPLETED: // COMPLETED
                     query.sql("status = "+TradeOrder.Status.COMPLETED);
-                    System.out.println("WILL QUERY STATUS FOR COMPLETED");
+                    System.out.print(" STATUS=COMPLETED");
                     break;
                 case DELETED: // DELETED
                     query.sql("status = "+TradeOrder.Status.DELETED);
-                    System.out.println("WILL QUERY STATUS FOR DELETED");
+                    System.out.print(" STATUS=DELETED");
                     break;
+                case NOT_DELETED: //EVERYTHING EXCEPT DELETED
+                    query.sql("status <> "+TradeOrder.Status.DELETED);
+                    System.out.print(" STATUS=NOT_DELETED");
                 case ANY: // I DONT CARE, GIVE ME ALL OF THEM
                     break;
             }
+            System.out.print("\n");
         } catch (ParseException e) {
             System.out.println("Parse Exception on SQL-query while get order by template: " + e.getMessage());
             return new ArrayList<>();
@@ -150,7 +155,6 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
         NotificationManager notificationManager = new NotificationManager(xc.getCore());
         Set<Operation> operations = new HashSet<>();
         operations.add(Operation.WRITE);
-        operations.add(Operation.TAKE);
 
         try {
             notificationManager.createNotification(tradeOrdersContainer, (NotificationListener)subscriber, operations, null, null);
