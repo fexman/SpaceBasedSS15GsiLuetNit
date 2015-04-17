@@ -14,6 +14,8 @@ public class Main extends Application {
         Parent root = (Parent)fxmlLoader.load();
         Controller controller = (Controller)fxmlLoader.getController();
         controller.addShutdownHook(primaryStage);
+        primaryStage.setMinWidth(785d);
+        primaryStage.setMinHeight(500d);
         primaryStage.setTitle("MarketInspector");
         primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.show();
