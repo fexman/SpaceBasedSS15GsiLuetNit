@@ -2,9 +2,11 @@ package Factory;
 
 import MarketEntities.DepotCompany;
 import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
 import MarketEntities.XVSM.XvsmDepotCompany;
 import MarketEntities.XVSM.XvsmIssueStockRequestContainer;
+import MarketEntities.XVSM.XvsmStockPricesContainer;
 import MarketEntities.XVSM.XvsmTradeOrdersContainer;
 import Model.Company;
 import Model.Investor;
@@ -13,6 +15,9 @@ import Service.ConnectionError;
 import Service.Subscribing.IssueStockRequests.AIssueStockRequestSubManager;
 import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
 import Service.Subscribing.IssueStockRequests.XvsmIssueStockRequestSubManager;
+import Service.Subscribing.MarketValues.AStockPricesSubManager;
+import Service.Subscribing.MarketValues.IStockPricesSub;
+import Service.Subscribing.MarketValues.XvsmStockPricesSubManager;
 import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
 import Service.Subscribing.TradeOrders.ITradeOrderSub;
 import Service.Subscribing.TradeOrders.XvsmTradeOrderSubManager;
@@ -48,6 +53,11 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
+    public StockPricesContainer newStockPricesContainer() {
+        return new XvsmStockPricesContainer();
+    }
+
+    @Override
     public AIssueStockRequestSubManager newIssueStockRequestSubManager(IIssueStockRequestSub subscription) {
         return new XvsmIssueStockRequestSubManager(subscription);
     }
@@ -55,6 +65,11 @@ public class XvsmFactory implements IFactory {
     @Override
     public ATradeOrderSubManager newTradeOrderSubManager(ITradeOrderSub subscription) {
         return new XvsmTradeOrderSubManager(subscription);
+    }
+
+    @Override
+    public AStockPricesSubManager newStockPricesSubManager(IStockPricesSub subscription) {
+        return new XvsmStockPricesSubManager(subscription);
     }
 
     @Override

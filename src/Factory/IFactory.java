@@ -2,6 +2,7 @@ package Factory;
 
 import MarketEntities.DepotCompany;
 import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
 import Model.Company;
 import Model.Investor;
@@ -9,6 +10,8 @@ import Service.Broker;
 import Service.ConnectionError;
 import Service.Subscribing.IssueStockRequests.AIssueStockRequestSubManager;
 import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
+import Service.Subscribing.MarketValues.AStockPricesSubManager;
+import Service.Subscribing.MarketValues.IStockPricesSub;
 import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
 import Service.Subscribing.TradeOrders.ITradeOrderSub;
 
@@ -23,11 +26,15 @@ public interface IFactory {
 
     TradeOrderContainer newTradeOrdersContainer();
 
+    StockPricesContainer newStockPricesContainer();
+
     //Subscription-manager
 
     AIssueStockRequestSubManager newIssueStockRequestSubManager(IIssueStockRequestSub subscription);
 
     ATradeOrderSubManager newTradeOrderSubManager(ITradeOrderSub subscription);
+
+    AStockPricesSubManager newStockPricesSubManager(IStockPricesSub subscription);
 
     //Dynamic containers
 

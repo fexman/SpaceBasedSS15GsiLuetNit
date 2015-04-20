@@ -33,6 +33,11 @@ public class Company implements Serializable {
     }
 
     @Override
+    public String toString() {
+        return "Company: "+id;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

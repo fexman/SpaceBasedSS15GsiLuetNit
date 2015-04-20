@@ -16,7 +16,7 @@ public abstract class StockPricesContainer {
 
     public abstract MarketValue getMarketValue(Company comp, String transactionId) throws ConnectionError;
 
-    public abstract List<MarketValue> getStockPrices(String transactionId) throws ConnectionError;
+    public abstract List<MarketValue> getAll(String transactionId) throws ConnectionError;
 
     public abstract void subscribe(AStockPricesSubManager subscriber, String transactionId) throws ConnectionError;
 }

@@ -2,8 +2,10 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
 import Model.IssueStockRequest;
+import Model.MarketValue;
 import Model.TradeOrder;
 import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
 import Service.Subscribing.TradeOrders.ITradeOrderSub;
@@ -17,11 +19,13 @@ public class Broker extends Service implements IIssueStockRequestSub, ITradeOrde
 
     private IssueStockRequestContainer isrContainer;
     private TradeOrderContainer tradeOrdersContainer;
+    private StockPricesContainer stockPricesContainer;
 
     public Broker(IFactory factory) {
         super(factory);
         isrContainer = factory.newISRContainer();
         tradeOrdersContainer = factory.newTradeOrdersContainer();
+        stockPricesContainer = factory.newStockPricesContainer();
     }
 
     public void startBroking() throws ConnectionError {
@@ -36,18 +40,27 @@ public class Broker extends Service implements IIssueStockRequestSub, ITradeOrde
 
             transactionId = factory.createTransaction();
             List<IssueStockRequest> isrs = isrContainer.takeIssueStockRequests(transactionId);
+            
             if (isrs.size() > 0) {
-                System.out.println("Got "+isrs.size()+" new ISRs!");
-                for (IssueStockRequest isr : isrs) {
+                System.out.println("Got " + isrs.size() + " new ISRs!");
+                for (IssueStockRequest isr : isrs) { //PROCESS NEW ISRS
 
-                    //TODO: GET MARKET VALUE INSTEAD OF ISR PRICE DIRECTLY
+                    //Set market Value if new stocks
+                    MarketValue mw = stockPricesContainer.getMarketValue(isr.getCompany(),transactionId);
+                    if (mw == null){
+                        System.out.println("Setting new marketValue for "+isr.getCompany()+" on ISR-price.");
+                        mw = new MarketValue(isr.getCompany(),isr.getPrice());
+                        stockPricesContainer.addOrUpdateMarketValue(mw,transactionId);
+                    }
+
+                    //Create Trade Order
                     TradeOrder order = new TradeOrder(isr.getCompany(),isr.getCompany(),isr.getAmount(),isr.getPrice());
                     tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
                 }
-
             }
 
             factory.commitTransaction(transactionId);
+
         } catch (ConnectionError e) {
             try {
                 factory.rollbackTransaction(transactionId);
