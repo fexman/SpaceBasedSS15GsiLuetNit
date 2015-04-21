@@ -54,7 +54,7 @@ public class XvsmUtil {
     public static XvsmConnection initConnection(String spaceUri) throws MzsCoreException {
 
         if (xc != null) {
-            return getXvsmConnection();
+            xc.getCore().shutdown(false);
         }
 
         xc = new XvsmConnection(spaceUri);
