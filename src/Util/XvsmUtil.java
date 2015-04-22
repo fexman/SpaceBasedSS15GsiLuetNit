@@ -101,8 +101,7 @@ public class XvsmUtil {
      * @throws MzsCoreException
      */
     public static ContainerReference getDepot(Investor investor, TransactionReference tx) throws MzsCoreException {
-        //TODO: COMPLETE!!! (DEPOT_TOKEN)
-        return lookUpOrCreateContainer("DEPOT_INVESTOR_"+investor.getId(), xc.getSpace(), xc.getCapi(), tx, new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
+        return lookUpOrCreateContainer("DEPOT_INVESTOR_" + investor.getId(), xc.getSpace(), xc.getCapi(), tx, new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
     }
 
     public static String createTransaction() throws MzsCoreException {

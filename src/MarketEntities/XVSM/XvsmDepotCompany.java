@@ -5,10 +5,8 @@ import Model.Company;
 import Model.Stock;
 import Service.ConnectionError;
 import Util.XvsmUtil;
-import org.mozartspaces.core.ContainerReference;
-import org.mozartspaces.core.Entry;
-import org.mozartspaces.core.MzsCoreException;
-import org.mozartspaces.core.TransactionReference;
+import org.mozartspaces.capi3.AnyCoordinator;
+import org.mozartspaces.core.*;
 
 import java.util.List;
 
@@ -38,13 +36,25 @@ public class XvsmDepotCompany extends DepotCompany {
     @Override
     public List<Stock> takeStocks(int amount, String transactionId) throws ConnectionError {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
-        return null;
+
+        AnyCoordinator.AnySelector selector = AnyCoordinator.newSelector(amount);
+        try {
+            return xc.getCapi().take(companyDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx);
+        } catch (MzsCoreException e) {
+            throw new ConnectionError(e);
+        }
     }
 
     @Override
     public int getTotalAmountOfStocks(String transactionId) throws ConnectionError {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
-        return 0;
+
+        AnyCoordinator.AnySelector selector = AnyCoordinator.newSelector(MzsConstants.Selecting.COUNT_MAX);
+        try {
+            return xc.getCapi().read(companyDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx).size();
+        } catch (MzsCoreException e) {
+            throw new ConnectionError(e);
+        }
     }
 
     @Override

@@ -30,13 +30,13 @@
                   <HBox prefHeight="36.0" prefWidth="510.0">
                      <children>
                         <Label prefHeight="30.0" prefWidth="180.0" text="Verfügbarer Betrag:" />
-                        <TextField editable="false" prefHeight="0.0" prefWidth="69.0" />
+                        <TextField id="txtBudget" editable="false" prefHeight="0.0" prefWidth="69.0" />
                         <Label prefHeight="30.0" prefWidth="9.0" text="€">
                            <HBox.margin>
                               <Insets left="5.0" />
                            </HBox.margin>
                         </Label>
-                        <Button mnemonicParsing="false" prefHeight="36.0" prefWidth="92.0" text="bearbeiten">
+                        <Button id="btnEditBudget" mnemonicParsing="false" prefHeight="36.0" prefWidth="92.0" text="bearbeiten">
                            <opaqueInsets>
                               <Insets />
                            </opaqueInsets>
@@ -50,7 +50,7 @@
                   <HBox prefHeight="37.0" prefWidth="510.0">
                      <children>
                         <Label prefHeight="30.0" prefWidth="180.0" text="Gesamtwert aller Aktien:" />
-                        <TextField editable="false" prefHeight="0.0" prefWidth="69.0" />
+                        <TextField id="txtTotalStockValue" editable="false" prefHeight="0.0" prefWidth="69.0" />
                         <Label prefHeight="30.0" prefWidth="9.0" text="€">
                            <opaqueInsets>
                               <Insets />
@@ -61,7 +61,7 @@
                         </Label>
                      </children>
                   </HBox>
-                  <TableView prefHeight="213.0" prefWidth="510.0">
+                  <TableView id="tabStocks" prefHeight="213.0" prefWidth="510.0">
                     <columns>
                       <TableColumn prefWidth="106.0" text="Aktienkürzel" />
                       <TableColumn prefWidth="84.0" text="Anzahl" />
@@ -73,10 +73,10 @@
                   <HBox prefHeight="40.0" prefWidth="510.0">
                      <children>
                         <Label prefHeight="29.0" prefWidth="480.0" text="Offene Orders:" />
-                        <Button contentDisplay="RIGHT" mnemonicParsing="false" text="+" />
+                        <Button id="btnAddOrder" contentDisplay="RIGHT" mnemonicParsing="false" text="+" />
                      </children>
                   </HBox>
-                  <TableView prefHeight="200.0" prefWidth="200.0">
+                  <TableView id="tabOrders" prefHeight="200.0" prefWidth="200.0">
                     <columns>
                       <TableColumn prefWidth="75.0" text="ID" />
                       <TableColumn prefWidth="75.0" text="Art" />

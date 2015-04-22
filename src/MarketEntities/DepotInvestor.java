@@ -18,6 +18,10 @@ public abstract class DepotInvestor extends Depot {
         this.investor = investor;
     }
 
+    public Investor getInvestor() {
+        return investor;
+    }
+
     public abstract double getBudget(String transactionId) throws ConnectionError;
 
     public abstract void setBudget(double amount, String transactionId) throws ConnectionError;
