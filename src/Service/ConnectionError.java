@@ -7,6 +7,10 @@ public class ConnectionError extends Exception {
 
     private Exception e;
 
+    public ConnectionError(String message) {
+        e = new Exception(message);
+    }
+
     public ConnectionError(Exception e) {
         this.e = e;
     }

@@ -1,6 +1,7 @@
 package TUI;
 
 import Factory.IFactory;
+import Factory.RmiFactory;
 import Factory.XvsmFactory;
 import Model.Company;
 import Service.CompanyService;
@@ -44,12 +45,14 @@ public class TUICompany {
                     factory = new XvsmFactory(args[1]);
                     break;
                 case 1:
-                    factory = null;//TODO: RMI FACTORY
+                    factory = new RmiFactory(args[1]);
                     break;
                 default: showUsage();
             }
         } catch (ConnectionError connectionError) {
             System.out.println("Error while connecting: "+connectionError.getMessage());
+            connectionError.printStackTrace();
+            System.exit(0);
         }
 
         //Issue stocks
