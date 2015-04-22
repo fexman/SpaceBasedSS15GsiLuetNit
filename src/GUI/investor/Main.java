@@ -10,9 +10,14 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("investor.fxml"));
-        primaryStage.setTitle("Anleger");
-        primaryStage.setScene(new Scene(root, 300, 275));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("investor.fxml"));
+        Parent root = fxmlLoader.load();
+        Controller controller = fxmlLoader.getController();
+        controller.addShutdownHook(primaryStage);
+        primaryStage.setMinWidth(785d);
+        primaryStage.setMinHeight(500d);
+        primaryStage.setTitle("Investor");
+        primaryStage.setScene(new Scene(root, 530, 575));
         primaryStage.show();
     }
 
