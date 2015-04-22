@@ -165,7 +165,9 @@ public class XvsmUtil {
         ISSUED_STOCK_REQUESTS("issuedStockRequests"),
         TRANSACTION_HISTORY("transactionHistory"),
         STOCK_PRICES("stockPrices"),
-        TRADE_ORDERS("tradeOrders");
+        TRADE_ORDERS("tradeOrders"),
+        DEPOT_COMPANY_TOKEN("depot_company_"),
+        DEPOT_INVESTOR_TOKEN("depot_investor_");
 
         private final String text;
 

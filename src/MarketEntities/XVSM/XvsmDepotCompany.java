@@ -22,6 +22,10 @@ public class XvsmDepotCompany extends DepotCompany {
 
     public XvsmDepotCompany(Company comp, String transactionId) throws ConnectionError {
         super(comp, transactionId);
+
+        //Setting Depot-name
+        this.depotName = XvsmUtil.Container.DEPOT_COMPANY_TOKEN.toString()+comp.getId();
+
         xc = XvsmUtil.getXvsmConnection();
         try {
             TransactionReference tx = XvsmUtil.getTransaction(transactionId);
