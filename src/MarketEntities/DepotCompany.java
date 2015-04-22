@@ -14,7 +14,6 @@ public abstract class DepotCompany extends Depot {
     private Company comp;
 
     public DepotCompany(Company comp, String transactionId) throws ConnectionError {
-        depotName = "DEPOT_COMPANY_"+comp.getId();
         this.comp = comp;
     }
 

@@ -1,5 +1,6 @@
 package MarketEntities;
 
+import Model.Company;
 import Model.Investor;
 import Model.Stock;
 import Service.ConnectionError;
@@ -14,7 +15,6 @@ public abstract class DepotInvestor extends Depot {
     private Investor investor;
 
     public DepotInvestor(Investor investor, String transactionId) throws ConnectionError {
-        this.depotName = "DEPOT_INVESTOR_" + investor.getId();
         this.investor = investor;
     }
 
@@ -26,7 +26,7 @@ public abstract class DepotInvestor extends Depot {
         setBudget(getBudget(transactionId) + amount, transactionId);
     }
 
-    public abstract List<Stock> takeStocks(String stockName, int amount, String transactionId) throws ConnectionError;
+    public abstract List<Stock> takeStocks(Company comp, int amount, String transactionId) throws ConnectionError;
 
     public abstract int getStockAmount(String stockName, String transactionId) throws ConnectionError;
 
