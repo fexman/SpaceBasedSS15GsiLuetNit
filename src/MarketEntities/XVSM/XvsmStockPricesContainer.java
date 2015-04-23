@@ -1,10 +1,11 @@
 package MarketEntities.XVSM;
 
 import MarketEntities.StockPricesContainer;
+import MarketEntities.Subscribing.ASubManager;
 import Model.Company;
 import Model.MarketValue;
 import Service.ConnectionError;
-import Service.Subscribing.MarketValues.AStockPricesSubManager;
+import Util.Container;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.CoordinationData;
 import org.mozartspaces.capi3.FifoCoordinator;
@@ -28,7 +29,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
     private XvsmUtil.XvsmConnection xc;
 
     public XvsmStockPricesContainer() {
-        stockPricesContainer = XvsmUtil.getContainer(XvsmUtil.Container.STOCK_PRICES);
+        stockPricesContainer = XvsmUtil.getContainer(Container.STOCK_PRICES);
         xc = XvsmUtil.getXvsmConnection();
     }
 
@@ -85,7 +86,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
     }
 
     @Override
-    public void subscribe(AStockPricesSubManager subscriber, String transactionId) throws ConnectionError {
+    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
         NotificationManager notificationManager = new NotificationManager(xc.getCore());
         Set<Operation> operations = new HashSet<>();
         operations.add(Operation.WRITE);

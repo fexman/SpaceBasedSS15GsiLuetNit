@@ -4,6 +4,7 @@ import MarketEntities.DepotCompany;
 import Model.Company;
 import Model.Stock;
 import Service.ConnectionError;
+import Util.Container;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.AnyCoordinator;
 import org.mozartspaces.core.*;
@@ -22,7 +23,7 @@ public class XvsmDepotCompany extends DepotCompany {
         super(comp, transactionId);
 
         //Setting Depot-name
-        this.depotName = XvsmUtil.Container.DEPOT_COMPANY_TOKEN.toString()+comp.getId();
+        this.depotName = Container.DEPOT_COMPANY_TOKEN.toString()+comp.getId();
 
         xc = XvsmUtil.getXvsmConnection();
         try {

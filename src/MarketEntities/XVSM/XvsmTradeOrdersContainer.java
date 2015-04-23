@@ -1,9 +1,10 @@
 package MarketEntities.XVSM;
 
+import MarketEntities.Subscribing.ASubManager;
 import MarketEntities.TradeOrderContainer;
 import Model.TradeOrder;
 import Service.ConnectionError;
-import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
+import Util.Container;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.Query;
 import org.mozartspaces.capi3.QueryCoordinator;
@@ -31,7 +32,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
     private XvsmUtil.XvsmConnection xc;
 
     public XvsmTradeOrdersContainer() {
-        tradeOrdersContainer = XvsmUtil.getContainer(XvsmUtil.Container.TRADE_ORDERS);
+        tradeOrdersContainer = XvsmUtil.getContainer(Container.TRADE_ORDERS);
         xc = XvsmUtil.getXvsmConnection();
     }
 
@@ -151,7 +152,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
     }
 
     @Override
-    public void subscribe(ATradeOrderSubManager subscriber, String transactionId) throws ConnectionError {
+    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
         NotificationManager notificationManager = new NotificationManager(xc.getCore());
         Set<Operation> operations = new HashSet<>();
         operations.add(Operation.WRITE);

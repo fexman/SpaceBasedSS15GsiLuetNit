@@ -4,6 +4,7 @@ package RMIServer;
 import Model.Company;
 import RMIServer.EntityHandler.IDepotCompanyHandler;
 import RMIServer.EntityHandler.IIssueStockRequestContainerHandler;
+import RMIServer.EntityHandler.ITradeOrderContainerHandler;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -14,6 +15,8 @@ import java.rmi.RemoteException;
 public interface IRmiServer extends Remote {
 
     IIssueStockRequestContainerHandler getIssueStockRequestContainer() throws RemoteException;
+
+    ITradeOrderContainerHandler getTradeOrderContainer() throws RemoteException;
 
     IDepotCompanyHandler getDepotCompanyHandler(Company company) throws RemoteException;
 }

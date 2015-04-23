@@ -1,15 +1,16 @@
 package MarketEntities;
 
+import MarketEntities.XVSM.ISubscribeable;
 import Model.TradeOrder;
 import Service.ConnectionError;
-import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
+import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
 
 import java.util.List;
 
 /**
  * Created by Felix on 16.04.2015.
  */
-public abstract class TradeOrderContainer {
+public abstract class TradeOrderContainer implements ISubscribeable {
 
     public abstract void addOrUpdateOrder(TradeOrder order, String transactionId) throws ConnectionError;
 
@@ -17,5 +18,4 @@ public abstract class TradeOrderContainer {
 
     public abstract List<TradeOrder> getAllOrders(String transactionId) throws ConnectionError;
 
-    public abstract void subscribe(ATradeOrderSubManager subscriber, String transactionId) throws ConnectionError;
 }

@@ -1,10 +1,7 @@
 package RMIServer;
 
 import Model.Company;
-import RMIServer.EntityHandler.DepotCompanyHandler;
-import RMIServer.EntityHandler.IDepotCompanyHandler;
-import RMIServer.EntityHandler.IIssueStockRequestContainerHandler;
-import RMIServer.EntityHandler.IssueStockRequestContainerHandler;
+import RMIServer.EntityHandler.*;
 import Util.RmiUtil;
 
 import java.io.IOException;
@@ -23,11 +20,13 @@ public class RmiServer extends Thread implements IRmiServer {
     private Registry registry;
     private HashMap<Company,IDepotCompanyHandler> companyDepots;
     private IIssueStockRequestContainerHandler isrContainerHandler;
+    private ITradeOrderContainerHandler tradeOrderContainerHandler;
 
     public RmiServer(int port) {
         this.port = port;
 
         isrContainerHandler = new IssueStockRequestContainerHandler();
+        tradeOrderContainerHandler = new TradeOrderContainerHandler();
         companyDepots = new HashMap<>();
 
     }
@@ -43,6 +42,7 @@ public class RmiServer extends Thread implements IRmiServer {
 
             //Export handlers
             UnicastRemoteObject.exportObject(isrContainerHandler, 0);
+            UnicastRemoteObject.exportObject(tradeOrderContainerHandler, 0);
 
         } catch (Exception e) {
             System.out.println("Error on startup: "+e.getMessage());
@@ -60,6 +60,7 @@ public class RmiServer extends Thread implements IRmiServer {
 
             //Unexport handlers
             UnicastRemoteObject.unexportObject(isrContainerHandler,true);
+            UnicastRemoteObject.unexportObject(tradeOrderContainerHandler,true);
 
             //Unexport depots
             for (IDepotCompanyHandler iDepotCompanyHandler : companyDepots.values()) {
@@ -77,9 +78,15 @@ public class RmiServer extends Thread implements IRmiServer {
     }
 
 
+
     @Override
     public IIssueStockRequestContainerHandler getIssueStockRequestContainer() {
         return isrContainerHandler;
+    }
+
+    @Override
+    public ITradeOrderContainerHandler getTradeOrderContainer() {
+        return tradeOrderContainerHandler;
     }
 
     public IDepotCompanyHandler getDepotCompanyHandler (Company company) throws RemoteException{

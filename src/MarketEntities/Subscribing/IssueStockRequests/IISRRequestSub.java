@@ -1,5 +1,6 @@
-package Service.Subscribing.IssueStockRequests;
+package MarketEntities.Subscribing.IssueStockRequests;
 
+import MarketEntities.Subscribing.Subscription;
 import Model.IssueStockRequest;
 
 import java.util.List;
@@ -7,7 +8,8 @@ import java.util.List;
 /**
  * Created by Felix on 16.04.2015.
  */
-public interface IIssueStockRequestSub {
+public interface IISRRequestSub extends Subscription {
 
     void pushNewISRs(List<IssueStockRequest> newISRs);
+
 }
