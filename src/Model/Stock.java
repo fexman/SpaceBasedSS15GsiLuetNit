@@ -1,10 +1,13 @@
 package Model;
 
+import org.mozartspaces.capi3.Queryable;
+
 import java.io.Serializable;
 
 /**
  * Created by Felix on 06.04.2015.
  */
+@Queryable(autoindex = true)
 public class Stock implements Serializable {
 
     private static final long serialVersionUID = 7338860624387847800L;

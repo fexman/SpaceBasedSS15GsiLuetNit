@@ -1,18 +1,19 @@
 package GUI.investor;
 
 import Factory.IFactory;
+import Factory.XvsmFactory;
 import MarketEntities.TradeOrderContainer;
 import Model.Stock;
 import Model.TradeOrder;
+import Service.ConnectionError;
 import Service.Subscribing.TradeOrders.ITradeOrderSub;
 import Util.XvsmUtil;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -31,6 +32,8 @@ public class Controller implements ITradeOrderSub {
     @FXML
     private TextField txtUsername;
     @FXML
+    private ComboBox<String> protocolField;
+    @FXML
     private Button btnLogin;
     @FXML
     private TextField txtBudget;
@@ -41,13 +44,48 @@ public class Controller implements ITradeOrderSub {
     @FXML
     private TableView<Stock> tabStocks;
     @FXML
+    private TableColumn colStockId;
+    @FXML
+    private TableColumn colStockCount;
+    @FXML
+    private TableColumn colStockMarketValue;
+    @FXML
+    private TableColumn colStockValue;
+    @FXML
     private Button btnAddOrder;
     @FXML
     private TableView<TradeOrder> tabOrders;
+    @FXML
+    private TableColumn colOrderId;
+    @FXML
+    private TableColumn colOrderType;
+    @FXML
+    private TableColumn colOrderStockId;
+    @FXML
+    private TableColumn colOrderOrderLimit;
+    @FXML
+    private TableColumn colOrderOpenAmount;
 
     public Controller() {
         ORDER_FILTER = new TradeOrder();
         ORDER_FILTER.setStatus(TradeOrder.Status.NOT_DELETED);
+    }
+
+    @FXML
+    private void initialize() {
+        ObservableList<String> protocols = FXCollections.observableArrayList();
+        protocols.add("XVSM");
+        protocols.add("RMI");
+        protocolField.setItems(protocols);
+        protocolField.setValue(protocols.get(0));
+
+        // stocks table
+
+
+        // orders table
+    }
+
+    private void populateStocksTable() {
     }
 
     @Override
@@ -60,7 +98,7 @@ public class Controller implements ITradeOrderSub {
     }
 
     private void loginButtonClicked() {
-        // TODO check input; when user with given id is new
+
     }
 
     private void addOrderButtonClicked() {

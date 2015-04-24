@@ -18,6 +18,11 @@
                         <Insets left="10.0" />
                      </HBox.margin>
                   </TextField>
+                  <ComboBox id="protocolField" prefHeight="31.0" prefWidth="83.0">
+                     <HBox.margin>
+                        <Insets left="5.0" />
+                     </HBox.margin>
+                  </ComboBox>
                   <Button id="btnLogin" mnemonicParsing="false" text="Los">
                      <HBox.margin>
                         <Insets left="5.0" />
@@ -63,10 +68,10 @@
                   </HBox>
                   <TableView id="tabStocks" prefHeight="213.0" prefWidth="510.0">
                     <columns>
-                      <TableColumn prefWidth="106.0" text="Aktienkürzel" />
-                      <TableColumn prefWidth="84.0" text="Anzahl" />
-                        <TableColumn prefWidth="84.0" text="Kurs" />
-                        <TableColumn prefWidth="129.0" text="Wert" />
+                      <TableColumn id="colStockId" prefWidth="106.0" text="Aktienkürzel" />
+                      <TableColumn id="colStockCount" prefWidth="84.0" text="Anzahl" />
+                        <TableColumn id="colStockMarketValue" prefWidth="84.0" text="Kurs" />
+                        <TableColumn id="colStockValue" prefWidth="129.0" text="Wert" />
                     </columns>
                   </TableView>
                   <Separator prefHeight="18.0" prefWidth="510.0" />
@@ -78,11 +83,11 @@
                   </HBox>
                   <TableView id="tabOrders" prefHeight="200.0" prefWidth="200.0">
                     <columns>
-                      <TableColumn prefWidth="75.0" text="ID" />
-                      <TableColumn prefWidth="75.0" text="Art" />
-                        <TableColumn prefWidth="98.0" text="Aktie" />
-                        <TableColumn prefWidth="91.0" text="Kurslimit" />
-                        <TableColumn prefWidth="138.0" text="offene Anzahl" />
+                      <TableColumn id="colOrderId" prefWidth="75.0" text="ID" />
+                      <TableColumn id="colOrderType" prefWidth="75.0" text="Art" />
+                        <TableColumn id="colOrderStockId" prefWidth="98.0" text="Aktie" />
+                        <TableColumn id="colOrderLimit" prefWidth="91.0" text="Kurslimit" />
+                        <TableColumn id="colOrderOpenAmount" prefWidth="138.0" text="offene Anzahl" />
                     </columns>
                   </TableView>
                </children>
