@@ -1,8 +1,6 @@
-package Service.Subscribing.IssueStockRequests;
+package MarketEntities.Subscribing.IssueStockRequests;
 
 import Model.IssueStockRequest;
-import Service.Broker;
-import Service.ConnectionError;
 import org.mozartspaces.core.Entry;
 import org.mozartspaces.notifications.Notification;
 import org.mozartspaces.notifications.NotificationListener;
@@ -15,9 +13,9 @@ import java.util.List;
 /**
  * Created by Felix on 16.04.2015.
  */
-public class XvsmIssueStockRequestSubManager extends AIssueStockRequestSubManager implements NotificationListener {
+public class XvsmISRSubManager extends AISRSubManager implements NotificationListener {
 
-    public XvsmIssueStockRequestSubManager(IIssueStockRequestSub subscription) {
+    public XvsmISRSubManager(IISRRequestSub subscription) {
         super(subscription);
     }
 

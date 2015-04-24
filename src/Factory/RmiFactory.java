@@ -5,20 +5,23 @@ import MarketEntities.DepotCompany;
 import MarketEntities.IssueStockRequestContainer;
 import MarketEntities.RMI.RmiDepotCompany;
 import MarketEntities.RMI.RmiIssueStockRequestContainer;
+import MarketEntities.RMI.RmiTradeOrderContainer;
 import MarketEntities.StockPricesContainer;
+import MarketEntities.Subscribing.IssueStockRequests.RmiISRSubManager;
+import MarketEntities.Subscribing.TradeOrders.RmiTradeOrderSubManager;
 import MarketEntities.TradeOrderContainer;
 import Model.Company;
 import Model.Investor;
-import RMIServer.IRmiServer;
-import RMIServer.RmiServer;
 import Service.ConnectionError;
-import Service.Subscribing.IssueStockRequests.AIssueStockRequestSubManager;
-import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
-import Service.Subscribing.MarketValues.AStockPricesSubManager;
-import Service.Subscribing.MarketValues.IStockPricesSub;
-import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
-import Service.Subscribing.TradeOrders.ITradeOrderSub;
+import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
+import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
+import MarketEntities.Subscribing.MarketValues.AStockPricesSubManager;
+import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
+import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
+import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import Util.RmiUtil;
+
+import java.rmi.RemoteException;
 
 /**
  * Created by Felix on 22.04.2015.
@@ -38,7 +41,7 @@ public class RmiFactory implements IFactory{
 
     @Override
     public TradeOrderContainer newTradeOrdersContainer() {
-        return null;
+        return new RmiTradeOrderContainer();
     }
 
     @Override
@@ -47,12 +50,22 @@ public class RmiFactory implements IFactory{
     }
 
     @Override
-    public AIssueStockRequestSubManager newIssueStockRequestSubManager(IIssueStockRequestSub subscription) {
+    public AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription) {
+        try {
+            return new RmiISRSubManager(subscription);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
     @Override
     public ATradeOrderSubManager newTradeOrderSubManager(ITradeOrderSub subscription) {
+        try {
+            return new RmiTradeOrderSubManager(subscription);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

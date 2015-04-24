@@ -5,13 +5,10 @@ import Model.Company;
 import Model.Investor;
 import Model.Stock;
 import Service.ConnectionError;
-import Util.XvsmUtil;
-import org.mozartspaces.capi3.CoordinationData;
+import Util.*;
 import org.mozartspaces.capi3.LabelCoordinator;
 import org.mozartspaces.core.*;
 
-import java.awt.*;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +23,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
     public XvsmDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
         super(investor, transactionId);
 
-        this.depotName = XvsmUtil.Container.DEPOT_INVESTOR_TOKEN.toString() + investor.getId();
+        this.depotName = Util.Container.DEPOT_INVESTOR_TOKEN.toString() + investor.getId();
 
         xc = XvsmUtil.getXvsmConnection();
         try {

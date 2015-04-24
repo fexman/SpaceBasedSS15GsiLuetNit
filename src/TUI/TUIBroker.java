@@ -1,8 +1,9 @@
 package TUI;
 
 import Factory.IFactory;
+import Factory.RmiFactory;
 import Factory.XvsmFactory;
-import Service.Broker;
+import Service.BrokerService;
 import Service.ConnectionError;
 
 import java.io.IOException;
@@ -31,7 +32,8 @@ public class TUIBroker {
                     factory = new XvsmFactory(args[1]);
                     break;
                 case 1:
-                    factory = null;//TODO: RMI FACTORY
+                    System.out.println("Here");
+                    factory = new RmiFactory(args[1]);
                     break;
                 default: showUsage();
             }
@@ -40,7 +42,7 @@ public class TUIBroker {
         }
 
         //Issue stocks
-        Broker broker = new Broker(factory);
+        BrokerService broker = new BrokerService(factory);
         System.out.println("Will broke now. Press any key at any time to shutdown.");
         try {
             broker.startBroking();

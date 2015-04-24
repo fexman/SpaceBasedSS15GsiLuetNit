@@ -7,26 +7,27 @@ import MarketEntities.TradeOrderContainer;
 import Model.IssueStockRequest;
 import Model.MarketValue;
 import Model.TradeOrder;
-import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
-import Service.Subscribing.TradeOrders.ITradeOrderSub;
+import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
+import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 
 import java.util.List;
 
 /**
  * Created by Felix on 11.04.2015.
  */
-public class Broker extends Service implements IIssueStockRequestSub, ITradeOrderSub{
+public class BrokerService extends Service implements IISRRequestSub, ITradeOrderSub{
 
     private IssueStockRequestContainer isrContainer;
     private TradeOrderContainer tradeOrdersContainer;
     private StockPricesContainer stockPricesContainer;
 
-    public Broker(IFactory factory) {
+    public BrokerService(IFactory factory) {
         super(factory);
         isrContainer = factory.newISRContainer();
         tradeOrdersContainer = factory.newTradeOrdersContainer();
         stockPricesContainer = factory.newStockPricesContainer();
     }
+
 
     public void startBroking() throws ConnectionError {
             takeAndProcessISRs();
@@ -73,16 +74,16 @@ public class Broker extends Service implements IIssueStockRequestSub, ITradeOrde
     }
 
     @Override
+    public void pushNewTradeOrders(List<TradeOrder> data) {
+        System.out.println("Trade Orders Callback.");
+    }
+
+    @Override
     public void pushNewISRs(List<IssueStockRequest> newISRs) {
         try {
             takeAndProcessISRs();
         } catch (ConnectionError connectionError) {
             System.out.println("FATAL ERROR: Connection Error on subscription-PUSH.");
         }
-    }
-
-    @Override
-    public void pushNewTradeOrders(List<TradeOrder> newTradeOrders) {
-            System.out.println("Trade Orders Callback.");
     }
 }

@@ -1,6 +1,6 @@
-package Service.Subscribing.TradeOrders;
+package MarketEntities.Subscribing.MarketValues;
 
-import Model.TradeOrder;
+import Model.MarketValue;
 import org.mozartspaces.core.Entry;
 import org.mozartspaces.notifications.Notification;
 import org.mozartspaces.notifications.NotificationListener;
@@ -13,19 +13,20 @@ import java.util.List;
 /**
  * Created by Felix on 16.04.2015.
  */
-public class XvsmTradeOrderSubManager extends ATradeOrderSubManager implements NotificationListener {
+public class XvsmStockPricesSubManager extends AStockPricesSubManager implements NotificationListener {
 
-    public XvsmTradeOrderSubManager(ITradeOrderSub subscription) {
+
+    public XvsmStockPricesSubManager(IStockPricesSub subscription) {
         super(subscription);
     }
 
     @Override
     public void entryOperationFinished(Notification source, Operation operation, List<? extends Serializable> entries) {
-        List<TradeOrder> newTradeOrders = new ArrayList<>();
+        List<MarketValue> newMarketValues = new ArrayList<>();
         for (Serializable e: entries) {
-            TradeOrder to = (TradeOrder)((Entry) e).getValue();
-            newTradeOrders.add(to);
+            MarketValue mw = (MarketValue)((Entry) e).getValue();
+            newMarketValues.add(mw);
         }
-        subscription.pushNewTradeOrders(newTradeOrders);
+        subscription.pushNewMarketValues(newMarketValues);
     }
 }

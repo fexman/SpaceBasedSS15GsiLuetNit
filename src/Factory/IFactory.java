@@ -6,14 +6,13 @@ import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
 import Model.Company;
 import Model.Investor;
-import Service.Broker;
 import Service.ConnectionError;
-import Service.Subscribing.IssueStockRequests.AIssueStockRequestSubManager;
-import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
-import Service.Subscribing.MarketValues.AStockPricesSubManager;
-import Service.Subscribing.MarketValues.IStockPricesSub;
-import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
-import Service.Subscribing.TradeOrders.ITradeOrderSub;
+import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
+import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
+import MarketEntities.Subscribing.MarketValues.AStockPricesSubManager;
+import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
+import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
+import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 
 /**
  * Created by Felix on 16.04.2015.
@@ -30,7 +29,7 @@ public interface IFactory {
 
     //Subscription-manager
 
-    AIssueStockRequestSubManager newIssueStockRequestSubManager(IIssueStockRequestSub subscription);
+    AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription);
 
     ATradeOrderSubManager newTradeOrderSubManager(ITradeOrderSub subscription);
 

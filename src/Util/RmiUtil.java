@@ -18,7 +18,7 @@ public class RmiUtil {
 
     private static RmiConnection rc;
 
-    private static HashMap<XvsmUtil.Container, IHandler> handlers = new HashMap<>();
+    private static HashMap<Container, IHandler> handlers = new HashMap<>();
     public static final String RMI_SERVER_BINDING = "MarketServer";
 
     public static RmiConnection initConnection(String uri) throws ConnectionError {
@@ -37,14 +37,15 @@ public class RmiUtil {
 
         //Adding handlers
         try {
-            handlers.put(XvsmUtil.Container.ISSUED_STOCK_REQUESTS, rc.getRmiServer().getIssueStockRequestContainer());
+            handlers.put(Container.ISSUED_STOCK_REQUESTS, rc.getRmiServer().getIssueStockRequestContainer());
+            handlers.put(Container.TRADE_ORDERS,rc.getRmiServer().getTradeOrderContainer());
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }
         return rc;
     }
 
-    public static IHandler getHandler(XvsmUtil.Container cont) {
+    public static IHandler getHandler(Container cont) {
         return handlers.get(cont);
     }
 

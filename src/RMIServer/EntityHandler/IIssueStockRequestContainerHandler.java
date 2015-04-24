@@ -1,7 +1,7 @@
 package RMIServer.EntityHandler;
 
 import Model.IssueStockRequest;
-import Service.Subscribing.IssueStockRequests.AIssueStockRequestSubManager;
+import RMIServer.RmiCallback;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -15,6 +15,8 @@ public interface IIssueStockRequestContainerHandler extends IHandler {
 
     List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws RemoteException;
 
-    void subscribe(AIssueStockRequestSubManager subscriber, String transactionId) throws RemoteException;
+    void subscribe(RmiCallback<IssueStockRequest> callback) throws RemoteException;
+
+    void unsubscribe(RmiCallback<IssueStockRequest> callback) throws RemoteException;
 
 }

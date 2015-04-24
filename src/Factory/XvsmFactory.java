@@ -10,17 +10,16 @@ import MarketEntities.XVSM.XvsmStockPricesContainer;
 import MarketEntities.XVSM.XvsmTradeOrdersContainer;
 import Model.Company;
 import Model.Investor;
-import Service.Broker;
 import Service.ConnectionError;
-import Service.Subscribing.IssueStockRequests.AIssueStockRequestSubManager;
-import Service.Subscribing.IssueStockRequests.IIssueStockRequestSub;
-import Service.Subscribing.IssueStockRequests.XvsmIssueStockRequestSubManager;
-import Service.Subscribing.MarketValues.AStockPricesSubManager;
-import Service.Subscribing.MarketValues.IStockPricesSub;
-import Service.Subscribing.MarketValues.XvsmStockPricesSubManager;
-import Service.Subscribing.TradeOrders.ATradeOrderSubManager;
-import Service.Subscribing.TradeOrders.ITradeOrderSub;
-import Service.Subscribing.TradeOrders.XvsmTradeOrderSubManager;
+import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
+import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
+import MarketEntities.Subscribing.IssueStockRequests.XvsmISRSubManager;
+import MarketEntities.Subscribing.MarketValues.AStockPricesSubManager;
+import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
+import MarketEntities.Subscribing.MarketValues.XvsmStockPricesSubManager;
+import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
+import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
+import MarketEntities.Subscribing.TradeOrders.XvsmTradeOrderSubManager;
 import Util.XvsmUtil;
 import org.mozartspaces.core.MzsCoreException;
 
@@ -58,8 +57,8 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public AIssueStockRequestSubManager newIssueStockRequestSubManager(IIssueStockRequestSub subscription) {
-        return new XvsmIssueStockRequestSubManager(subscription);
+    public AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription) {
+        return new XvsmISRSubManager(subscription);
     }
 
     @Override
