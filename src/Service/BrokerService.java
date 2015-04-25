@@ -5,7 +5,6 @@ import MarketEntities.*;
 import Model.*;
 import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
-import Util.XvsmUtil;
 
 import java.util.List;
 
@@ -14,7 +13,7 @@ import java.util.List;
  */
 public class BrokerService extends Service implements IISRRequestSub, ITradeOrderSub {
 
-    private IssueStockRequestContainer isrContainer;
+    private ISRContainer isrContainer;
     private TradeOrderContainer tradeOrdersContainer;
     private StockPricesContainer stockPricesContainer;
 

@@ -18,7 +18,7 @@ public interface IFactory {
 
     //Static containers
 
-    IssueStockRequestContainer newISRContainer();
+    ISRContainer newISRContainer();
 
     TradeOrderContainer newTradeOrdersContainer();
 

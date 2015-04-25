@@ -1,8 +1,8 @@
-package RMIServer.EntityHandler;
+package RMIServer.EntityProviders.Impl;
 
-import Model.IssueStockRequest;
 import Model.TradeOrder;
-import RMIServer.RmiCallback;
+import RMIServer.EntityProviders.ITradeOrderProvider;
+import MarketEntities.Subscribing.IRmiCallback;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -13,13 +13,13 @@ import java.util.Set;
 /**
  * Created by Felix on 22.04.2015.
  */
-public class TradeOrderContainerHandler implements ITradeOrderContainerHandler  {
+public class TradeOrderProvider implements ITradeOrderProvider {
 
     private Set<TradeOrder> tradeOrders;
     private Object lock;
-    private Set<RmiCallback<TradeOrder>> callbacks;
+    private Set<IRmiCallback<TradeOrder>> callbacks;
 
-    public TradeOrderContainerHandler() {
+    public TradeOrderProvider() {
         tradeOrders = new HashSet<>();
         callbacks = new HashSet<>();
         lock = new Object();
@@ -30,6 +30,12 @@ public class TradeOrderContainerHandler implements ITradeOrderContainerHandler  
     public void addOrUpdateOrder(TradeOrder order, String transactionId) throws RemoteException {
         synchronized (lock) {
             tradeOrders.add(order);
+
+            List<TradeOrder> newTOs = new ArrayList<TradeOrder>();
+            newTOs.add(order);
+            for (IRmiCallback<TradeOrder> callback : callbacks) {
+                callback.newData(newTOs);
+            }
         }
     }
 
@@ -117,12 +123,12 @@ public class TradeOrderContainerHandler implements ITradeOrderContainerHandler  
     }
 
     @Override
-    public void subscribe(RmiCallback<TradeOrder> callback) throws RemoteException {
+    public void subscribe(IRmiCallback<TradeOrder> callback) throws RemoteException {
         callbacks.add(callback);
     }
 
     @Override
-    public void unsubscribe(RmiCallback<TradeOrder> callback) throws RemoteException {
+    public void unsubscribe(IRmiCallback<TradeOrder> callback) throws RemoteException {
         callbacks.remove(callback);
     }
 }

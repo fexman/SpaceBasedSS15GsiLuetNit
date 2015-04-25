@@ -3,7 +3,8 @@ package Factory;
 
 import MarketEntities.*;
 import MarketEntities.RMI.RmiDepotCompany;
-import MarketEntities.RMI.RmiIssueStockRequestContainer;
+import MarketEntities.RMI.RmiISRContainer;
+import MarketEntities.RMI.RmiStockPricesContainer;
 import MarketEntities.RMI.RmiTradeOrderContainer;
 import MarketEntities.Subscribing.IssueStockRequests.RmiISRSubManager;
 import MarketEntities.Subscribing.TradeOrders.RmiTradeOrderSubManager;
@@ -32,8 +33,8 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
-    public IssueStockRequestContainer newISRContainer() {
-        return new RmiIssueStockRequestContainer();
+    public ISRContainer newISRContainer() {
+        return new RmiISRContainer();
     }
 
     @Override
@@ -43,7 +44,7 @@ public class RmiFactory implements IFactory {
 
     @Override
     public StockPricesContainer newStockPricesContainer() {
-        return null;
+        return new RmiStockPricesContainer();
     }
 
     @Override

@@ -1,4 +1,4 @@
-package RMIServer;
+package MarketEntities.Subscribing;
 
 import Model.IssueStockRequest;
 
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by Felix on 23.04.2015.
  */
-public interface RmiCallback<T> extends Remote {
+public interface IRmiCallback<T> extends Remote {
 
         void newData(List<T> newData) throws RemoteException;
 

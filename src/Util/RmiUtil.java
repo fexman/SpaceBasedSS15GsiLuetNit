@@ -1,8 +1,8 @@
 package Util;
 
 import Model.Company;
-import RMIServer.EntityHandler.IDepotCompanyHandler;
-import RMIServer.EntityHandler.IHandler;
+import RMIServer.EntityProviders.IDepotCompanyProvider;
+import RMIServer.EntityProviders.IProvider;
 import RMIServer.IRmiServer;
 
 import Service.ConnectionError;
@@ -18,7 +18,7 @@ public class RmiUtil {
 
     private static RmiConnection rc;
 
-    private static HashMap<Container, IHandler> handlers = new HashMap<>();
+    private static HashMap<Container, IProvider> providers = new HashMap<>();
     public static final String RMI_SERVER_BINDING = "MarketServer";
 
     public static RmiConnection initConnection(String uri) throws ConnectionError {
@@ -35,23 +35,24 @@ public class RmiUtil {
 
         rc = new RmiConnection(uriSplit[0],port);
 
-        //Adding handlers
+        //Adding providers
         try {
-            handlers.put(Container.ISSUED_STOCK_REQUESTS, rc.getRmiServer().getIssueStockRequestContainer());
-            handlers.put(Container.TRADE_ORDERS,rc.getRmiServer().getTradeOrderContainer());
+            providers.put(Container.ISSUED_STOCK_REQUESTS, rc.getRmiServer().getIssueStockRequestContainer());
+            providers.put(Container.TRADE_ORDERS,rc.getRmiServer().getTradeOrderContainer());
+            providers.put(Container.STOCK_PRICES,rc.getRmiServer().getStockPricesContainer());
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }
         return rc;
     }
 
-    public static IHandler getHandler(Container cont) {
-        return handlers.get(cont);
+    public static IProvider getContainer(Container cont) {
+        return providers.get(cont);
     }
 
-    public static IDepotCompanyHandler getDepotHandler(Company company) throws ConnectionError {
+    public static IDepotCompanyProvider getDepot(Company company) throws ConnectionError {
         try {
-            return rc.getRmiServer().getDepotCompanyHandler(company);
+            return rc.getRmiServer().getDepotCompany(company);
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }

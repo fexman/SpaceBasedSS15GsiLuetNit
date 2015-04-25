@@ -1,7 +1,7 @@
 package MarketEntities.Subscribing.TradeOrders;
 
 import Model.TradeOrder;
-import RMIServer.RmiCallback;
+import MarketEntities.Subscribing.IRmiCallback;
 import Service.ConnectionError;
 
 import java.rmi.RemoteException;
@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by Felix on 23.04.2015.
  */
-public class RmiTradeOrderSubManager extends ATradeOrderSubManager implements RmiCallback<TradeOrder> {
+public class RmiTradeOrderSubManager extends ATradeOrderSubManager implements IRmiCallback<TradeOrder> {
 
     public RmiTradeOrderSubManager(ITradeOrderSub subscription) throws RemoteException {
         super(subscription);
@@ -28,4 +28,5 @@ public class RmiTradeOrderSubManager extends ATradeOrderSubManager implements Rm
             }
         }
     }
+
 }

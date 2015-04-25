@@ -1,7 +1,11 @@
 package RMIServer;
 
 import Model.Company;
-import RMIServer.EntityHandler.*;
+import RMIServer.EntityProviders.*;
+import RMIServer.EntityProviders.Impl.DepotCompanyProvider;
+import RMIServer.EntityProviders.Impl.ISRContainerProvider;
+import RMIServer.EntityProviders.Impl.StockPricesProvider;
+import RMIServer.EntityProviders.Impl.TradeOrderProvider;
 import Util.RmiUtil;
 
 import java.io.IOException;
@@ -18,15 +22,17 @@ public class RmiServer extends Thread implements IRmiServer {
 
     private int port;
     private Registry registry;
-    private HashMap<Company,IDepotCompanyHandler> companyDepots;
-    private IIssueStockRequestContainerHandler isrContainerHandler;
-    private ITradeOrderContainerHandler tradeOrderContainerHandler;
+    private HashMap<Company,IDepotCompanyProvider> companyDepots;
+    private IISRContainerProvider isrContainerProvider;
+    private ITradeOrderProvider tradeOrderContainerProvider;
+    private IStockPricesProvider stockPricesProvider;
 
     public RmiServer(int port) {
         this.port = port;
 
-        isrContainerHandler = new IssueStockRequestContainerHandler();
-        tradeOrderContainerHandler = new TradeOrderContainerHandler();
+        isrContainerProvider = new ISRContainerProvider();
+        tradeOrderContainerProvider = new TradeOrderProvider();
+        stockPricesProvider = new StockPricesProvider();
         companyDepots = new HashMap<>();
 
     }
@@ -40,9 +46,10 @@ public class RmiServer extends Thread implements IRmiServer {
             IRmiServer remote = (IRmiServer) UnicastRemoteObject.exportObject(this, 0);
             registry.bind(RmiUtil.RMI_SERVER_BINDING, remote);
 
-            //Export handlers
-            UnicastRemoteObject.exportObject(isrContainerHandler, 0);
-            UnicastRemoteObject.exportObject(tradeOrderContainerHandler, 0);
+            //Export providers
+            UnicastRemoteObject.exportObject(isrContainerProvider, 0);
+            UnicastRemoteObject.exportObject(tradeOrderContainerProvider, 0);
+            UnicastRemoteObject.exportObject(stockPricesProvider, 0);
 
         } catch (Exception e) {
             System.out.println("Error on startup: "+e.getMessage());
@@ -58,12 +65,13 @@ public class RmiServer extends Thread implements IRmiServer {
 
         try {
 
-            //Unexport handlers
-            UnicastRemoteObject.unexportObject(isrContainerHandler,true);
-            UnicastRemoteObject.unexportObject(tradeOrderContainerHandler,true);
+            //Unexport providers
+            UnicastRemoteObject.unexportObject(isrContainerProvider,true);
+            UnicastRemoteObject.unexportObject(tradeOrderContainerProvider,true);
+            UnicastRemoteObject.unexportObject(stockPricesProvider,true);
 
             //Unexport depots
-            for (IDepotCompanyHandler iDepotCompanyHandler : companyDepots.values()) {
+            for (IDepotCompanyProvider iDepotCompanyHandler : companyDepots.values()) {
                 UnicastRemoteObject.unexportObject(iDepotCompanyHandler, true);
             }
 
@@ -78,18 +86,22 @@ public class RmiServer extends Thread implements IRmiServer {
     }
 
 
-
     @Override
-    public IIssueStockRequestContainerHandler getIssueStockRequestContainer() {
-        return isrContainerHandler;
+    public IStockPricesProvider getStockPricesContainer() throws RemoteException {
+        return stockPricesProvider;
     }
 
     @Override
-    public ITradeOrderContainerHandler getTradeOrderContainer() {
-        return tradeOrderContainerHandler;
+    public IISRContainerProvider getIssueStockRequestContainer() throws RemoteException {
+        return isrContainerProvider;
     }
 
-    public IDepotCompanyHandler getDepotCompanyHandler (Company company) throws RemoteException{
+    @Override
+    public ITradeOrderProvider getTradeOrderContainer() throws RemoteException {
+        return tradeOrderContainerProvider;
+    }
+
+    public IDepotCompanyProvider getDepotCompany(Company company) throws RemoteException{
 
         //Depot already existing?
         if (companyDepots.containsKey(company)) {
@@ -97,7 +109,7 @@ public class RmiServer extends Thread implements IRmiServer {
         }
 
         //Create and export new depot
-        IDepotCompanyHandler depotCompanyHandler = new DepotCompanyHandler(company);
+        IDepotCompanyProvider depotCompanyHandler = new DepotCompanyProvider(company);
         UnicastRemoteObject.exportObject(depotCompanyHandler, 0);
         companyDepots.put(company, depotCompanyHandler);
 

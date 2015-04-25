@@ -1,8 +1,8 @@
-package RMIServer.EntityHandler;
+package RMIServer.EntityProviders.Impl;
 
 import Model.Company;
 import Model.Stock;
-import Service.ConnectionError;
+import RMIServer.EntityProviders.IDepotCompanyProvider;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -11,13 +11,13 @@ import java.util.List;
 /**
  * Created by Felix on 22.04.2015.
  */
-public class DepotCompanyHandler implements IDepotCompanyHandler {
+public class DepotCompanyProvider implements IDepotCompanyProvider {
 
     private Company company;
     private List<Stock> stocks;
     private Object lock;
 
-    public DepotCompanyHandler(Company company) {
+    public DepotCompanyProvider(Company company) {
         this.company = company;
         this.stocks = new ArrayList<>();
         this.lock = new Object();

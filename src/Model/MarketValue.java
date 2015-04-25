@@ -41,4 +41,19 @@ public class MarketValue implements Serializable {
         return "MarketValue of "+companyId+": "+price+"$";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MarketValue that = (MarketValue) o;
+
+        return !(companyId != null ? !companyId.equals(that.companyId) : that.companyId != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return companyId != null ? companyId.hashCode() : 0;
+    }
 }

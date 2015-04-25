@@ -1,7 +1,7 @@
-package RMIServer.EntityHandler;
+package RMIServer.EntityProviders;
 
 import Model.TradeOrder;
-import RMIServer.RmiCallback;
+import MarketEntities.Subscribing.IRmiCallback;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by Felix on 22.04.2015.
  */
-public interface ITradeOrderContainerHandler extends IHandler {
+public interface ITradeOrderProvider extends IProvider {
 
 
     abstract void addOrUpdateOrder(TradeOrder order, String transactionId) throws RemoteException;
@@ -18,7 +18,7 @@ public interface ITradeOrderContainerHandler extends IHandler {
 
     abstract List<TradeOrder> getAllOrders(String transactionId) throws RemoteException;
 
-    void subscribe(RmiCallback<TradeOrder> callback) throws RemoteException;
+    void subscribe(IRmiCallback<TradeOrder> callback) throws RemoteException;
 
-    void unsubscribe(RmiCallback<TradeOrder> callback) throws RemoteException;
+    void unsubscribe(IRmiCallback<TradeOrder> callback) throws RemoteException;
 }

@@ -2,7 +2,7 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.DepotCompany;
-import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.ISRContainer;
 import Model.IssueStockRequest;
 
 /**
@@ -26,7 +26,7 @@ public class CompanyService extends Service {
 
             //Create containers
             DepotCompany depotCompany = factory.newDepotCompany(isr.getCompany(), transactionId);
-            IssueStockRequestContainer isrContainer = factory.newISRContainer();
+            ISRContainer isrContainer = factory.newISRContainer();
 
             //Write to company-depot
             System.out.print("Writing new stocks to depot ... ");

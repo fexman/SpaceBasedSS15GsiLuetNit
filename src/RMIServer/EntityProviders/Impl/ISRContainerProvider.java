@@ -1,7 +1,8 @@
-package RMIServer.EntityHandler;
+package RMIServer.EntityProviders.Impl;
 
 import Model.IssueStockRequest;
-import RMIServer.RmiCallback;
+import RMIServer.EntityProviders.IISRContainerProvider;
+import MarketEntities.Subscribing.IRmiCallback;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -12,13 +13,13 @@ import java.util.Set;
 /**
  * Created by Felix on 21.04.2015.
  */
-public class IssueStockRequestContainerHandler implements IIssueStockRequestContainerHandler {
+public class ISRContainerProvider implements IISRContainerProvider {
 
     private List<IssueStockRequest> isrs;
     private Object lock;
-    private Set<RmiCallback<IssueStockRequest>> callbacks;
+    private Set<IRmiCallback<IssueStockRequest>> callbacks;
 
-    public IssueStockRequestContainerHandler() {
+    public ISRContainerProvider() {
         isrs = new ArrayList<>();
         callbacks = new HashSet<>();
         lock = new Object();
@@ -32,7 +33,7 @@ public class IssueStockRequestContainerHandler implements IIssueStockRequestCont
             //Callback
             List<IssueStockRequest> newIsrs = new ArrayList<>();
             newIsrs.add(isr);
-            for (RmiCallback<IssueStockRequest> callback: callbacks) {
+            for (IRmiCallback<IssueStockRequest> callback: callbacks) {
                 callback.newData(newIsrs);
             }
         }
@@ -46,12 +47,12 @@ public class IssueStockRequestContainerHandler implements IIssueStockRequestCont
         }
     }
 
-    public void subscribe(RmiCallback<IssueStockRequest> callback) throws RemoteException {
+    public void subscribe(IRmiCallback<IssueStockRequest> callback) throws RemoteException {
         callbacks.add(callback);
     }
 
     @Override
-    public void unsubscribe(RmiCallback<IssueStockRequest> callback) throws RemoteException {
+    public void unsubscribe(IRmiCallback<IssueStockRequest> callback) throws RemoteException {
         callbacks.remove(callback);
     }
 }

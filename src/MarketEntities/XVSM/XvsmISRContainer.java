@@ -1,7 +1,7 @@
 package MarketEntities.XVSM;
 
 import MarketEntities.Subscribing.ASubManager;
-import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.ISRContainer;
 import Model.IssueStockRequest;
 import Service.ConnectionError;
 import Util.Container;
@@ -21,12 +21,12 @@ import java.util.Set;
 /**
  * Created by Felix on 14.04.2015.
  */
-public class XvsmIssueStockRequestContainer extends IssueStockRequestContainer {
+public class XvsmISRContainer extends ISRContainer {
 
     private ContainerReference isrContainer;
     private XvsmUtil.XvsmConnection xc;
 
-    public XvsmIssueStockRequestContainer() {
+    public XvsmISRContainer() {
         isrContainer = XvsmUtil.getContainer(Container.ISSUED_STOCK_REQUESTS);
         xc = XvsmUtil.getXvsmConnection();
     }

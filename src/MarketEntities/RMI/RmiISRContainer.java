@@ -1,10 +1,10 @@
 package MarketEntities.RMI;
 
-import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.ISRContainer;
 import MarketEntities.Subscribing.ASubManager;
 import Model.IssueStockRequest;
-import RMIServer.EntityHandler.IIssueStockRequestContainerHandler;
-import RMIServer.RmiCallback;
+import RMIServer.EntityProviders.IISRContainerProvider;
+import MarketEntities.Subscribing.IRmiCallback;
 import Service.ConnectionError;
 import Util.Container;
 import Util.RmiUtil;
@@ -18,20 +18,20 @@ import java.util.Set;
 /**
  * Created by Felix on 22.04.2015.
  */
-public class RmiIssueStockRequestContainer extends IssueStockRequestContainer {
+public class RmiISRContainer extends ISRContainer {
 
-    private IIssueStockRequestContainerHandler isrHandler;
-    private Set<RmiCallback<IssueStockRequest>> callbacks;
+    private IISRContainerProvider isrContainer;
+    private Set<IRmiCallback<IssueStockRequest>> callbacks;
 
-    public RmiIssueStockRequestContainer() {
-        isrHandler = (IIssueStockRequestContainerHandler)RmiUtil.getHandler(Container.ISSUED_STOCK_REQUESTS);
+    public RmiISRContainer() {
+        isrContainer = (IISRContainerProvider)RmiUtil.getContainer(Container.ISSUED_STOCK_REQUESTS);
         callbacks = new HashSet<>();
     }
 
     @Override
     public void addIssueStocksRequest(IssueStockRequest isr, String transactionId) throws ConnectionError {
         try {
-            isrHandler.addIssueStocksRequest(isr,transactionId);
+            isrContainer.addIssueStocksRequest(isr,transactionId);
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }
@@ -40,7 +40,7 @@ public class RmiIssueStockRequestContainer extends IssueStockRequestContainer {
     @Override
     public List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws ConnectionError {
         try {
-            return isrHandler.takeIssueStockRequests(transactionId);
+            return isrContainer.takeIssueStockRequests(transactionId);
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }
@@ -48,19 +48,28 @@ public class RmiIssueStockRequestContainer extends IssueStockRequestContainer {
 
     @Override
     public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
-        RmiCallback<IssueStockRequest> rmiSub = (RmiCallback<IssueStockRequest>)subscriber;
+        System.out.println("Subscription ISR");
+        IRmiCallback<IssueStockRequest> rmiSub = (IRmiCallback<IssueStockRequest>)subscriber;
         try {
             UnicastRemoteObject.exportObject(rmiSub,0);
-            isrHandler.subscribe(rmiSub);
+            isrContainer.subscribe(rmiSub);
         } catch (RemoteException e) {
+            if (e.getMessage().contains("already exported")) { //Export only once
+                try {
+                    isrContainer.subscribe(rmiSub);
+                    return;
+                } catch (RemoteException e1) {
+                    throw new ConnectionError(e);
+                }
+            }
             throw new ConnectionError(e);
         }
     }
 
     public void removeSubscriptions() throws ConnectionError{
         try {
-            for (RmiCallback<IssueStockRequest> rmiSub : callbacks) {
-                isrHandler.unsubscribe(rmiSub);
+            for (IRmiCallback<IssueStockRequest> rmiSub : callbacks) {
+                isrContainer.unsubscribe(rmiSub);
                 UnicastRemoteObject.unexportObject(rmiSub, true);
             }
         } catch (RemoteException e) {

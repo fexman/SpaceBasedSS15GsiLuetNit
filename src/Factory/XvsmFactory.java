@@ -36,8 +36,8 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public IssueStockRequestContainer newISRContainer() {
-        return new XvsmIssueStockRequestContainer();
+    public ISRContainer newISRContainer() {
+        return new XvsmISRContainer();
     }
 
     @Override

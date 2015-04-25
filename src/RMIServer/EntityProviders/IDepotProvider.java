@@ -1,7 +1,6 @@
-package RMIServer.EntityHandler;
+package RMIServer.EntityProviders;
 
 import Model.Stock;
-import Service.ConnectionError;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -9,7 +8,7 @@ import java.util.List;
 /**
  * Created by Felix on 22.04.2015.
  */
-public interface IDepotHandler extends IHandler {
+public interface IDepotProvider extends IProvider {
 
     String getDepotName() throws RemoteException;
 
