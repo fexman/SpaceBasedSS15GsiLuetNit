@@ -80,9 +80,9 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
             // get investor container
             Depot investorDepot;
             if (tradeOrder.getInvestorType() == TradeOrder.InvestorType.COMPANY) {
-                investorDepot = factory.newDepotCompany(new Company(tradeOrder.getId()), transactionId);
+                investorDepot = factory.newDepotCompany(new Company(tradeOrder.getInvestorId()), transactionId);
             } else {
-                investorDepot = factory.newDepotInvestor(new Investor(tradeOrder.getId()), transactionId);
+                investorDepot = factory.newDepotInvestor(new Investor(tradeOrder.getInvestorId()), transactionId);
             }
 
             //TODO: CORRECT THIS
