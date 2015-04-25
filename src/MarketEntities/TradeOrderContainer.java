@@ -14,6 +14,8 @@ public abstract class TradeOrderContainer implements ISubscribeable {
 
     public abstract void addOrUpdateOrder(TradeOrder order, String transactionId) throws ConnectionError;
 
+    public abstract void deleteOrder(TradeOrder order,  String transactionId) throws ConnectionError;
+
     public abstract List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws ConnectionError;
 
     public abstract List<TradeOrder> getAllOrders(String transactionId) throws ConnectionError;

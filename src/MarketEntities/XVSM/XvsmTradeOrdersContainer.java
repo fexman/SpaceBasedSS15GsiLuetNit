@@ -71,6 +71,35 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
     }
 
     @Override
+    public void deleteOrder(TradeOrder order, String transactionId) throws ConnectionError {
+        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+
+        Query query = new Query();
+        try {
+            query.sql("id = '"+order.getId()+"'");
+        } catch (ParseException e) {
+            System.out.println("Parse Exception on SQL-query while deleting trade order: " + e.getMessage());
+            return;
+        }
+        Selector selector = QueryCoordinator.newSelector(query);
+
+        // remove this specific, existing TradeOrder from the container (as punishment for company or investor)
+        try {
+            // trade order can only be deleted, if its state is open
+            if (order.getStatus().toString().equals(TradeOrder.Status.OPEN.toString())) {
+                xc.getCapi().delete(tradeOrdersContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
+
+                System.out.println("Trade order successfully deleted: " + order);
+            } else {
+                //TODO throw exception or something saying trade order can't be deleted, because it's already deleted/partially completed/completed
+                System.out.println("Trade order couldn't be deleted (wrong state): " + order);
+            }
+        } catch (MzsCoreException e) {
+            throw new ConnectionError(e);
+        }
+    }
+
+    @Override
     public List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws ConnectionError {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 

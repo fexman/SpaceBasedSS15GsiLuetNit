@@ -17,6 +17,7 @@ public class TradeOrder implements Serializable {
     private String companyId;   // companyId of the wanted stocks company
     private Integer totalAmount; // total amount of stocks wanted
     private Integer completedAmount; // amount of stocks already "processed"
+    private Integer openAmount;
     private Double priceLimit;  // upper or lower price limit
     private Status status;
     private Type type;
@@ -150,6 +151,14 @@ public class TradeOrder implements Serializable {
                 ", type=" + type +
                 ", investorType=" + investorType +
                 '}';
+    }
+
+    public Integer getOpenAmount() {
+        return openAmount;
+    }
+
+    public void setOpenAmount(Integer openAmount) {
+        this.openAmount = openAmount;
     }
 
     public enum Status {

@@ -1,13 +1,15 @@
 package MarketEntities.XVSM;
 
 import MarketEntities.DepotInvestor;
+import MarketEntities.StockPricesContainer;
 import Model.Company;
 import Model.Investor;
 import Model.Stock;
 import Service.ConnectionError;
 import Util.*;
-import org.mozartspaces.capi3.LabelCoordinator;
+import org.mozartspaces.capi3.*;
 import org.mozartspaces.core.*;
+import org.mozartspaces.xvsmp.util.PredefinedCoordinationDataCreators;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.List;
 public class XvsmDepotInvestor extends DepotInvestor {
 
     private ContainerReference investorDepot;
+    private StockPricesContainer stockPricesContainer;
     private XvsmUtil.XvsmConnection xc;
 
     public XvsmDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
@@ -87,6 +90,22 @@ public class XvsmDepotInvestor extends DepotInvestor {
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
+    }
+
+    @Override
+    public List<Stock> readAllStocks(String transactionId) throws ConnectionError {
+//        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+//
+//
+//        TypeCoordinator.TypeSelector selector = TypeCoordinator.newSelector(Stock.class);
+//        try {
+//            return xc.getCapi().read(investorDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx);
+//        } catch (MzsCoreException e) {
+//            throw new ConnectionError(e);
+//        }
+        //TODO find a way to read only STOCKS from container
+
+        return new ArrayList<>();
     }
 
     @Override

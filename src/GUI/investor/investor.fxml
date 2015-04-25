@@ -6,42 +6,42 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="575.0" prefWidth="530.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="575.0" prefWidth="530.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.investor.InvestorController">
    <children>
       <VBox prefHeight="575.0" prefWidth="530.0">
          <children>
-            <HBox id="loginContainer" prefHeight="37.0" prefWidth="520.0">
+            <HBox id="loginContainer" fx:id="loginContainer" prefHeight="37.0" prefWidth="520.0">
                <children>
-                  <Label id="txtStatus" prefHeight="54.0" prefWidth="136.0" text="Username eingeben:" />
-                  <TextField id="txtUsername" prefHeight="30.0" prefWidth="187.0">
+                  <Label id="txtStatus" fx:id="txtStatus" prefHeight="54.0" prefWidth="136.0" text="Username eingeben:" />
+                  <TextField id="txtUsername" fx:id="txtUsername" prefHeight="30.0" prefWidth="187.0">
                      <HBox.margin>
                         <Insets left="10.0" />
                      </HBox.margin>
                   </TextField>
-                  <ComboBox id="protocolField" prefHeight="31.0" prefWidth="83.0">
+                  <ComboBox id="protocolField" fx:id="protocolField" onAction="#protocolFieldChanged" prefHeight="31.0" prefWidth="83.0">
                      <HBox.margin>
                         <Insets left="5.0" />
                      </HBox.margin>
                   </ComboBox>
-                  <Button id="btnLogin" mnemonicParsing="false" text="Los">
+                  <Button id="btnLogin" fx:id="btnLogin" mnemonicParsing="false" onAction="#loginButtonClicked" text="Los">
                      <HBox.margin>
                         <Insets left="5.0" />
                      </HBox.margin>
                   </Button>
                </children>
             </HBox>
-            <VBox id="dataContainer" prefHeight="558.0" prefWidth="100.0">
+            <VBox id="dataContainer" fx:id="dataContainer" prefHeight="558.0" prefWidth="100.0">
                <children>
                   <HBox prefHeight="36.0" prefWidth="510.0">
                      <children>
                         <Label prefHeight="30.0" prefWidth="180.0" text="Verfügbarer Betrag:" />
-                        <TextField id="txtBudget" editable="false" prefHeight="0.0" prefWidth="69.0" />
+                        <TextField id="txtBudget" fx:id="txtBudget" editable="false" prefHeight="0.0" prefWidth="69.0" />
                         <Label prefHeight="30.0" prefWidth="9.0" text="€">
                            <HBox.margin>
                               <Insets left="5.0" />
                            </HBox.margin>
                         </Label>
-                        <Button id="btnEditBudget" mnemonicParsing="false" prefHeight="36.0" prefWidth="92.0" text="bearbeiten">
+                        <Button id="btnEditBudget" fx:id="btnEditBudget" mnemonicParsing="false" onAction="#editBudgetButtonClicked" prefHeight="36.0" prefWidth="92.0" text="bearbeiten">
                            <opaqueInsets>
                               <Insets />
                            </opaqueInsets>
@@ -55,7 +55,7 @@
                   <HBox prefHeight="37.0" prefWidth="510.0">
                      <children>
                         <Label prefHeight="30.0" prefWidth="180.0" text="Gesamtwert aller Aktien:" />
-                        <TextField id="txtTotalStockValue" editable="false" prefHeight="0.0" prefWidth="69.0" />
+                        <TextField id="txtTotalStockValue" fx:id="txtTotalStockValue" editable="false" prefHeight="0.0" prefWidth="69.0" />
                         <Label prefHeight="30.0" prefWidth="9.0" text="€">
                            <opaqueInsets>
                               <Insets />
@@ -66,32 +66,33 @@
                         </Label>
                      </children>
                   </HBox>
-                  <TableView id="tabStocks" prefHeight="213.0" prefWidth="510.0">
+                  <TableView id="tabStocks" fx:id="tabStocks" prefHeight="213.0" prefWidth="510.0">
                     <columns>
-                      <TableColumn id="colStockId" prefWidth="106.0" text="Aktienkürzel" />
-                      <TableColumn id="colStockCount" prefWidth="84.0" text="Anzahl" />
-                        <TableColumn id="colStockMarketValue" prefWidth="84.0" text="Kurs" />
-                        <TableColumn id="colStockValue" prefWidth="129.0" text="Wert" />
+                      <TableColumn id="colStockId" fx:id="colStockId" prefWidth="106.0" text="Aktienkürzel" />
+                      <TableColumn id="colStockCount" fx:id="colStockAmount" prefWidth="84.0" text="Anzahl" />
+                        <TableColumn id="colStockMarketValue" fx:id="colStockMarketValue" prefWidth="84.0" text="Kurs" />
+                        <TableColumn id="colStockValue" fx:id="colStockPrice" prefWidth="129.0" text="Wert" />
                     </columns>
                   </TableView>
                   <Separator prefHeight="18.0" prefWidth="510.0" />
                   <HBox prefHeight="40.0" prefWidth="510.0">
                      <children>
                         <Label prefHeight="29.0" prefWidth="480.0" text="Offene Orders:" />
-                        <Button id="btnAddOrder" contentDisplay="RIGHT" mnemonicParsing="false" text="+" />
+                        <Button id="btnAddOrder" fx:id="btnAddOrders" contentDisplay="RIGHT" mnemonicParsing="false" onAction="#addOrderButtonClicked" text="+" />
                      </children>
                   </HBox>
-                  <TableView id="tabOrders" prefHeight="200.0" prefWidth="200.0">
+                  <TableView id="tabOrders" fx:id="tabOrders" prefHeight="200.0" prefWidth="200.0">
                     <columns>
-                      <TableColumn id="colOrderId" prefWidth="75.0" text="ID" />
-                      <TableColumn id="colOrderType" prefWidth="75.0" text="Art" />
-                        <TableColumn id="colOrderStockId" prefWidth="98.0" text="Aktie" />
-                        <TableColumn id="colOrderLimit" prefWidth="91.0" text="Kurslimit" />
-                        <TableColumn id="colOrderOpenAmount" prefWidth="138.0" text="offene Anzahl" />
+                      <TableColumn id="colOrderId" fx:id="colOrderId" prefWidth="75.0" text="ID" />
+                      <TableColumn id="colOrderType" fx:id="colOrderType" prefWidth="75.0" text="Art" />
+                        <TableColumn id="colOrderStockId" fx:id="colOrderStockId" prefWidth="98.0" text="Aktie" />
+                        <TableColumn id="colOrderLimit" fx:id="colOrderLimit" prefWidth="91.0" text="Kurslimit" />
+                        <TableColumn id="colOrderOpenAmount" fx:id="colOrderOpenAmount" prefWidth="138.0" text="offene Anzahl" />
                     </columns>
                   </TableView>
                </children>
             </VBox>
+            <Label id="statusLabel" fx:id="statusLabel" prefHeight="21.0" prefWidth="470.0" />
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

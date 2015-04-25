@@ -1,12 +1,9 @@
 package Service;
 
 import Factory.IFactory;
-import MarketEntities.DepotInvestor;
-import MarketEntities.StockPricesContainer;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
 import Model.TradeOrder;
-import Util.XvsmUtil;
 
 /**
  * Created by j0h1 on 24.04.2015.

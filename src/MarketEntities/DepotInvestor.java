@@ -34,5 +34,6 @@ public abstract class DepotInvestor extends Depot {
 
     public abstract int getStockAmount(String stockName, String transactionId) throws ConnectionError;
 
+    public abstract List<Stock> readAllStocks(String transactionId) throws ConnectionError;
 
 }

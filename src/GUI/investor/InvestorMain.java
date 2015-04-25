@@ -6,13 +6,13 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class Main extends Application {
+public class InvestorMain extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("investor.fxml"));
-        Parent root = (Parent)fxmlLoader.load();
-        Controller controller = fxmlLoader.getController();
+        Parent root = (Parent) fxmlLoader.load();
+        InvestorController controller = (InvestorController) fxmlLoader.getController();
         controller.addShutdownHook(primaryStage);
         primaryStage.setMinWidth(785d);
         primaryStage.setMinHeight(500d);
