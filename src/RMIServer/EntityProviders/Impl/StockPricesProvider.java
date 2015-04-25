@@ -32,12 +32,12 @@ public class StockPricesProvider implements IStockPricesProvider {
     public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws RemoteException {
         synchronized (lock) {
             stockPrices.add(marketValue);
+        }
 
-            List<MarketValue> newMWs = new ArrayList<MarketValue>();
-            newMWs.add(marketValue);
-            for (IRmiCallback<MarketValue> callback : callbacks) {
-                callback.newData(newMWs);
-            }
+        List<MarketValue> newMWs = new ArrayList<MarketValue>();
+        newMWs.add(marketValue);
+        for (IRmiCallback<MarketValue> callback : callbacks) {
+            callback.newData(newMWs);
         }
 
     }
@@ -69,6 +69,23 @@ public class StockPricesProvider implements IStockPricesProvider {
     @Override
     public void unsubscribe(IRmiCallback<MarketValue> callback) throws RemoteException {
         callbacks.remove(callback);
-
     }
+
+    public String toString() {
+        String info = "";
+        info += "===== STOCKPRICES CONTAINER ====\n";
+        info += "callbacks: "+callbacks.size()+"\n";
+        info += "entries: "+stockPrices.size()+"\n";
+        info += "================================\n";
+        int counter = 1;
+        if (!stockPrices.isEmpty()) {
+            for (MarketValue mw : stockPrices) {
+                info += "[" + counter + "]: " + mw.toString() + "\n";
+                counter++;
+            }
+            info += "================================\n";
+        }
+        return info;
+    }
+
 }

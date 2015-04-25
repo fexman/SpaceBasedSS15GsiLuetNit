@@ -70,7 +70,7 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
     }
 
     @Override
-    public void pushNewTradeOrders(TradeOrder tradeOrder) throws ConnectionError {
+    public void pushNewTradeOrders(TradeOrder tradeOrder) {
         System.out.println("Trade Orders Callback.");
 
         String transactionId = "";
@@ -95,12 +95,7 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
                 // TODO punish investor for not having his shit together
             }*/
         } catch (ConnectionError e) {
-            try {
-                factory.rollbackTransaction(transactionId);
-                throw e;
-            } catch (ConnectionError ex) {
-                throw ex;
-            }
+            System.out.println("Could not locate investor depot!");
         }
     }
 

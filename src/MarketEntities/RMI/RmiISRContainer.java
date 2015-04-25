@@ -48,7 +48,6 @@ public class RmiISRContainer extends ISRContainer {
 
     @Override
     public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
-        System.out.println("Subscription ISR");
         IRmiCallback<IssueStockRequest> rmiSub = (IRmiCallback<IssueStockRequest>)subscriber;
         try {
             UnicastRemoteObject.exportObject(rmiSub,0);

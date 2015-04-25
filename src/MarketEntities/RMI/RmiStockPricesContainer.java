@@ -58,7 +58,6 @@ public class RmiStockPricesContainer extends StockPricesContainer{
 
     @Override
     public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
-        System.out.println("Subscription SP");
         IRmiCallback<MarketValue> rmiSub = (IRmiCallback<MarketValue>)subscriber;
         try {
             UnicastRemoteObject.exportObject(rmiSub, 0);

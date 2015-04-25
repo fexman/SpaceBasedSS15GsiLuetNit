@@ -12,6 +12,6 @@ import java.util.List;
  */
 public interface ITradeOrderSub extends Subscription {
 
-    void pushNewTradeOrders(TradeOrder tradeOrder) throws ConnectionError;
+    void pushNewTradeOrders(TradeOrder tradeOrder);
 
 }

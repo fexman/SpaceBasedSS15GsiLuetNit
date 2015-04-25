@@ -47,16 +47,19 @@ public class DepotCompanyProvider implements IDepotCompanyProvider {
 
     @Override
     public int getTotalAmountOfStocks(String transactionId) throws RemoteException {
-        synchronized (stocks) {
+        synchronized (lock) {
             return stocks.size();
         }
     }
 
     @Override
     public void addStocks(List<Stock> stocks, String transactionId) throws RemoteException {
-        synchronized (stocks) {
-            System.out.println("Got stocks: "+stocks.size());
-            stocks.addAll(stocks);
+        synchronized (lock) {
+            this.stocks.addAll(stocks);
         }
+    }
+
+    public String toString() {
+        return "Depot of "+company.getId()+": "+stocks.size()+" stocks";
     }
 }

@@ -1,6 +1,7 @@
 package GUI.stockmarket;
 
 import Factory.IFactory;
+import Factory.RmiFactory;
 import Factory.XvsmFactory;
 import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
@@ -113,13 +114,21 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
         });
     }
 
+    public void protocolFieldChanged() {
+        if (protocolField.getValue().equals("XVSM")) {
+            adressField.setText("xvsm://localhost:12345");
+        } else {
+            adressField.setText("localhost:12345");
+        }
+    }
+
     public void connectButtonClicked() {
         factory = null;
         try {
             if (protocolField.getValue().equals("XVSM")) {
                 factory = new XvsmFactory(adressField.getText());
             } else {
-                //TODO: RMIFACTORY
+                factory = new RmiFactory(adressField.getText());
             }
 
             ordersContainer = factory.newTradeOrdersContainer();

@@ -5,6 +5,7 @@ import Model.Company;
 import Model.Stock;
 import RMIServer.EntityProviders.IDepotCompanyProvider;
 import Service.ConnectionError;
+import Util.Container;
 import Util.RmiUtil;
 
 import java.rmi.RemoteException;
@@ -21,7 +22,7 @@ public class RmiDepotCompany extends DepotCompany {
         super(comp, transactionId);
 
         //Setting Depot-name
-        this.depotName = comp+"Depot";
+        this.depotName = Container.DEPOT_COMPANY_TOKEN+comp.getId();
 
         //gethandler
         depotCompany = RmiUtil.getDepot(comp);

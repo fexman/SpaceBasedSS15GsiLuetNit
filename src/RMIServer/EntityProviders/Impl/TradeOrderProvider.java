@@ -30,12 +30,11 @@ public class TradeOrderProvider implements ITradeOrderProvider {
     public void addOrUpdateOrder(TradeOrder order, String transactionId) throws RemoteException {
         synchronized (lock) {
             tradeOrders.add(order);
-
-            List<TradeOrder> newTOs = new ArrayList<TradeOrder>();
-            newTOs.add(order);
-            for (IRmiCallback<TradeOrder> callback : callbacks) {
-                callback.newData(newTOs);
-            }
+        }
+        List<TradeOrder> newTOs = new ArrayList<TradeOrder>();
+        newTOs.add(order);
+        for (IRmiCallback<TradeOrder> callback : callbacks) {
+            callback.newData(newTOs);
         }
     }
 
@@ -131,4 +130,22 @@ public class TradeOrderProvider implements ITradeOrderProvider {
     public void unsubscribe(IRmiCallback<TradeOrder> callback) throws RemoteException {
         callbacks.remove(callback);
     }
+
+    public String toString() {
+        String info = "";
+        info += "===== TRADEORDERS CONTAINER ====\n";
+        info += "callbacks: "+callbacks.size()+"\n";
+        info += "entries: "+tradeOrders.size()+"\n";
+        info += "================================\n";
+        int counter = 1;
+        if (!tradeOrders.isEmpty()) {
+            for (TradeOrder to : tradeOrders) {
+                info += "[" + counter + "]: " + to.toString() + "\n";
+                counter++;
+            }
+            info += "================================\n";
+        }
+        return info;
+    }
+
 }

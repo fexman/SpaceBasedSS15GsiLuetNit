@@ -90,7 +90,7 @@
             <TextField fx:id="adressField" layoutX="461.0" layoutY="25.0" prefHeight="31.0" prefWidth="190.0" text="xvsm://localhost:12345">
 
             </TextField>
-            <ComboBox fx:id="protocolField" prefHeight="31.0" prefWidth="93.0" promptText="XVSM" />
+            <ComboBox fx:id="protocolField" onAction="#protocolFieldChanged" prefHeight="31.0" prefWidth="93.0" promptText="XVSM" />
             <Button fx:id="connectButton" layoutX="722.0" layoutY="25.0" mnemonicParsing="false" onAction="#connectButtonClicked" prefHeight="31.0" prefWidth="83.0" text="connect" />
          </children>
       </HBox>

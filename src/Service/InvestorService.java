@@ -18,7 +18,7 @@ public class InvestorService extends Service implements ITradeOrderSub {
     }
 
     @Override
-    public void pushNewTradeOrders(TradeOrder tradeOrder) throws ConnectionError {
+    public void pushNewTradeOrders(TradeOrder tradeOrder) {
         String transactionId = "";
 
         try {
@@ -35,7 +35,8 @@ public class InvestorService extends Service implements ITradeOrderSub {
                 factory.rollbackTransaction(transactionId);
                 throw e;
             } catch (ConnectionError ex) {
-                throw ex;
+                System.out.println("Error on tradeOrders push");
+                ex.printStackTrace();
             }
         }
     }

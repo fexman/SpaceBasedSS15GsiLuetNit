@@ -27,16 +27,14 @@ public class ISRContainerProvider implements IISRContainerProvider {
 
     public void addIssueStocksRequest(IssueStockRequest isr, String transactionId) throws RemoteException {
         synchronized (lock) {
-            System.out.println("Got isr: " + isr);
             isrs.add(isr);
-
+        }
             //Callback
             List<IssueStockRequest> newIsrs = new ArrayList<>();
             newIsrs.add(isr);
             for (IRmiCallback<IssueStockRequest> callback: callbacks) {
                 callback.newData(newIsrs);
             }
-        }
     }
 
     public List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws RemoteException {
@@ -54,5 +52,22 @@ public class ISRContainerProvider implements IISRContainerProvider {
     @Override
     public void unsubscribe(IRmiCallback<IssueStockRequest> callback) throws RemoteException {
         callbacks.remove(callback);
+    }
+
+    public String toString() {
+        String info = "";
+        info += "========= ISR CONTAINER ========\n";
+        info += "callbacks: "+callbacks.size()+"\n";
+        info += "entries: "+isrs.size()+"\n";
+        info += "================================\n";
+        int counter = 1;
+        if (!isrs.isEmpty()) {
+            for (IssueStockRequest isr : isrs) {
+                info += "[" + counter + "]: " + isr.toString() + "\n";
+                counter++;
+            }
+            info += "================================\n";
+        }
+        return info;
     }
 }

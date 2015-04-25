@@ -7,6 +7,7 @@ import MarketEntities.RMI.RmiISRContainer;
 import MarketEntities.RMI.RmiStockPricesContainer;
 import MarketEntities.RMI.RmiTradeOrderContainer;
 import MarketEntities.Subscribing.IssueStockRequests.RmiISRSubManager;
+import MarketEntities.Subscribing.MarketValues.RmiStockPricesSubManager;
 import MarketEntities.Subscribing.TradeOrders.RmiTradeOrderSubManager;
 import Model.Company;
 import Model.Investor;
@@ -69,6 +70,11 @@ public class RmiFactory implements IFactory {
 
     @Override
     public AStockPricesSubManager newStockPricesSubManager(IStockPricesSub subscription) {
+        try {
+            return new RmiStockPricesSubManager(subscription);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

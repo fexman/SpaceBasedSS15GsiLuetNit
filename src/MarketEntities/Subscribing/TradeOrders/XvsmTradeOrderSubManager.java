@@ -25,11 +25,7 @@ public class XvsmTradeOrderSubManager extends ATradeOrderSubManager implements N
     public void entryOperationFinished(Notification source, Operation operation, List<? extends Serializable> entries) {
         for (Serializable e: entries) {
             TradeOrder to = (TradeOrder)((Entry) e).getValue();
-            try {
-                subscription.pushNewTradeOrders(to);
-            } catch (ConnectionError connectionError) {
-                connectionError.printStackTrace();
-            }
+            subscription.pushNewTradeOrders(to);
         }
     }
 }

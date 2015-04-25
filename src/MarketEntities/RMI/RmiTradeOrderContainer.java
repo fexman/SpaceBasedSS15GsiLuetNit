@@ -57,7 +57,6 @@ public class RmiTradeOrderContainer extends TradeOrderContainer {
 
     @Override
     public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
-        System.out.println("Subscription TO");
         IRmiCallback<TradeOrder> rmiSub = (IRmiCallback<TradeOrder>)subscriber;
         try {
             UnicastRemoteObject.exportObject(rmiSub, 0);

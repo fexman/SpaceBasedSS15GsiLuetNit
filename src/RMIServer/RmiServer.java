@@ -14,6 +14,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
+import java.util.Scanner;
 
 /**
  * Created by Felix on 21.04.2015.
@@ -56,15 +57,51 @@ public class RmiServer extends Thread implements IRmiServer {
             System.exit(-1);
         }
 
-        System.out.println("StockMarketServer with port "+port+" is up! Hit <ENTER> at any time to exit!");
-        try {
-            System.in.read();
-        } catch (IOException e) {
-           //This wont happen
+        System.out.println("StockMarketServer with port "+port+" is up! Enter !exit to shutdown, !help for help.");
+        Scanner scan = new Scanner(System.in);
+        while (scan.hasNext()) {
+            String input = scan.next();
+            switch (input) {
+                case "!spinfo":
+                    System.out.println(stockPricesProvider.toString());
+                    break;
+                case "!toinfo":
+                    System.out.println(tradeOrderContainerProvider.toString());
+                    break;
+                case "!isrinfo":
+                    System.out.println(isrContainerProvider.toString());
+                    break;
+                case "!depots_c":
+                    String info = "======== COMPANY DEPOTS ========\n";
+                    int counter = 1;
+                    for (IDepotCompanyProvider dcp : companyDepots.values()) {
+                        info += "["+counter+"]: "+dcp.toString()+"\n";
+                        counter++;
+                    }
+                    info += "================================\n";
+                    System.out.println(info);
+                    break;
+                case "!exit":
+                    try {
+                        System.in.close();
+                    } catch (IOException e) {
+                        //wurscht
+                    }
+                    shutDown();
+                    break;
+                case "!help":
+                    System.out.print("Available commands:\n\t!exit\t\tshutdown server\n\t!help\t\tcommand info\n\n\t!isrinfo\tisr container provider info\n" +
+                            "\t!toinfo\t\ttrade order container provider info\n" +
+                            "\t!spinfo\t\tstock prices container provider info\n\n\t!depots_c\tcompany depots info\n\t!depots_i\tinvestor depots info\n");
+                    break;
+                default:
+                    System.out.println("Unkown command.");
+            }
         }
+    }
 
+    private void shutDown() {
         try {
-
             //Unexport providers
             UnicastRemoteObject.unexportObject(isrContainerProvider,true);
             UnicastRemoteObject.unexportObject(tradeOrderContainerProvider,true);
