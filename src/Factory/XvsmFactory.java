@@ -66,8 +66,8 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public DepotInvestor newDepotInvestor(String investorId, String transactionId) throws ConnectionError {
-        return new XvsmDepotInvestor(investorId, transactionId);
+    public DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
+        return new XvsmDepotInvestor(investor, transactionId);
     }
 
     @Override

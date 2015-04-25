@@ -34,7 +34,7 @@ public interface IFactory {
 
     //Dynamic containers
 
-    DepotInvestor newDepotInvestor(String investorId, String transactionId) throws ConnectionError;
+    DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionError;
 
     DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionError;
 

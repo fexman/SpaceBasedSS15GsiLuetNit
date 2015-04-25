@@ -1,13 +1,8 @@
 package Service;
 
 import Factory.IFactory;
-import MarketEntities.DepotInvestor;
-import MarketEntities.IssueStockRequestContainer;
-import MarketEntities.StockPricesContainer;
-import MarketEntities.TradeOrderContainer;
-import Model.IssueStockRequest;
-import Model.MarketValue;
-import Model.TradeOrder;
+import MarketEntities.*;
+import Model.*;
 import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import Util.XvsmUtil;
@@ -84,16 +79,22 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
             transactionId = factory.createTransaction();
 
             // get investor container
-            DepotInvestor depotInvestor = factory.newDepotInvestor(tradeOrder.getInvestorId(), transactionId);
+            Depot investorDepot;
+            if (tradeOrder.getInvestorType() == TradeOrder.InvestorType.COMPANY) {
+                investorDepot = factory.newDepotCompany(new Company(tradeOrder.getId()), transactionId);
+            } else {
+                investorDepot = factory.newDepotInvestor(new Investor(tradeOrder.getId()), transactionId);
+            }
 
+            //TODO: CORRECT THIS
             // validate if transaction is possible
-            if (validateTransaction(factory, depotInvestor, tradeOrder, transactionId)) {
+            /*if (validateTransaction(factory, investorDepot, tradeOrder, transactionId)) {
                 tradeOrdersContainer.addOrUpdateOrder(tradeOrder, transactionId);
                 factory.commitTransaction(transactionId);
                 System.out.println("Committed: " + tradeOrder);
             } else {
                 // TODO punish investor for not having his shit together
-            }
+            }*/
         } catch (ConnectionError e) {
             try {
                 factory.rollbackTransaction(transactionId);

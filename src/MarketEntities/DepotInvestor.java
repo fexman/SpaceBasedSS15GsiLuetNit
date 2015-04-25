@@ -12,14 +12,14 @@ import java.util.List;
  */
 public abstract class DepotInvestor extends Depot {
 
-    private String investorId;
+    private Investor investor;
 
-    public DepotInvestor(String investorId, String transactionId) throws ConnectionError {
-        this.investorId = investorId;
+    public DepotInvestor(Investor investor, String transactionId) throws ConnectionError {
+        this.investor = investor;
     }
 
-    public String getInvestorId() {
-        return investorId;
+    public Investor getInvestor() {
+        return investor;
     }
 
     public abstract double getBudget(String transactionId) throws ConnectionError;

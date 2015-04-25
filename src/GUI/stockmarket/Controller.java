@@ -9,14 +9,17 @@ import Model.TradeOrder;
 import Service.ConnectionError;
 import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
+import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 
 import java.util.List;
 
@@ -50,6 +53,10 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
 
     @FXML
     private TableView<MarketValue> tableStockPrices;
+
+    @FXML
+    private Label statusLabel;
+
 
     //TODO: TABLEVIEW FOR HISTORY AND STOCK PRICES
 
@@ -118,16 +125,25 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
             ordersContainer = factory.newTradeOrdersContainer();
             orders = FXCollections.observableList(ordersContainer.getOrders(ORDER_FILTER, null));
             tableOrders.setItems(orders);
-            ordersContainer.subscribe(factory.newTradeOrderSubManager(this),null);
+            ordersContainer.subscribe(factory.newTradeOrderSubManager(this), null);
 
             stockPricesContainer = factory.newStockPricesContainer();
             stockPrices = FXCollections.observableList(stockPricesContainer.getAll(null));
             tableStockPrices.setItems(stockPrices);
-            stockPricesContainer.subscribe(factory.newStockPricesSubManager(this),null);
+            stockPricesContainer.subscribe(factory.newStockPricesSubManager(this), null);
 
-            System.out.println("Connected.");
+            statusLabel.textFillProperty().setValue(Color.DARKGREEN);
+            statusLabel.setText("Connected.");
+            FadeTransition ft = new FadeTransition(Duration.millis(2000), statusLabel);
+            ft.setFromValue(1.0);
+            ft.setToValue(0.0);
+            ft.play();
+
+            System.out.println("Connected!");
 
         } catch (ConnectionError e) {
+            statusLabel.textFillProperty().setValue(Color.RED);
+            statusLabel.setText("Connection failed.");
             e.printStackTrace();
         }
 
@@ -137,7 +153,6 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
     @Override
     public void pushNewTradeOrders(TradeOrder tradeOrder) {
         try {
-            System.out.println("Trade Orders Callback.");
             orders = FXCollections.observableList(ordersContainer.getOrders(ORDER_FILTER, null));
             tableOrders.setItems(orders);
         } catch (ConnectionError connectionError) {
@@ -149,11 +164,11 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
     @Override
     public void pushNewMarketValues(List<MarketValue> newMarketValues) {
         try {
-            System.out.println("Stock Prices Callback.");
             stockPrices = FXCollections.observableList(stockPricesContainer.getAll(null));
             tableStockPrices.setItems(stockPrices);
         } catch (ConnectionError connectionError) {
             connectionError.printStackTrace();
         }
     }
+
 }

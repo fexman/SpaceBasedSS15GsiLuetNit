@@ -56,6 +56,7 @@ public class TradeOrder implements Serializable {
 
     public void setInvestor(Company company) {
         this.investorId = company.getId();
+        this.investorType = InvestorType.COMPANY;
     }
 
     public void setInvestor(Investor investor) {
@@ -65,7 +66,6 @@ public class TradeOrder implements Serializable {
 
     public void setCompany(Company company) {
         this.companyId = company.getId();
-        this.investorType = InvestorType.COMPANY;
     }
 
     public void setTotalAmount(Integer totalAmount) {
@@ -86,6 +86,10 @@ public class TradeOrder implements Serializable {
 
     public void setInvestorType(InvestorType investorType) {
         this.investorType = investorType;
+    }
+
+    public InvestorType getInvestorType() {
+        return investorType;
     }
 
     public String getId() {

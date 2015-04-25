@@ -72,7 +72,7 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
-    public DepotInvestor newDepotInvestor(String investorId, String transactionId) throws ConnectionError {
+    public DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
         return null;
     }
 
