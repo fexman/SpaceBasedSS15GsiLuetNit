@@ -1,9 +1,6 @@
 package Factory;
 
-import MarketEntities.DepotCompany;
-import MarketEntities.IssueStockRequestContainer;
-import MarketEntities.StockPricesContainer;
-import MarketEntities.TradeOrderContainer;
+import MarketEntities.*;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionError;
@@ -37,7 +34,7 @@ public interface IFactory {
 
     //Dynamic containers
 
-    DepotCompany newDepotInvestor(Investor investor, String transactionId) throws ConnectionError;
+    DepotInvestor newDepotInvestor(String investorId, String transactionId) throws ConnectionError;
 
     DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionError;
 

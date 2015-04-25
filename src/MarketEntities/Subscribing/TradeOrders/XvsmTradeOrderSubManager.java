@@ -1,6 +1,8 @@
 package MarketEntities.Subscribing.TradeOrders;
 
 import Model.TradeOrder;
+import Service.ConnectionError;
+import Service.InvalidTradeOrderException;
 import org.mozartspaces.core.Entry;
 import org.mozartspaces.notifications.Notification;
 import org.mozartspaces.notifications.NotificationListener;
@@ -21,11 +23,13 @@ public class XvsmTradeOrderSubManager extends ATradeOrderSubManager implements N
 
     @Override
     public void entryOperationFinished(Notification source, Operation operation, List<? extends Serializable> entries) {
-        List<TradeOrder> newTradeOrders = new ArrayList<>();
         for (Serializable e: entries) {
             TradeOrder to = (TradeOrder)((Entry) e).getValue();
-            newTradeOrders.add(to);
+            try {
+                subscription.pushNewTradeOrders(to);
+            } catch (ConnectionError connectionError) {
+                connectionError.printStackTrace();
+            }
         }
-        subscription.pushNewTradeOrders(newTradeOrders);
     }
 }

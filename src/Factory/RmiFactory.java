@@ -1,15 +1,12 @@
 package Factory;
 
 
-import MarketEntities.DepotCompany;
-import MarketEntities.IssueStockRequestContainer;
+import MarketEntities.*;
 import MarketEntities.RMI.RmiDepotCompany;
 import MarketEntities.RMI.RmiIssueStockRequestContainer;
 import MarketEntities.RMI.RmiTradeOrderContainer;
-import MarketEntities.StockPricesContainer;
 import MarketEntities.Subscribing.IssueStockRequests.RmiISRSubManager;
 import MarketEntities.Subscribing.TradeOrders.RmiTradeOrderSubManager;
-import MarketEntities.TradeOrderContainer;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionError;
@@ -26,7 +23,7 @@ import java.rmi.RemoteException;
 /**
  * Created by Felix on 22.04.2015.
  */
-public class RmiFactory implements IFactory{
+public class RmiFactory implements IFactory {
 
     RmiUtil.RmiConnection rc;
 
@@ -75,7 +72,7 @@ public class RmiFactory implements IFactory{
     }
 
     @Override
-    public DepotCompany newDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
+    public DepotInvestor newDepotInvestor(String investorId, String transactionId) throws ConnectionError {
         return null;
     }
 

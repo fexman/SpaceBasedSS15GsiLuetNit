@@ -135,7 +135,7 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
     }
 
     @Override
-    public void pushNewTradeOrders(List<TradeOrder> newTradeOrders) {
+    public void pushNewTradeOrders(TradeOrder tradeOrder) {
         try {
             System.out.println("Trade Orders Callback.");
             orders = FXCollections.observableList(ordersContainer.getOrders(ORDER_FILTER, null));

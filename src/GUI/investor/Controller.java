@@ -87,7 +87,7 @@ public class Controller implements ITradeOrderSub {
     }
 
     @Override
-    public void pushNewTradeOrders(List<TradeOrder> newTradeOrders) {
+    public void pushNewTradeOrders(TradeOrder tradeOrder) {
 
     }
 

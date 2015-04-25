@@ -110,6 +110,10 @@ public class TradeOrder implements Serializable {
         return completedAmount;
     }
 
+    public Integer getPendingAmount() {
+        return totalAmount - completedAmount;
+    }
+
     public Double getPriceLimit() {
         return priceLimit;
     }

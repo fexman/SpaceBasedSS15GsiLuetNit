@@ -20,15 +20,15 @@ public class XvsmDepotInvestor extends DepotInvestor {
     private ContainerReference investorDepot;
     private XvsmUtil.XvsmConnection xc;
 
-    public XvsmDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
-        super(investor, transactionId);
+    public XvsmDepotInvestor(String investorId, String transactionId) throws ConnectionError {
+        super(investorId, transactionId);
 
-        this.depotName = Util.Container.DEPOT_INVESTOR_TOKEN.toString() + investor.getId();
+        this.depotName = Util.Container.DEPOT_INVESTOR_TOKEN.toString() + investorId;
 
         xc = XvsmUtil.getXvsmConnection();
         try {
             TransactionReference tx = XvsmUtil.getTransaction(transactionId);
-            investorDepot = XvsmUtil.getDepot(investor, tx);
+            investorDepot = XvsmUtil.getDepot(investorId, tx);
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }

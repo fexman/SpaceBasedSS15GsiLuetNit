@@ -10,7 +10,6 @@ import Model.IssueStockRequest;
  */
 public class CompanyService extends Service {
 
-
     public CompanyService(IFactory factory) {
         super(factory);
     }
@@ -45,9 +44,9 @@ public class CompanyService extends Service {
         } catch (ConnectionError e) {
             try {
                 factory.rollbackTransaction(transactionId);
-                throw new ConnectionError(e);
+                throw e;
             } catch (ConnectionError ex) {
-                throw new ConnectionError(ex);
+                throw ex;
             }
         }
     }

@@ -2,6 +2,8 @@ package MarketEntities.Subscribing.TradeOrders;
 
 import MarketEntities.Subscribing.Subscription;
 import Model.TradeOrder;
+import Service.ConnectionError;
+import Service.InvalidTradeOrderException;
 
 import java.util.List;
 
@@ -10,5 +12,6 @@ import java.util.List;
  */
 public interface ITradeOrderSub extends Subscription {
 
-    void pushNewTradeOrders(List<TradeOrder> newTradeOrders);
+    void pushNewTradeOrders(TradeOrder tradeOrder) throws ConnectionError;
+
 }

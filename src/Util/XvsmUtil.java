@@ -1,7 +1,12 @@
 package Util;
 
+import Factory.IFactory;
+import MarketEntities.DepotInvestor;
+import MarketEntities.StockPricesContainer;
 import Model.Company;
 import Model.Investor;
+import Model.TradeOrder;
+import Service.ConnectionError;
 import org.mozartspaces.capi3.*;
 import org.mozartspaces.core.*;
 
@@ -96,12 +101,12 @@ public class XvsmUtil {
 
     /**
      * Creates or looks up an investor-stock-depot
-     * @param investor
+     * @param investorId
      * @return
      * @throws MzsCoreException
      */
-    public static ContainerReference getDepot(Investor investor, TransactionReference tx) throws MzsCoreException {
-        return lookUpOrCreateContainer("DEPOT_INVESTOR_" + investor.getId(), xc.getSpace(), xc.getCapi(), tx, new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
+    public static ContainerReference getDepot(String investorId, TransactionReference tx) throws MzsCoreException {
+        return lookUpOrCreateContainer("DEPOT_INVESTOR_" + investorId, xc.getSpace(), xc.getCapi(), tx, new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
     }
 
     public static String createTransaction() throws MzsCoreException {
@@ -191,4 +196,5 @@ public class XvsmUtil {
             }
         }
     }
+
 }

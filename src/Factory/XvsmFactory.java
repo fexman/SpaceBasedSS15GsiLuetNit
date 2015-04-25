@@ -1,13 +1,7 @@
 package Factory;
 
-import MarketEntities.DepotCompany;
-import MarketEntities.IssueStockRequestContainer;
-import MarketEntities.StockPricesContainer;
-import MarketEntities.TradeOrderContainer;
-import MarketEntities.XVSM.XvsmDepotCompany;
-import MarketEntities.XVSM.XvsmIssueStockRequestContainer;
-import MarketEntities.XVSM.XvsmStockPricesContainer;
-import MarketEntities.XVSM.XvsmTradeOrdersContainer;
+import MarketEntities.*;
+import MarketEntities.XVSM.*;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionError;
@@ -72,8 +66,8 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public DepotCompany newDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
-        return null;
+    public DepotInvestor newDepotInvestor(String investorId, String transactionId) throws ConnectionError {
+        return new XvsmDepotInvestor(investorId, transactionId);
     }
 
     @Override

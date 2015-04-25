@@ -2,6 +2,7 @@ package MarketEntities.Subscribing.TradeOrders;
 
 import Model.TradeOrder;
 import RMIServer.RmiCallback;
+import Service.ConnectionError;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -19,6 +20,12 @@ public class RmiTradeOrderSubManager extends ATradeOrderSubManager implements Rm
 
     @Override
     public void newData(List<TradeOrder> newData) throws RemoteException {
-        subscription.pushNewTradeOrders(newData);
+        for (TradeOrder tradeOrder : newData) {
+            try {
+                subscription.pushNewTradeOrders(tradeOrder);
+            } catch (ConnectionError connectionError) {
+                //TODO handle exception
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 package Service;
 
 import Factory.IFactory;
+import MarketEntities.DepotInvestor;
 import MarketEntities.IssueStockRequestContainer;
 import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
@@ -9,13 +10,14 @@ import Model.MarketValue;
 import Model.TradeOrder;
 import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
+import Util.XvsmUtil;
 
 import java.util.List;
 
 /**
  * Created by Felix on 11.04.2015.
  */
-public class BrokerService extends Service implements IISRRequestSub, ITradeOrderSub{
+public class BrokerService extends Service implements IISRRequestSub, ITradeOrderSub {
 
     private IssueStockRequestContainer isrContainer;
     private TradeOrderContainer tradeOrdersContainer;
@@ -74,8 +76,32 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
     }
 
     @Override
-    public void pushNewTradeOrders(List<TradeOrder> data) {
+    public void pushNewTradeOrders(TradeOrder tradeOrder) throws ConnectionError {
         System.out.println("Trade Orders Callback.");
+
+        String transactionId = "";
+        try {
+            transactionId = factory.createTransaction();
+
+            // get investor container
+            DepotInvestor depotInvestor = factory.newDepotInvestor(tradeOrder.getInvestorId(), transactionId);
+
+            // validate if transaction is possible
+            if (validateTransaction(factory, depotInvestor, tradeOrder, transactionId)) {
+                tradeOrdersContainer.addOrUpdateOrder(tradeOrder, transactionId);
+                factory.commitTransaction(transactionId);
+                System.out.println("Committed: " + tradeOrder);
+            } else {
+                // TODO punish investor for not having his shit together
+            }
+        } catch (ConnectionError e) {
+            try {
+                factory.rollbackTransaction(transactionId);
+                throw e;
+            } catch (ConnectionError ex) {
+                throw ex;
+            }
+        }
     }
 
     @Override
@@ -85,5 +111,20 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
         } catch (ConnectionError connectionError) {
             System.out.println("FATAL ERROR: Connection Error on subscription-PUSH.");
         }
+    }
+
+    private boolean validateTransaction(IFactory factory, DepotInvestor depotInvestor, TradeOrder tradeOrder, String transactionId) throws ConnectionError {
+        if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
+            // check if dude has enough cash money to perform transaction
+            StockPricesContainer stockPricesContainer = factory.newStockPricesContainer();
+            double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
+            double transactionCost = (double) tradeOrder.getPendingAmount() * currentMarketValue;
+
+            return depotInvestor.getBudget(transactionId) >= transactionCost;
+        } else if (tradeOrder.getType().equals(TradeOrder.Type.SELL_ORDER)) {
+            // check if dude has enough stocks in his pocket
+            return depotInvestor.getStockAmount(tradeOrder.getCompanyId(), transactionId) >= tradeOrder.getPendingAmount();
+        }
+        return false;
     }
 }
