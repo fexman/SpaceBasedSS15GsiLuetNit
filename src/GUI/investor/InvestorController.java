@@ -15,6 +15,9 @@ import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
@@ -25,9 +28,10 @@ import javafx.stage.WindowEvent;
 import org.mozartspaces.capi3.LabelCoordinator;
 import org.mozartspaces.capi3.Query;
 
+import java.io.IOException;
 import java.util.List;
 
-public class InvestorController implements ITradeOrderSub {
+public class InvestorController {
 
     private IFactory factory;
 
@@ -132,13 +136,18 @@ public class InvestorController implements ITradeOrderSub {
         tabOrders.setItems(activeOrders);
     }
 
-    @Override
-    public void pushNewTradeOrders(TradeOrder tradeOrder) {
-
-    }
-
     public void editBudgetButtonClicked() {
-        //TODO implement
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("increase_budget.fxml"));
+            fxmlLoader.setController(new BudgetController(factory, investor, depotInvestor));
+            Parent root1 = (Parent) fxmlLoader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Increase Budget");
+            stage.setScene(new Scene(root1));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void loginButtonClicked() {
@@ -218,7 +227,17 @@ public class InvestorController implements ITradeOrderSub {
     }
 
     public void addOrderButtonClicked() {
-        //TODO open new_order
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("new_order.fxml"));
+            fxmlLoader.setController(new NewOrderController(factory, investor));
+            Parent root1 = (Parent) fxmlLoader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Add trade order");
+            stage.setScene(new Scene(root1));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void addShutdownHook(Stage primaryStage) {

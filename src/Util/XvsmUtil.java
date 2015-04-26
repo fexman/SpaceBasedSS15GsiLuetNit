@@ -106,10 +106,7 @@ public class XvsmUtil {
      * @throws MzsCoreException
      */
     public static ContainerReference getDepot(String investorId, TransactionReference tx) throws MzsCoreException {
-        ArrayList<CoordinatorType> coordinatorTypes = new ArrayList<>();
-        coordinatorTypes.add(CoordinatorType.LABEL_COORDINATOR);
-        coordinatorTypes.add(CoordinatorType.TYPE_COORDINATOR);
-        return lookUpOrCreateContainer("DEPOT_INVESTOR_" + investorId, xc.getSpace(), xc.getCapi(), tx, coordinatorTypes);
+        return lookUpOrCreateContainer("DEPOT_INVESTOR_" + investorId, xc.getSpace(), xc.getCapi(), tx, new ArrayList<CoordinatorType>() {{ add(CoordinatorType.LABEL_COORDINATOR); }});
     }
 
     public static String createTransaction() throws MzsCoreException {

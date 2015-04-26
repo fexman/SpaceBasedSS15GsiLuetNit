@@ -20,7 +20,6 @@ import java.util.List;
 public class XvsmDepotInvestor extends DepotInvestor {
 
     private ContainerReference investorDepot;
-    private StockPricesContainer stockPricesContainer;
     private XvsmUtil.XvsmConnection xc;
 
     public XvsmDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
