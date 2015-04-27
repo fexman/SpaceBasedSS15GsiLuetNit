@@ -11,6 +11,7 @@ import org.mozartspaces.capi3.*;
 import org.mozartspaces.core.*;
 import org.mozartspaces.xvsmp.util.PredefinedCoordinationDataCreators;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +45,8 @@ public class XvsmDepotInvestor extends DepotInvestor {
         try {
             ArrayList<Entry> budget = xc.getCapi().read(investorDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx);
             if (budget.size() > 0) {
-                return (double) budget.get(0).getValue();
+                Serializable obj = budget.get(0);
+                return ((Double) obj).doubleValue();
             } else {
                 xc.getCapi().write(new Entry(0.00, LabelCoordinator.newCoordinationData("BUDGET")), investorDepot, XvsmUtil.ACTION_TIMEOUT, tx);
                 return 0.00;
@@ -83,7 +85,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
     public int getStockAmount(String stockName, String transactionId) throws ConnectionError {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
-        LabelCoordinator.LabelSelector selector = LabelCoordinator.newSelector(stockName);
+        LabelCoordinator.LabelSelector selector = LabelCoordinator.newSelector(stockName, MzsConstants.Selecting.COUNT_MAX);
         try {
             return xc.getCapi().read(investorDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx).size();
         } catch (MzsCoreException e) {

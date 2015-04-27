@@ -3,6 +3,7 @@ package Model;
 import org.mozartspaces.capi3.Queryable;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -17,11 +18,11 @@ public class TradeOrder implements Serializable {
     private String companyId;   // companyId of the wanted stocks company
     private Integer totalAmount; // total amount of stocks wanted
     private Integer completedAmount; // amount of stocks already "processed"
-    private Integer openAmount;
     private Double priceLimit;  // upper or lower price limit
     private Status status;
     private Type type;
     private InvestorType investorType;
+    private Long created;
 
 
     private TradeOrder(String investorId, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
@@ -34,21 +35,30 @@ public class TradeOrder implements Serializable {
         this.id = UUID.randomUUID().toString();
         this.completedAmount = 0;
         this.status = Status.OPEN;
+        this.created = new Date().getTime();
+    }
+
+    public TradeOrder(Status status) {
+        this.status = status;
+        this.created = new Date().getTime();
     }
 
     public TradeOrder() {
         this.type = Type.ANY;
         this.status = Status.ANY;
+        this.created = new Date().getTime();
     }
 
     public TradeOrder(Investor investor, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
         this(investor.getId(),  companyOfStocksToBuyOrSell,type, totalAmount,priceLimit);
         this.investorType = InvestorType.INVESTOR;
+        this.created = new Date().getTime();
     }
 
     public TradeOrder(Company investor, Company companyOfStocksToBuyOrSell, Integer totalAmount, Double priceLimit) {
         this(investor.getId(),  companyOfStocksToBuyOrSell,Type.SELL_ORDER, totalAmount,priceLimit);
         this.investorType = InvestorType.COMPANY;
+        this.created = new Date().getTime();
     }
 
     public void setId(String id) {
@@ -132,9 +142,9 @@ public class TradeOrder implements Serializable {
     }
 
     public void setStatus(Status status) {
-        if (status.equals(Status.ANY) || status.equals(Status.NOT_COMPLETED)) {
-            return;
-        }
+//        if (status.equals(Status.ANY) || status.equals(Status.NOT_COMPLETED)) {
+//            return;
+//        }
         this.status = status;
     }
 
@@ -153,12 +163,12 @@ public class TradeOrder implements Serializable {
                 '}';
     }
 
-    public Integer getOpenAmount() {
-        return openAmount;
+    public Long getCreated() {
+        return created;
     }
 
-    public void setOpenAmount(Integer openAmount) {
-        this.openAmount = openAmount;
+    public void setCreated(Long created) {
+        this.created = created;
     }
 
     public enum Status {

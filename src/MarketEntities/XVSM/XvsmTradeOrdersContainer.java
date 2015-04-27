@@ -63,7 +63,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
         //Write to traderOrdersContainer
         try {
-            xc.getCapi().write(tradeOrdersContainer, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(order));
+            xc.getCapi().write(new Entry(order), tradeOrdersContainer, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
@@ -83,17 +83,9 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
         }
         Selector selector = QueryCoordinator.newSelector(query);
 
-        // remove this specific, existing TradeOrder from the container (as punishment for company or investor)
         try {
-            // trade order can only be deleted, if its state is open
-            if (order.getStatus().toString().equals(TradeOrder.Status.OPEN.toString())) {
-                xc.getCapi().delete(tradeOrdersContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
-
-                System.out.println("Trade order successfully deleted: " + order);
-            } else {
-                //TODO throw exception or something saying trade order can't be deleted, because it's already deleted/partially completed/completed
-                System.out.println("Trade order couldn't be deleted (wrong state): " + order);
-            }
+            xc.getCapi().delete(tradeOrdersContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
+            System.out.println("Trade order successfully deleted: " + order);
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
@@ -130,32 +122,31 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
                         break;
                     case ANY: //I DONT CARE, SIMPLE MATCHING
                         query.sql("priceLimit = "+order.getPriceLimit());
-
                 }
             }
             switch (order.getStatus()) { //LOOKING FOR ORDERS WITH STATUS ...
                 case OPEN: // OPEN
-                    query.sql("status = "+TradeOrder.Status.OPEN);
+                    query.sql("status = '"+TradeOrder.Status.OPEN + "'");
                     System.out.print(" STATUS=OPEN");
                     break;
                 case PARTIALLY_COMPLETED: // PARTIALLY COMPLETED
-                    query.sql("status = "+TradeOrder.Status.PARTIALLY_COMPLETED);
+                    query.sql("status = '"+TradeOrder.Status.PARTIALLY_COMPLETED + "'");
                     System.out.print(" STATUS=PARTIALLY_COMPLETED");
                     break;
                 case NOT_COMPLETED: //OPEN OR PARTIALLY COMPLETED
-                    query.sql("status = "+TradeOrder.Status.OPEN+" OR status = "+TradeOrder.Status.PARTIALLY_COMPLETED);
+                    query.sql("status = '"+TradeOrder.Status.OPEN+"' OR status = '"+TradeOrder.Status.PARTIALLY_COMPLETED + "'");
                     System.out.print(" STATUS=NOT_COMPLETED");
                     break;
                 case COMPLETED: // COMPLETED
-                    query.sql("status = "+TradeOrder.Status.COMPLETED);
+                    query.sql("status = '"+TradeOrder.Status.COMPLETED + "'");
                     System.out.print(" STATUS=COMPLETED");
                     break;
                 case DELETED: // DELETED
-                    query.sql("status = "+TradeOrder.Status.DELETED);
+                    query.sql("status = '"+TradeOrder.Status.DELETED + "'");
                     System.out.print(" STATUS=DELETED");
                     break;
                 case NOT_DELETED: //EVERYTHING EXCEPT DELETED
-                    query.sql("status <> "+TradeOrder.Status.DELETED);
+                    query.sql("status <> '"+TradeOrder.Status.DELETED + "'");
                     System.out.print(" STATUS=NOT_DELETED");
                 case ANY: // I DONT CARE, GIVE ME ALL OF THEM
                     break;

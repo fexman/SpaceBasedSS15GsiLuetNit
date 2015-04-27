@@ -49,6 +49,12 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
+    public TransactionHistoryContainer newTransactionHistoryContainer() {
+        //TODO
+        return null;
+    }
+
+    @Override
     public AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription) {
         try {
             return new RmiISRSubManager(subscription);

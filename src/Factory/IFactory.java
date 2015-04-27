@@ -24,6 +24,8 @@ public interface IFactory {
 
     StockPricesContainer newStockPricesContainer();
 
+    TransactionHistoryContainer newTransactionHistoryContainer();
+
     //Subscription-manager
 
     AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription);

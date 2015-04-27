@@ -51,6 +51,11 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
+    public TransactionHistoryContainer newTransactionHistoryContainer() {
+        return new XvsmTransactionHistoryContainer();
+    }
+
+    @Override
     public AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription) {
         return new XvsmISRSubManager(subscription);
     }

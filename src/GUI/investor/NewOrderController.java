@@ -7,13 +7,17 @@ import Model.Company;
 import Model.Investor;
 import Model.TradeOrder;
 import Service.ConnectionError;
+import Service.InvestorService;
+import Util.XvsmUtil;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import org.mozartspaces.core.MzsCoreException;
 import org.mozartspaces.core.TransactionReference;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +34,7 @@ public class NewOrderController {
     private Investor investor;
 
     @FXML
-    private ComboBox<Company> stockName;
+    private ComboBox<String> stockName;
     @FXML
     private ComboBox<TradeOrder.Type> orderType;
     @FXML
@@ -72,15 +76,16 @@ public class NewOrderController {
     private void populateStockNames() {
         // show all companies that currently sell stocks
         try {
-            String transactionId = factory.createTransaction();
-
-            List<TradeOrder> availableTradeOrders = tradeOrderContainer.getAllOrders(transactionId);
+            // using a HashMap to ensure distinct selection of company names
+            List<TradeOrder> availableTradeOrders = tradeOrderContainer.getAllOrders(null);
             HashMap<String, Company> availableCompanies = new HashMap<>();
             for (TradeOrder tradeOrder : availableTradeOrders) {
                 availableCompanies.put(tradeOrder.getCompanyId(), tradeOrder.getCompany());
             }
 
-            stockName.getItems().addAll(availableCompanies.values());
+            // extract stock names (company id)
+            List<String> stockNames = new ArrayList<>(availableCompanies.keySet());
+            stockName.getItems().addAll(stockNames);
         } catch (ConnectionError connectionError) {
             connectionError.printStackTrace();
         }
@@ -88,23 +93,18 @@ public class NewOrderController {
 
     public void addTradeOrderClicked() {
         if (isValidInput()) {
+            TradeOrder tradeOrder = new TradeOrder(TradeOrder.Status.OPEN);
+            tradeOrder.setId(UUID.randomUUID().toString());
+            tradeOrder.setInvestor(investor);
+            tradeOrder.setCompany(new Company(stockName.getValue()));
+            tradeOrder.setCompletedAmount(0);
+            tradeOrder.setTotalAmount(stockAmount);
+            tradeOrder.setInvestorType(TradeOrder.InvestorType.INVESTOR);
+            tradeOrder.setPriceLimit(orderLimit);
+            tradeOrder.setType(orderType.getValue());
+
             try {
-                String transactionId = factory.createTransaction();
-
-                TradeOrder tradeOrder = new TradeOrder();
-                tradeOrder.setId(UUID.randomUUID().toString());
-                tradeOrder.setInvestor(investor);
-                tradeOrder.setCompany(stockName.getValue());
-                tradeOrder.setCompletedAmount(0);
-                tradeOrder.setTotalAmount(stockAmount);
-                tradeOrder.setOpenAmount(stockAmount);
-                tradeOrder.setInvestorType(TradeOrder.InvestorType.INVESTOR);
-                tradeOrder.setPriceLimit(orderLimit);
-                tradeOrder.setType(orderType.getValue());
-                tradeOrder.setStatus(TradeOrder.Status.OPEN);
-
-                tradeOrderContainer.addOrUpdateOrder(tradeOrder, transactionId);
-
+                tradeOrderContainer.addOrUpdateOrder(tradeOrder, null);
                 System.out.println("Trade order added: " + tradeOrder);
             } catch (ConnectionError connectionError) {
                 connectionError.printStackTrace();
@@ -135,5 +135,4 @@ public class NewOrderController {
 
         return true;
     }
-
 }

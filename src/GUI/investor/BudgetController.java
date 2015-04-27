@@ -4,6 +4,7 @@ import Factory.IFactory;
 import MarketEntities.DepotInvestor;
 import Model.Investor;
 import Service.ConnectionError;
+import Service.InvestorService;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -22,7 +23,7 @@ public class BudgetController {
 
     private Double budget;
 
-    private DepotInvestor depotInvestor;
+    private InvestorService investorService;
 
     @FXML
     private TextField txtBudget;
@@ -31,14 +32,16 @@ public class BudgetController {
     @FXML
     private Button btnAddToBudget;
 
-    public BudgetController() {
+    private OnBudgetChangedListener budgetChangedListener;
 
+    public BudgetController() {
     }
 
-    public BudgetController(IFactory factory, Investor investor, DepotInvestor depotInvestor) {
+    public BudgetController(IFactory factory, Investor investor, OnBudgetChangedListener budgetChangedListener) {
         this.factory = factory;
         this.investor = investor;
-        this.depotInvestor = depotInvestor;
+        this.budgetChangedListener = budgetChangedListener;
+        investorService = new InvestorService(factory, investor);
     }
 
     @FXML
@@ -49,11 +52,10 @@ public class BudgetController {
     public void addToBudgetClicked() {
         if (isValidInput()) {
             try {
-                String transactionId = factory.createTransaction();
+                investorService.addToBudget(budget);
 
-                depotInvestor.addToBudget(budget, transactionId);
-
-                System.out.println("Added " + budget + " to " + investor.getId() + "'s budget.");
+                // tell main stage to update its budget
+                budgetChangedListener.onBudgetChanged();
 
                 Stage stage = (Stage) btnAddToBudget.getScene().getWindow();
                 stage.close();

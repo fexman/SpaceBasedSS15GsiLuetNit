@@ -2,10 +2,13 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.*;
+import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
 import Model.*;
 import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
+import org.mozartspaces.notifications.NotificationManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,22 +16,27 @@ import java.util.List;
  */
 public class BrokerService extends Service implements IISRRequestSub, ITradeOrderSub {
 
+    private String id;
     private ISRContainer isrContainer;
     private TradeOrderContainer tradeOrdersContainer;
     private StockPricesContainer stockPricesContainer;
+    private TransactionHistoryContainer transactionHistoryContainer;
 
-    public BrokerService(IFactory factory) {
+    private final double PROVISION_PERCENTAGE = 0.03;
+
+    public BrokerService(String id, IFactory factory) {
         super(factory);
+        this.id = id;
         isrContainer = factory.newISRContainer();
         tradeOrdersContainer = factory.newTradeOrdersContainer();
         stockPricesContainer = factory.newStockPricesContainer();
+        transactionHistoryContainer = factory.newTransactionHistoryContainer();
     }
 
-
     public void startBroking() throws ConnectionError {
-            takeAndProcessISRs();
-            isrContainer.subscribe(factory.newIssueStockRequestSubManager(this), null);
-            tradeOrdersContainer.subscribe(factory.newTradeOrderSubManager(this),null);
+        takeAndProcessISRs();
+        isrContainer.subscribe(factory.newIssueStockRequestSubManager(this), null);
+        tradeOrdersContainer.subscribe(factory.newTradeOrderSubManager(this),null);
     }
 
     public void takeAndProcessISRs() throws ConnectionError {
@@ -73,30 +81,7 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
     public void pushNewTradeOrders(TradeOrder tradeOrder) {
         System.out.println("Trade Orders Callback.");
 
-        String transactionId = "";
-        try {
-            transactionId = factory.createTransaction();
-
-            // get investor container
-            Depot investorDepot;
-            if (tradeOrder.getInvestorType() == TradeOrder.InvestorType.COMPANY) {
-                investorDepot = factory.newDepotCompany(new Company(tradeOrder.getInvestorId()), transactionId);
-            } else {
-                investorDepot = factory.newDepotInvestor(new Investor(tradeOrder.getInvestorId()), transactionId);
-            }
-
-            //TODO: CORRECT THIS
-            // validate if transaction is possible
-            /*if (validateTransaction(factory, investorDepot, tradeOrder, transactionId)) {
-                tradeOrdersContainer.addOrUpdateOrder(tradeOrder, transactionId);
-                factory.commitTransaction(transactionId);
-                System.out.println("Committed: " + tradeOrder);
-            } else {
-                // TODO punish investor for not having his shit together
-            }*/
-        } catch (ConnectionError e) {
-            System.out.println("Could not locate investor depot!");
-        }
+        solveOrder(tradeOrder);
     }
 
     @Override
@@ -108,18 +93,189 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
         }
     }
 
-    private boolean validateTransaction(IFactory factory, DepotInvestor depotInvestor, TradeOrder tradeOrder, String transactionId) throws ConnectionError {
-        if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
-            // check if dude has enough cash money to perform transaction
-            StockPricesContainer stockPricesContainer = factory.newStockPricesContainer();
-            double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
-            double transactionCost = (double) tradeOrder.getPendingAmount() * currentMarketValue;
 
-            return depotInvestor.getBudget(transactionId) >= transactionCost;
-        } else if (tradeOrder.getType().equals(TradeOrder.Type.SELL_ORDER)) {
-            // check if dude has enough stocks in his pocket
-            return depotInvestor.getStockAmount(tradeOrder.getCompanyId(), transactionId) >= tradeOrder.getPendingAmount();
+    private void solveOrder(TradeOrder tradeOrder) {
+        String transactionId = null;
+        try {
+            transactionId = factory.createTransaction();
+
+            TradeOrder matchingTradeOrder = findMatchingTradeOrder(tradeOrder, transactionId);
+
+            if (matchingTradeOrder != null) {
+                if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
+                    if (validateTradeOrders(tradeOrder, matchingTradeOrder, transactionId)) {
+                        executeTransaction(tradeOrder, matchingTradeOrder, transactionId);
+                    }
+                } else {
+                    if (validateTradeOrders(matchingTradeOrder, tradeOrder, transactionId)) {
+                        executeTransaction(matchingTradeOrder, tradeOrder, transactionId);
+                    }
+                }
+            } else {
+                // when no match was found -> just insert new trade order
+                //TODO prevent this from recursively calling this method
+                tradeOrdersContainer.addOrUpdateOrder(tradeOrder, transactionId);
+            }
+            // finally commit
+            factory.commitTransaction(transactionId);
+        } catch (ConnectionError connectionError) {
+            connectionError.printStackTrace();
+        }
+    }
+
+
+    private void executeTransaction(TradeOrder buyOrder, TradeOrder sellOrder, String transactionId) throws ConnectionError {
+        // buyer can only be an investor
+        DepotInvestor depotBuyer = factory.newDepotInvestor(new Investor(buyOrder.getInvestorId()), transactionId);
+
+        Depot depotSeller;
+        if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
+            depotSeller = factory.newDepotCompany(sellOrder.getCompany(), transactionId);
+        } else {
+            depotSeller = factory.newDepotInvestor(new Investor(sellOrder.getInvestorId()), transactionId);
+        }
+
+        // list of stocks to transfer from seller to buyer depot
+        List<Stock> boughtStocks;
+
+        if (buyOrder.getPendingAmount() >= sellOrder.getPendingAmount()) {
+            // take ALL stocks from seller depot
+            boughtStocks = takeStocksFromSellerDepot(depotSeller, sellOrder, sellOrder.getPendingAmount(), transactionId);
+
+            if (buyOrder.getPendingAmount() == sellOrder.getPendingAmount()) {
+                buyOrder.setStatus(TradeOrder.Status.COMPLETED); // should be equal to totalAmount when completed
+            } else {
+                buyOrder.setStatus(TradeOrder.Status.PARTIALLY_COMPLETED);
+            }
+            buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
+
+            sellOrder.setStatus(TradeOrder.Status.COMPLETED);
+            sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
+        }  else {
+            // take the amount required in buy order from seller depot
+            boughtStocks = takeStocksFromSellerDepot(depotSeller, sellOrder, buyOrder.getPendingAmount(), transactionId);
+
+            buyOrder.setStatus(TradeOrder.Status.COMPLETED);
+            buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
+
+            sellOrder.setStatus(TradeOrder.Status.PARTIALLY_COMPLETED);
+            sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
+        }
+
+        // add stocks to buyer depot
+        depotBuyer.addStocks(boughtStocks, transactionId);
+
+        // decrease budget of buyer
+        double currentMarketValue = stockPricesContainer.getMarketValue(buyOrder.getCompany(), transactionId).getPrice();
+        double totalValue = boughtStocks.size() * currentMarketValue;
+        double provision = totalValue * PROVISION_PERCENTAGE;
+
+        depotBuyer.setBudget(-totalValue, transactionId);
+
+        // if seller is an investor -> increase his budget
+        double sellerProfit = totalValue - provision;
+
+        if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.INVESTOR)) {
+            ((DepotInvestor) depotSeller).addToBudget(sellerProfit, transactionId);
+        }
+
+        // write transaction to transaction history container
+        transactionHistoryContainer.addHistoryEntry(new HistoryEntry(transactionId, id, new Investor(buyOrder.getInvestorId()), sellOrder.getCompany(), buyOrder.getCompanyId(),
+                buyOrder.getId(), sellOrder.getId(), currentMarketValue, boughtStocks.size(), totalValue + provision, provision), transactionId);
+
+        // update trade orders
+        tradeOrdersContainer.addOrUpdateOrder(buyOrder, transactionId);
+        tradeOrdersContainer.addOrUpdateOrder(sellOrder, transactionId);
+    }
+
+
+    private List<Stock> takeStocksFromSellerDepot(Depot depotSeller, TradeOrder sellOrder, int amount, String transactionId) throws ConnectionError {
+        if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
+            return ((DepotCompany) depotSeller).takeStocks(amount, transactionId);
+        } else{
+            return ((DepotInvestor) depotSeller).takeStocks(sellOrder.getCompany(), amount, transactionId);
+        }
+    }
+
+
+    private boolean validateTradeOrders(TradeOrder buyOrder, TradeOrder sellOrder, String transactionId) throws ConnectionError {
+        DepotInvestor depotInvestor = factory.newDepotInvestor(new Investor(buyOrder.getInvestorId()), transactionId);
+        if (buyerHasEnoughMoney(buyOrder, depotInvestor, transactionId)) {
+            if (sellerHasEnoughStocks(sellOrder, transactionId)) {
+                return true;
+            } else {
+                tradeOrdersContainer.deleteOrder(sellOrder, transactionId); // punish seller
+                System.out.println("Punishing seller for not having enough stocks for his own trade order.");
+            }
+        } else {
+            tradeOrdersContainer.deleteOrder(buyOrder, transactionId); // punish buyer
+            System.out.println("Punishing buyer for not having enough money for his own trade order.");
         }
         return false;
+    }
+
+
+    private TradeOrder findMatchingTradeOrder(TradeOrder tradeOrder, String transactionId) {
+        System.out.println("Searching for matching order.");
+
+        TradeOrder filter = new TradeOrder(TradeOrder.Status.NOT_COMPLETED);
+        // we are looking for a opposing order type from the same stocks (company) within the price limit
+        filter.setCompany(tradeOrder.getCompany());
+        if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
+            filter.setType(TradeOrder.Type.SELL_ORDER);
+        } else {
+            filter.setType(TradeOrder.Type.BUY_ORDER);
+        }
+        filter.setPriceLimit(tradeOrder.getPriceLimit());
+        try {
+            List<TradeOrder> matchingOrders = tradeOrdersContainer.getOrders(filter, transactionId);
+
+            if (matchingOrders.size() > 0) {
+                System.out.println("Matching trade order found!");
+                // find oldest matching order
+                TradeOrder oldestMatchingOrder = new TradeOrder();
+                oldestMatchingOrder.setCreated(Long.MAX_VALUE);
+                for (int i = 0; i < matchingOrders.size(); i++) {
+                    if (matchingOrders.get(i).getCreated() < oldestMatchingOrder.getCreated()) {
+                        oldestMatchingOrder = matchingOrders.get(i);
+                    }
+                }
+                return oldestMatchingOrder;
+            }
+            return null;
+        } catch (ConnectionError connectionError) {
+            connectionError.printStackTrace();
+        }
+        return null;
+    }
+
+
+    private boolean buyerHasEnoughMoney(TradeOrder tradeOrder, DepotInvestor depotInvestor, String transactionId) throws ConnectionError {
+        // check if investor has enough money to perform transaction
+        StockPricesContainer stockPricesContainer = factory.newStockPricesContainer();
+        double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
+        double transactionCost = ((double) tradeOrder.getTotalAmount() * currentMarketValue) * (1.0 + PROVISION_PERCENTAGE);
+
+        return depotInvestor.getBudget(transactionId) >= transactionCost;
+    }
+
+
+    // bei buy order ist seller die matchingTradeOrder und vice versa
+    private boolean sellerHasEnoughStocks(TradeOrder tradeOrder, String transactionId) throws ConnectionError {
+        if (tradeOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
+            DepotCompany depotCompany = factory.newDepotCompany(tradeOrder.getCompany(), transactionId);
+            return depotCompany.getTotalAmountOfStocks(transactionId) >= (tradeOrder.getTotalAmount() - tradeOrder.getCompletedAmount());
+        } else {
+            DepotInvestor depotInvestor = factory.newDepotInvestor(new Investor(tradeOrder.getInvestorId()), transactionId);
+            return depotInvestor.getStockAmount(tradeOrder.getCompanyId(), transactionId) >= (tradeOrder.getTotalAmount() - tradeOrder.getCompletedAmount());
+        }
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

@@ -63,7 +63,7 @@ public class XvsmDepotCompany extends DepotCompany {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
         for (Stock s : stocks) {
             try {
-                xc.getCapi().write(companyDepot, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(s));
+                xc.getCapi().write(new Entry(s), companyDepot, XvsmUtil.ACTION_TIMEOUT, tx);
             } catch (MzsCoreException e) {
                 throw new ConnectionError(e);
             }

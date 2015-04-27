@@ -68,7 +68,8 @@ public class XvsmUtil {
         //Create "hardcoded" containers
         containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(),null,
                 new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR); }}));
-        containers.put(Container.TRANSACTION_HISTORY, lookUpOrCreateContainer(Container.TRANSACTION_HISTORY.toString(), xc.getSpace(), xc.getCapi(),null,  new ArrayList<CoordinatorType>()));
+        containers.put(Container.TRANSACTION_HISTORY, lookUpOrCreateContainer(Container.TRANSACTION_HISTORY.toString(), xc.getSpace(), xc.getCapi(),null,
+                new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR); }}));
         containers.put(Container.TRADE_ORDERS, lookUpOrCreateContainer(Container.TRADE_ORDERS.toString(), xc.getSpace(), xc.getCapi(),null,
                 new ArrayList<CoordinatorType>() {{ add(CoordinatorType.QUERY_COORDINATOR); }}));
         containers.put(Container.STOCK_PRICES, lookUpOrCreateContainer(Container.STOCK_PRICES.toString(), xc.getSpace(), xc.getCapi(), null,

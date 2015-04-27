@@ -11,7 +11,6 @@ import Model.Stock;
 import Model.TradeOrder;
 import Service.ConnectionError;
 import javafx.collections.FXCollections;
-import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -25,13 +24,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import org.mozartspaces.capi3.LabelCoordinator;
-import org.mozartspaces.capi3.Query;
 
 import java.io.IOException;
 import java.util.List;
 
-public class InvestorController {
+public class InvestorController implements OnBudgetChangedListener {
 
     private IFactory factory;
 
@@ -108,7 +105,8 @@ public class InvestorController {
         colOrderType.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("type"));
         colOrderStockId.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("companyId"));
         colOrderLimit.setCellValueFactory(new PropertyValueFactory<TradeOrder, Double>("priceLimit"));
-        colOrderOpenAmount.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("openAmount"));
+        //TODO change this
+        colOrderOpenAmount.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("totalAmount"));
 
         dataContainer.setVisible(false);
     }
@@ -121,17 +119,16 @@ public class InvestorController {
         }
     }
 
-    private void populateActiveStocksTable(String transactionId) {
+    private void populateActiveStocksTable() {
         //TODO implement
-
     }
 
-    private void populateOpenOrdersTable(String transactionId) throws ConnectionError {
+    private void populateOpenOrdersTable() throws ConnectionError {
         TradeOrder filter = new TradeOrder();
         filter.setInvestor(investor);
         filter.setStatus(TradeOrder.Status.OPEN);
 
-        activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(filter, transactionId));
+        activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(filter, null));
 
         tabOrders.setItems(activeOrders);
     }
@@ -139,7 +136,7 @@ public class InvestorController {
     public void editBudgetButtonClicked() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("increase_budget.fxml"));
-            fxmlLoader.setController(new BudgetController(factory, investor, depotInvestor));
+            fxmlLoader.setController(new BudgetController(factory, investor, this));
             Parent root1 = (Parent) fxmlLoader.load();
             Stage stage = new Stage();
             stage.setTitle("Increase Budget");
@@ -160,15 +157,13 @@ public class InvestorController {
         initFactory();
 
         try {
-            String transactionId = factory.createTransaction();
-
             // get/create necessary containers
-            depotInvestor = factory.newDepotInvestor(investor, transactionId);
+            depotInvestor = factory.newDepotInvestor(investor, null);
             tradeOrderContainer = factory.newTradeOrdersContainer();
             stockPricesContainer = factory.newStockPricesContainer();
 
             // initialize rest of UI after references to containers are set
-            initUi(transactionId);
+            initUi();
         } catch (ConnectionError connectionError) {
             connectionError.printStackTrace();
         }
@@ -188,20 +183,20 @@ public class InvestorController {
         }
     }
 
-    private void initUi(String transactionId) throws ConnectionError {
+    private void initUi() throws ConnectionError {
 //        try {
             // make login invisible
             loginContainer.setVisible(false);
             loginContainer.setPrefHeight(0);
 
-            // load data
-            double budget = depotInvestor.getBudget(transactionId);
+            // load initial data
+            double budget = depotInvestor.getBudget(null);
             txtBudget.setText("" + budget);
-            txtTotalStockValue.setText("" + calculateTotalValueOfStocks(transactionId));
+            txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
 
-            populateActiveStocksTable(transactionId);
+            populateActiveStocksTable();
 
-            populateOpenOrdersTable(transactionId);
+            populateOpenOrdersTable();
 
             // make data container visible
             dataContainer.setVisible(true);
@@ -211,16 +206,16 @@ public class InvestorController {
 //        }
     }
 
-    private double calculateTotalValueOfStocks(String transactionId) throws ConnectionError {
+    private double calculateTotalValueOfStocks() throws ConnectionError {
         //TODO alternative solution: read distinct stocks to reduce getMarketValue() calls
 
         // get all stocks for investor
-        List<Stock> allStocksInDepot = depotInvestor.readAllStocks(transactionId);
+        List<Stock> allStocksInDepot = depotInvestor.readAllStocks(null);
 
         double totalValue = 0;
 
         for (Stock stock : allStocksInDepot) {
-            totalValue += stockPricesContainer.getMarketValue(stock.getCompany(), transactionId).getPrice();
+            totalValue += stockPricesContainer.getMarketValue(stock.getCompany(), null).getPrice();
         }
 
         return totalValue;
@@ -249,5 +244,15 @@ public class InvestorController {
                 }
             }
         });
+    }
+
+    @Override
+    public void onBudgetChanged() {
+        try {
+            double budget = depotInvestor.getBudget(null);
+            txtBudget.setText("" + budget);
+        } catch (ConnectionError connectionError) {
+            statusLabel.setText("Unable to load new budget.");
+        }
     }
 }
