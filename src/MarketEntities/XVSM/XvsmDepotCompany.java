@@ -7,6 +7,7 @@ import Service.ConnectionError;
 import Util.Container;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.AnyCoordinator;
+import org.mozartspaces.capi3.LabelCoordinator;
 import org.mozartspaces.core.*;
 
 import java.util.List;

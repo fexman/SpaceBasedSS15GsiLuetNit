@@ -42,9 +42,6 @@
                            </HBox.margin>
                         </Label>
                         <Button id="btnEditBudget" fx:id="btnEditBudget" mnemonicParsing="false" onAction="#editBudgetButtonClicked" prefHeight="36.0" prefWidth="92.0" text="bearbeiten">
-                           <opaqueInsets>
-                              <Insets />
-                           </opaqueInsets>
                            <HBox.margin>
                               <Insets left="10.0" />
                            </HBox.margin>
@@ -57,9 +54,6 @@
                         <Label prefHeight="30.0" prefWidth="180.0" text="Gesamtwert aller Aktien:" />
                         <TextField id="txtTotalStockValue" fx:id="txtTotalStockValue" editable="false" prefHeight="0.0" prefWidth="69.0" />
                         <Label prefHeight="30.0" prefWidth="9.0" text="€">
-                           <opaqueInsets>
-                              <Insets />
-                           </opaqueInsets>
                            <HBox.margin>
                               <Insets left="5.0" />
                            </HBox.margin>

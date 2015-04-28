@@ -38,11 +38,6 @@ public class RmiTradeOrderContainer extends TradeOrderContainer {
     }
 
     @Override
-    public void deleteOrder(TradeOrder order, String transactionId) throws ConnectionError {
-        //TODO implement
-    }
-
-    @Override
     public List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws ConnectionError {
         try {
             return toContainer.getOrders(order, transactionId);

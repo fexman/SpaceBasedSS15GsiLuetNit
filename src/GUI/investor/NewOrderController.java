@@ -93,7 +93,7 @@ public class NewOrderController {
 
     public void addTradeOrderClicked() {
         if (isValidInput()) {
-            TradeOrder tradeOrder = new TradeOrder(TradeOrder.Status.OPEN);
+            TradeOrder tradeOrder = new TradeOrder();
             tradeOrder.setId(UUID.randomUUID().toString());
             tradeOrder.setInvestor(investor);
             tradeOrder.setCompany(new Company(stockName.getValue()));
@@ -102,6 +102,7 @@ public class NewOrderController {
             tradeOrder.setInvestorType(TradeOrder.InvestorType.INVESTOR);
             tradeOrder.setPriceLimit(orderLimit);
             tradeOrder.setType(orderType.getValue());
+            tradeOrder.setStatus(TradeOrder.Status.OPEN);
 
             try {
                 tradeOrderContainer.addOrUpdateOrder(tradeOrder, null);

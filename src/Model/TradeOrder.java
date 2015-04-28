@@ -1,5 +1,7 @@
 package Model;
 
+import com.sleepycat.je.utilint.Stat;
+import org.mozartspaces.capi3.Index;
 import org.mozartspaces.capi3.Queryable;
 
 import java.io.Serializable;
@@ -20,7 +22,11 @@ public class TradeOrder implements Serializable {
     private Integer completedAmount; // amount of stocks already "processed"
     private Double priceLimit;  // upper or lower price limit
     private Status status;
+    @Index
+    private String statusString; // needed for queries, since SQL can't handle ENUMs
     private Type type;
+    @Index
+    private String typeString;   // needed for queries, since SQL can't handle ENUMs
     private InvestorType investorType;
     private Long created;
 
@@ -28,24 +34,19 @@ public class TradeOrder implements Serializable {
     private TradeOrder(String investorId, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
         this.investorId = investorId;
         this.companyId = companyOfStocksToBuyOrSell.getId();
-        this.type = type;
         this.totalAmount = totalAmount;
         this.priceLimit = priceLimit;
+        setType(type);
 
         this.id = UUID.randomUUID().toString();
         this.completedAmount = 0;
-        this.status = Status.OPEN;
         this.created = new Date().getTime();
-    }
-
-    public TradeOrder(Status status) {
-        this.status = status;
-        this.created = new Date().getTime();
+        setStatus(Status.OPEN);
     }
 
     public TradeOrder() {
-        this.type = Type.ANY;
-        this.status = Status.ANY;
+        setType(Type.ANY);
+        setStatus(Status.ANY);
         this.created = new Date().getTime();
     }
 
@@ -93,6 +94,7 @@ public class TradeOrder implements Serializable {
 
     public void setType(Type type) {
         this.type = type;
+        typeString = type.text;
     }
 
     public void setInvestorType(InvestorType investorType) {
@@ -142,10 +144,8 @@ public class TradeOrder implements Serializable {
     }
 
     public void setStatus(Status status) {
-//        if (status.equals(Status.ANY) || status.equals(Status.NOT_COMPLETED)) {
-//            return;
-//        }
         this.status = status;
+        statusString = status.text;
     }
 
     @Override
@@ -171,10 +171,18 @@ public class TradeOrder implements Serializable {
         this.created = created;
     }
 
+    public String getStatusString() {
+        return statusString;
+    }
+
+    public String getTypeString() {
+        return typeString;
+    }
+
     public enum Status {
         //"Real" stati
         OPEN("open"),
-        PARTIALLY_COMPLETED("partially completed"),
+        PARTIALLY_COMPLETED("partiallyCompleted"),
         COMPLETED("completed"),
         DELETED("deleted"),
 
@@ -223,6 +231,7 @@ public class TradeOrder implements Serializable {
         public String toString() {
             return text;
         }
+
     }
 
     public enum InvestorType {

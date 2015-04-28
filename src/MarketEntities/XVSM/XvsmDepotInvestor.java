@@ -127,7 +127,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
         for (Stock stock : stocks) {
             try {
-                xc.getCapi().write(investorDepot, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(stock));
+                xc.getCapi().write(investorDepot, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(stock, LabelCoordinator.newCoordinationData(stock.getCompany().getId())));
             } catch (MzsCoreException e) {
                 throw new ConnectionError(e);
             }

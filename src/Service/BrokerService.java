@@ -81,7 +81,9 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
     public void pushNewTradeOrders(TradeOrder tradeOrder) {
         System.out.println("Trade Orders Callback.");
 
-        solveOrder(tradeOrder);
+        if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
+            solveOrder(tradeOrder);
+        }
     }
 
     @Override
@@ -95,9 +97,8 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
 
 
     private void solveOrder(TradeOrder tradeOrder) {
-        String transactionId = null;
         try {
-            transactionId = factory.createTransaction();
+            String transactionId = factory.createTransaction();
 
             TradeOrder matchingTradeOrder = findMatchingTradeOrder(tradeOrder, transactionId);
 
@@ -111,10 +112,6 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
                         executeTransaction(matchingTradeOrder, tradeOrder, transactionId);
                     }
                 }
-            } else {
-                // when no match was found -> just insert new trade order
-                //TODO prevent this from recursively calling this method
-                tradeOrdersContainer.addOrUpdateOrder(tradeOrder, transactionId);
             }
             // finally commit
             factory.commitTransaction(transactionId);
@@ -204,11 +201,13 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
             if (sellerHasEnoughStocks(sellOrder, transactionId)) {
                 return true;
             } else {
-                tradeOrdersContainer.deleteOrder(sellOrder, transactionId); // punish seller
+                sellOrder.setStatus(TradeOrder.Status.DELETED);
+                tradeOrdersContainer.addOrUpdateOrder(sellOrder, transactionId);
                 System.out.println("Punishing seller for not having enough stocks for his own trade order.");
             }
         } else {
-            tradeOrdersContainer.deleteOrder(buyOrder, transactionId); // punish buyer
+            buyOrder.setStatus(TradeOrder.Status.DELETED);
+            tradeOrdersContainer.addOrUpdateOrder(buyOrder, transactionId);
             System.out.println("Punishing buyer for not having enough money for his own trade order.");
         }
         return false;
@@ -218,7 +217,7 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
     private TradeOrder findMatchingTradeOrder(TradeOrder tradeOrder, String transactionId) {
         System.out.println("Searching for matching order.");
 
-        TradeOrder filter = new TradeOrder(TradeOrder.Status.NOT_COMPLETED);
+        TradeOrder filter = new TradeOrder();
         // we are looking for a opposing order type from the same stocks (company) within the price limit
         filter.setCompany(tradeOrder.getCompany());
         if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
@@ -227,6 +226,7 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
             filter.setType(TradeOrder.Type.BUY_ORDER);
         }
         filter.setPriceLimit(tradeOrder.getPriceLimit());
+        filter.setStatus(TradeOrder.Status.NOT_COMPLETED);
         try {
             List<TradeOrder> matchingOrders = tradeOrdersContainer.getOrders(filter, transactionId);
 
@@ -241,6 +241,8 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
                     }
                 }
                 return oldestMatchingOrder;
+            } else {
+                System.out.println("No matching trade oder found :(");
             }
             return null;
         } catch (ConnectionError connectionError) {
@@ -256,7 +258,9 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
         double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
         double transactionCost = ((double) tradeOrder.getTotalAmount() * currentMarketValue) * (1.0 + PROVISION_PERCENTAGE);
 
-        return depotInvestor.getBudget(transactionId) >= transactionCost;
+        double investorBudget = depotInvestor.getBudget(transactionId);
+
+        return investorBudget >= transactionCost;
     }
 
 
