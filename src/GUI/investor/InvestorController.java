@@ -5,6 +5,7 @@ import Factory.RmiFactory;
 import Factory.XvsmFactory;
 import MarketEntities.DepotInvestor;
 import MarketEntities.StockPricesContainer;
+import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
 import Model.Investor;
 import Model.Stock;
@@ -28,13 +29,13 @@ import javafx.stage.WindowEvent;
 import java.io.IOException;
 import java.util.List;
 
-public class InvestorController implements OnBudgetChangedListener {
+public class InvestorController implements ITradeOrderSub, OnBudgetChangedListener {
 
     private IFactory factory;
 
     private TradeOrderContainer tradeOrderContainer;
     private ObservableList<TradeOrder> activeOrders;
-    private final TradeOrder ORDER_FILTER;
+    private TradeOrder ORDER_FILTER;
 
     private DepotInvestor depotInvestor;
 
@@ -89,8 +90,7 @@ public class InvestorController implements OnBudgetChangedListener {
     private String serverAdressAndPort;
 
     public InvestorController() {
-        ORDER_FILTER = new TradeOrder();
-        ORDER_FILTER.setStatus(TradeOrder.Status.NOT_DELETED);
+
     }
 
     @FXML
@@ -119,20 +119,6 @@ public class InvestorController implements OnBudgetChangedListener {
         }
     }
 
-    private void populateActiveStocksTable() {
-        //TODO implement
-    }
-
-    private void populateOpenOrdersTable() throws ConnectionError {
-        TradeOrder filter = new TradeOrder();
-        filter.setInvestor(investor);
-        filter.setStatus(TradeOrder.Status.NOT_COMPLETED);
-
-        activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(filter, null));
-
-        tabOrders.setItems(activeOrders);
-    }
-
     public void editBudgetButtonClicked() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("increase_budget.fxml"));
@@ -154,12 +140,19 @@ public class InvestorController implements OnBudgetChangedListener {
 
         investor = new Investor(txtUsername.getText());
 
+        ORDER_FILTER = new TradeOrder();
+        ORDER_FILTER.setInvestor(investor);
+        ORDER_FILTER.setStatus(TradeOrder.Status.NOT_COMPLETED);
+
         initFactory();
 
         try {
             // get/create necessary containers
             depotInvestor = factory.newDepotInvestor(investor, null);
+
             tradeOrderContainer = factory.newTradeOrdersContainer();
+            tradeOrderContainer.subscribe(factory.newTradeOrderSubManager(this), null);
+
             stockPricesContainer = factory.newStockPricesContainer();
 
             // initialize rest of UI after references to containers are set
@@ -184,7 +177,7 @@ public class InvestorController implements OnBudgetChangedListener {
     }
 
     private void initUi() throws ConnectionError {
-//        try {
+        try {
             // make login invisible
             loginContainer.setVisible(false);
             loginContainer.setPrefHeight(0);
@@ -200,10 +193,19 @@ public class InvestorController implements OnBudgetChangedListener {
 
             // make data container visible
             dataContainer.setVisible(true);
-//        } catch (ConnectionError connectionError) {
-//            statusLabel.textFillProperty().setValue(Color.RED);
-//            statusLabel.setText("Loading data for investor failed.");
-//        }
+        } catch (ConnectionError connectionError) {
+            statusLabel.textFillProperty().setValue(Color.RED);
+            statusLabel.setText("Loading data for investor failed.");
+        }
+    }
+
+    private void populateActiveStocksTable() {
+        //TODO implement
+    }
+
+    private void populateOpenOrdersTable() throws ConnectionError {
+        activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
+        tabOrders.setItems(activeOrders);
     }
 
     private double calculateTotalValueOfStocks() throws ConnectionError {
@@ -253,6 +255,16 @@ public class InvestorController implements OnBudgetChangedListener {
             txtBudget.setText("" + budget);
         } catch (ConnectionError connectionError) {
             statusLabel.setText("Unable to load new budget.");
+        }
+    }
+
+    @Override
+    public void pushNewTradeOrders(TradeOrder tradeOrder) {
+        try {
+            activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
+            tabOrders.setItems(activeOrders);
+        } catch (ConnectionError connectionError) {
+            connectionError.printStackTrace();
         }
     }
 }
