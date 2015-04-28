@@ -8,6 +8,7 @@ import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import org.mozartspaces.notifications.NotificationManager;
 
+import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -136,25 +137,33 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
         List<Stock> boughtStocks;
 
         if (buyOrder.getPendingAmount() >= sellOrder.getPendingAmount()) {
+            System.out.println("Taking all stocks (" + sellOrder.getPendingAmount() + ") from seller depot.");
             // take ALL stocks from seller depot
             boughtStocks = takeStocksFromSellerDepot(depotSeller, sellOrder, sellOrder.getPendingAmount(), transactionId);
 
             if (buyOrder.getPendingAmount() == sellOrder.getPendingAmount()) {
+                System.out.println("Buy order completed.");
                 buyOrder.setStatus(TradeOrder.Status.COMPLETED); // should be equal to totalAmount when completed
             } else {
+                System.out.println("Buy order partially completed.");
                 buyOrder.setStatus(TradeOrder.Status.PARTIALLY_COMPLETED);
             }
             buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
 
+            System.out.println("Sell order completed.");
             sellOrder.setStatus(TradeOrder.Status.COMPLETED);
             sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
         }  else {
             // take the amount required in buy order from seller depot
             boughtStocks = takeStocksFromSellerDepot(depotSeller, sellOrder, buyOrder.getPendingAmount(), transactionId);
 
+            System.out.println("Taking " + boughtStocks.size() + " stocks from seller depot.");
+
+
             buyOrder.setStatus(TradeOrder.Status.COMPLETED);
             buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
 
+            System.out.println("Sell order partially completed.");
             sellOrder.setStatus(TradeOrder.Status.PARTIALLY_COMPLETED);
             sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
         }
@@ -167,22 +176,31 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
         double totalValue = boughtStocks.size() * currentMarketValue;
         double provision = totalValue * PROVISION_PERCENTAGE;
 
-        depotBuyer.setBudget(-totalValue, transactionId);
-
-        // if seller is an investor -> increase his budget
-        double sellerProfit = totalValue - provision;
+        System.out.println("Removing " + (totalValue + provision) + " from " + depotBuyer.getDepotName());
+        depotBuyer.addToBudget(-(totalValue + provision), transactionId);
 
         if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.INVESTOR)) {
-            ((DepotInvestor) depotSeller).addToBudget(sellerProfit, transactionId);
+            System.out.println("Increasing sellers budget by " + totalValue);
+            ((DepotInvestor) depotSeller).addToBudget(totalValue, transactionId);
         }
 
         // write transaction to transaction history container
+        System.out.println("Writing transaction " + transactionId + " to transaction history.");
         transactionHistoryContainer.addHistoryEntry(new HistoryEntry(transactionId, id, new Investor(buyOrder.getInvestorId()), sellOrder.getCompany(), buyOrder.getCompanyId(),
                 buyOrder.getId(), sellOrder.getId(), currentMarketValue, boughtStocks.size(), totalValue + provision, provision), transactionId);
 
-        // update trade orders
-        tradeOrdersContainer.addOrUpdateOrder(buyOrder, transactionId);
-        tradeOrdersContainer.addOrUpdateOrder(sellOrder, transactionId);
+        // update trade orders (update completed trade order first to avoid inconsistencies)
+        if (buyOrder.getStatus().equals(TradeOrder.Status.COMPLETED)) {
+            System.out.println("Updating completed buy order.");
+            tradeOrdersContainer.addOrUpdateOrder(buyOrder, transactionId);
+            System.out.println("Updating sell order.");
+            tradeOrdersContainer.addOrUpdateOrder(sellOrder, transactionId);
+        } else {
+            System.out.println("Updating completed sell order.");
+            tradeOrdersContainer.addOrUpdateOrder(sellOrder, transactionId);
+            System.out.println("Updating buy order.");
+            tradeOrdersContainer.addOrUpdateOrder(buyOrder, transactionId);
+        }
     }
 
 

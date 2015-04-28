@@ -1,5 +1,6 @@
 package MarketEntities.XVSM;
 
+import MarketEntities.Subscribing.ASubManager;
 import MarketEntities.TransactionHistoryContainer;
 import Model.HistoryEntry;
 import Service.ConnectionError;
@@ -8,9 +9,14 @@ import Util.XvsmUtil;
 import org.mozartspaces.capi3.FifoCoordinator;
 import org.mozartspaces.capi3.Selector;
 import org.mozartspaces.core.*;
+import org.mozartspaces.notifications.NotificationListener;
+import org.mozartspaces.notifications.NotificationManager;
+import org.mozartspaces.notifications.Operation;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by j0h1 on 27.04.2015.
@@ -45,6 +51,19 @@ public class XvsmTransactionHistoryContainer extends TransactionHistoryContainer
         try {
             return xc.getCapi().read(transactionHistoryContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {
+            throw new ConnectionError(e);
+        }
+    }
+
+    @Override
+    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
+        NotificationManager notificationManager = new NotificationManager(xc.getCore());
+        Set<Operation> operations = new HashSet<>();
+        operations.add(Operation.WRITE);
+
+        try {
+            notificationManager.createNotification(transactionHistoryContainer, (NotificationListener) subscriber, operations, null, null);
+        } catch (Exception e) {
             throw new ConnectionError(e);
         }
     }

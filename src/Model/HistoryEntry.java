@@ -12,7 +12,7 @@ public class HistoryEntry implements Serializable {
     private String transactionId;
     private String brokerId;
     private Investor buyer;
-    private Serializable seller;
+    private StockOwner seller;
     private String stockName;
     private String buyOrderId;
     private String sellOrderId;
@@ -24,7 +24,7 @@ public class HistoryEntry implements Serializable {
     public HistoryEntry() {
     }
 
-    public HistoryEntry(String transactionId, String brokerId, Investor buyer, Serializable seller, String stockName,
+    public HistoryEntry(String transactionId, String brokerId, Investor buyer, StockOwner seller, String stockName,
                         String buyOrderId, String sellOrderId, Double tradedMarketValue, int amountOfStocks,
                         Double totalPrice, Double provision) {
         this.setTransactionId(transactionId);
@@ -64,11 +64,11 @@ public class HistoryEntry implements Serializable {
         this.buyer = buyer;
     }
 
-    public Serializable getSeller() {
+    public StockOwner getSeller() {
         return seller;
     }
 
-    public void setSeller(Serializable seller) {
+    public void setSeller(StockOwner seller) {
         this.seller = seller;
     }
 

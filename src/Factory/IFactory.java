@@ -1,6 +1,8 @@
 package Factory;
 
 import MarketEntities.*;
+import MarketEntities.Subscribing.TransactionHistory.ATransactionHistorySubManager;
+import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionError;
@@ -33,6 +35,8 @@ public interface IFactory {
     ATradeOrderSubManager newTradeOrderSubManager(ITradeOrderSub subscription);
 
     AStockPricesSubManager newStockPricesSubManager(IStockPricesSub subscription);
+
+    ATransactionHistorySubManager newTransactionHistorySubManager(ITransactionHistorySub subscription);
 
     //Dynamic containers
 

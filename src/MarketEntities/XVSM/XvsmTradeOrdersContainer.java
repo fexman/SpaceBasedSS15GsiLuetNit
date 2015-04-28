@@ -133,7 +133,8 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
                     System.out.print(" STATUS=OPEN");
                     break;
                 case PARTIALLY_COMPLETED: // PARTIALLY COMPLETED
-                    query.sql("status = '" + TradeOrder.Status.PARTIALLY_COMPLETED+"'");
+//                    query.sql("status = '" + TradeOrder.Status.PARTIALLY_COMPLETED+"'");
+                    query.filter(status.equalTo(TradeOrder.Status.PARTIALLY_COMPLETED));
                     System.out.print(" STATUS=PARTIALLY_COMPLETED");
                     break;
                 case NOT_COMPLETED: //OPEN OR PARTIALLY COMPLETED
@@ -144,15 +145,18 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
                     System.out.print(" STATUS=NOT_COMPLETED");
                     break;
                 case COMPLETED: // COMPLETED
-                    query.sql("status = '"+TradeOrder.Status.COMPLETED+"'");
+//                    query.sql("status = '"+TradeOrder.Status.COMPLETED+"'");
+                    query.filter(status.equalTo(TradeOrder.Status.COMPLETED));
                     System.out.print(" STATUS=COMPLETED");
                     break;
                 case DELETED: // DELETED
-                    query.sql("status = '"+TradeOrder.Status.DELETED+"'");
+//                    query.sql("status = '"+TradeOrder.Status.DELETED+"'");
+                    query.filter(status.equalTo(TradeOrder.Status.DELETED));
                     System.out.print(" STATUS=DELETED");
                     break;
                 case NOT_DELETED: //EVERYTHING EXCEPT DELETED
-                    query.sql("status <> '"+TradeOrder.Status.DELETED+"'");
+//                    query.sql("status <> '"+TradeOrder.Status.DELETED+"'");
+                    query.filter(status.allNotEqualTo(TradeOrder.Status.DELETED));
                     System.out.print(" STATUS=NOT_DELETED");
                 case ANY: // I DONT CARE, GIVE ME ALL OF THEM
                     break;

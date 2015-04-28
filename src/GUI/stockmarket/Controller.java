@@ -4,9 +4,10 @@ import Factory.IFactory;
 import Factory.RmiFactory;
 import Factory.XvsmFactory;
 import MarketEntities.StockPricesContainer;
+import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import MarketEntities.TradeOrderContainer;
-import Model.MarketValue;
-import Model.TradeOrder;
+import MarketEntities.TransactionHistoryContainer;
+import Model.*;
 import Service.ConnectionError;
 import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
@@ -24,7 +25,7 @@ import javafx.util.Duration;
 
 import java.util.List;
 
-public class Controller implements ITradeOrderSub, IStockPricesSub {
+public class Controller implements ITradeOrderSub, IStockPricesSub, ITransactionHistorySub {
 
     private IFactory factory;
 
@@ -35,35 +36,32 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
     private StockPricesContainer stockPricesContainer;
     private ObservableList<MarketValue> stockPrices;
 
+    private TransactionHistoryContainer transactionHistoryContainer;
+    private ObservableList<HistoryEntry> historyEntries;
+
     public Controller() {
         ORDER_FILTER = new TradeOrder();
-        ORDER_FILTER.setStatus(TradeOrder.Status.OPEN);
+        ORDER_FILTER.setStatus(TradeOrder.Status.NOT_COMPLETED);
     }
 
     @FXML
     private TextField adressField;
-
     @FXML
     private ComboBox<String> protocolField;
-
     @FXML
     private Button connectButton;
-
     @FXML
     private TableView<TradeOrder> tableOrders;
-
     @FXML
     private TableView<MarketValue> tableStockPrices;
-
     @FXML
     private Label statusLabel;
+    @FXML
+    private TableView<HistoryEntry> tableHistory;
 
-
-    //TODO: TABLEVIEW FOR HISTORY AND STOCK PRICES
 
     @FXML
     private void initialize() {
-
         //Init protocolField
         ObservableList<String> protocols = FXCollections.observableArrayList();
         protocols.add("XVSM");
@@ -71,7 +69,14 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
         protocolField.setItems(protocols);
         protocolField.setValue(protocols.get(0));
 
-        //Init personTable
+        initTableOrders();
+
+        initTableStocks();
+
+        initTableHistory();
+    }
+
+    private void initTableOrders() {
         TableColumn orders_idCol = new TableColumn("ID");
         orders_idCol.setPrefWidth(125d);
         orders_idCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("id"));
@@ -95,12 +100,42 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
         orders_statusCol.setPrefWidth(50d);
         orders_statusCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Status>("status"));
         tableOrders.getColumns().setAll(orders_idCol, orders_typeCol, orders_investorIdCol, orders_companyIdCol, orders_totalAmountCol, orders_completedAmountCol, orders_priceLimitCol, orders_statusCol);
+    }
 
+    private void initTableStocks() {
         TableColumn stockprices_idCol = new TableColumn("Company");
         stockprices_idCol.setCellValueFactory(new PropertyValueFactory<MarketValue, String>("companyId"));
         TableColumn stockprices_priceCol = new TableColumn("Price");
         stockprices_priceCol.setCellValueFactory(new PropertyValueFactory<MarketValue, Double>("price"));
         tableStockPrices.getColumns().setAll(stockprices_idCol,stockprices_priceCol);
+    }
+
+    private void initTableHistory() {
+        TableColumn history_transactionIdCol = new TableColumn("Trans. ID");
+        history_transactionIdCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, String>("transactionId"));
+        TableColumn history_brokerIdCol = new TableColumn("Broker ID");
+        history_brokerIdCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, String>("brokerId"));
+        TableColumn history_buyerCol = new TableColumn("Buyer");
+        history_buyerCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, Investor>("buyer"));
+        TableColumn history_sellerCol = new TableColumn("Seller");
+        history_sellerCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, StockOwner>("seller"));
+        TableColumn history_stockCol = new TableColumn("Stock");
+        history_stockCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, String>("stockName"));
+        TableColumn history_buyOrderIdCol = new TableColumn("Buy Order");
+        history_buyOrderIdCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, String>("buyOrderId"));
+        TableColumn history_sellOrderIdCol = new TableColumn("Sell Order");
+        history_sellOrderIdCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, String>("sellOrderId"));
+        TableColumn history_tradedMarketValueCol = new TableColumn("Trading price");
+        history_tradedMarketValueCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, Double>("tradedMarketValue"));
+        TableColumn history_amountOfStocksCol = new TableColumn("Amount");
+        history_amountOfStocksCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, Integer>("amountOfStocks"));
+        TableColumn history_totalPriceCol = new TableColumn("Total price");
+        history_totalPriceCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, Double>("totalPrice"));
+        TableColumn history_provisionCol = new TableColumn("Provision");
+        history_provisionCol.setCellValueFactory(new PropertyValueFactory<HistoryEntry, Double>("provision"));
+        tableHistory.getColumns().setAll(history_transactionIdCol, history_brokerIdCol, history_buyerCol, history_sellerCol,
+                history_stockCol, history_buyOrderIdCol, history_sellOrderIdCol, history_tradedMarketValueCol, history_amountOfStocksCol,
+                history_totalPriceCol, history_provisionCol);
     }
 
     public void addShutdownHook(Stage primaryStage) {
@@ -141,6 +176,11 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
             tableStockPrices.setItems(stockPrices);
             stockPricesContainer.subscribe(factory.newStockPricesSubManager(this), null);
 
+            transactionHistoryContainer = factory.newTransactionHistoryContainer();
+            historyEntries = FXCollections.observableList(transactionHistoryContainer.getTransactionHistory(null));
+            tableHistory.setItems(historyEntries);
+            transactionHistoryContainer.subscribe(factory.newTransactionHistorySubManager(this), null);
+
             statusLabel.textFillProperty().setValue(Color.DARKGREEN);
             statusLabel.setText("Connected.");
             FadeTransition ft = new FadeTransition(Duration.millis(2000), statusLabel);
@@ -180,4 +220,14 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
         }
     }
 
+
+    @Override
+    public void pushNewHistoryEntry(HistoryEntry historyEntry) {
+        try {
+            historyEntries = FXCollections.observableList(transactionHistoryContainer.getTransactionHistory(null));
+            tableHistory.setItems(historyEntries);
+        } catch (ConnectionError connectionError) {
+            connectionError.printStackTrace();
+        }
+    }
 }

@@ -126,7 +126,7 @@ public class InvestorController implements OnBudgetChangedListener {
     private void populateOpenOrdersTable() throws ConnectionError {
         TradeOrder filter = new TradeOrder();
         filter.setInvestor(investor);
-        filter.setStatus(TradeOrder.Status.OPEN);
+        filter.setStatus(TradeOrder.Status.NOT_COMPLETED);
 
         activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(filter, null));
 
