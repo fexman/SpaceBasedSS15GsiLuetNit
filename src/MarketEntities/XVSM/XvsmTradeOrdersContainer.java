@@ -109,49 +109,54 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
             }
 
 
-            if (order.getStatus().equals(TradeOrder.Status.OPEN) || order.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED) ||
-                    order.getStatus().equals(TradeOrder.Status.COMPLETED) || order.getStatus().equals(TradeOrder.Status.DELETED)) {
-                query.sql("statusString = " + order.getStatus());
-                System.out.print(" STATUS=" + order.getStatus());
-            } else if (order.getStatus().equals(TradeOrder.Status.NOT_COMPLETED)) {
-                Matchmaker openStatus = Property.forName("statusString").equalTo(TradeOrder.Status.OPEN);
-                Matchmaker partiallyCompletedStatus = Property.forName("statusString").equalTo(TradeOrder.Status.PARTIALLY_COMPLETED);
-                Matchmaker notCompletedStatus = Matchmakers.or(openStatus, partiallyCompletedStatus);
-//                query.sql("(statusString = '" +  TradeOrder.Status.OPEN.toString() + "') OR (statusString = '" + TradeOrder.Status.PARTIALLY_COMPLETED.toString() + "')");
-                query.filter(notCompletedStatus);
-                System.out.print(" STATUS=NOT_COMPLETED");
-            } else if (order.getStatus().equals(TradeOrder.Status.NOT_DELETED)){
-                query.sql("statusString <> " + TradeOrder.Status.DELETED);
-                System.out.print(" STATUS=NOT_DELETED");
-            }
-
-//            switch (order.getStatus()) { //LOOKING FOR ORDERS WITH STATUS ...
-//                case OPEN: // OPEN
-//                    query.sql("status = '" + TradeOrder.Status.OPEN);
-//                    System.out.print(" STATUS=OPEN");
-//                    break;
-//                case PARTIALLY_COMPLETED: // PARTIALLY COMPLETED
-//                    query.sql("status = '" + TradeOrder.Status.PARTIALLY_COMPLETED);
-//                    System.out.print(" STATUS=PARTIALLY_COMPLETED");
-//                    break;
-//                case NOT_COMPLETED: //OPEN OR PARTIALLY COMPLETED
-//                    query.sql("status = "+TradeOrder.Status.OPEN+" OR status = "+TradeOrder.Status.PARTIALLY_COMPLETED);
-//                    System.out.print(" STATUS=NOT_COMPLETED");
-//                    break;
-//                case COMPLETED: // COMPLETED
-//                    query.sql("status = "+TradeOrder.Status.COMPLETED);
-//                    System.out.print(" STATUS=COMPLETED");
-//                    break;
-//                case DELETED: // DELETED
-//                    query.sql("status = "+TradeOrder.Status.DELETED);
-//                    System.out.print(" STATUS=DELETED");
-//                    break;
-//                case NOT_DELETED: //EVERYTHING EXCEPT DELETED
-//                    query.sql("status <> "+TradeOrder.Status.DELETED);
-//                    System.out.print(" STATUS=NOT_DELETED");
-//                case ANY: // I DONT CARE, GIVE ME ALL OF THEM
-//                    break;
+//            if (order.getStatus().equals(TradeOrder.Status.OPEN) || order.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED) ||
+//                    order.getStatus().equals(TradeOrder.Status.COMPLETED) || order.getStatus().equals(TradeOrder.Status.DELETED)) {
+//                query.sql("statusString = " + order.getStatus());
+//                System.out.print(" STATUS=" + order.getStatus());
+//            } else if (order.getStatus().equals(TradeOrder.Status.NOT_COMPLETED)) {
+//                Matchmaker openStatus = Property.forName("statusString").equalTo(TradeOrder.Status.OPEN);
+//                Matchmaker partiallyCompletedStatus = Property.forName("statusString").equalTo(TradeOrder.Status.PARTIALLY_COMPLETED);
+//                Matchmaker notCompletedStatus = Matchmakers.or(openStatus, partiallyCompletedStatus);
+////                query.sql("(statusString = '" +  TradeOrder.Status.OPEN.toString() + "') OR (statusString = '" + TradeOrder.Status.PARTIALLY_COMPLETED.toString() + "')");
+//                query.filter(notCompletedStatus);
+//                System.out.print(" STATUS=NOT_COMPLETED");
+//            } else if (order.getStatus().equals(TradeOrder.Status.NOT_DELETED)){
+//                query.sql("statusString <> " + TradeOrder.Status.DELETED);
+//                System.out.print(" STATUS=NOT_DELETED");
 //            }
+
+            Property status = Property.forName("status");
+            switch (order.getStatus()) { //LOOKING FOR ORDERS WITH STATUS ...
+                case OPEN: // OPEN
+                    //query.sql("status = '" + TradeOrder.Status.OPEN.name()+"'");
+                    query.filter(status.equalTo(TradeOrder.Status.OPEN));
+                    System.out.print(" STATUS=OPEN");
+                    break;
+                case PARTIALLY_COMPLETED: // PARTIALLY COMPLETED
+                    query.sql("status = '" + TradeOrder.Status.PARTIALLY_COMPLETED+"'");
+                    System.out.print(" STATUS=PARTIALLY_COMPLETED");
+                    break;
+                case NOT_COMPLETED: //OPEN OR PARTIALLY COMPLETED
+                    // query.sql("status = '"+TradeOrder.Status.OPEN+" OR status = "+TradeOrder.Status.PARTIALLY_COMPLETED+"'");
+                    Matchmaker statusOpen = status.equalTo(TradeOrder.Status.OPEN);
+                    Matchmaker statusPartiallyCompleted = status.equalTo(TradeOrder.Status.PARTIALLY_COMPLETED);
+                    query.filter(Matchmakers.or(statusOpen,statusPartiallyCompleted));
+                    System.out.print(" STATUS=NOT_COMPLETED");
+                    break;
+                case COMPLETED: // COMPLETED
+                    query.sql("status = '"+TradeOrder.Status.COMPLETED+"'");
+                    System.out.print(" STATUS=COMPLETED");
+                    break;
+                case DELETED: // DELETED
+                    query.sql("status = '"+TradeOrder.Status.DELETED+"'");
+                    System.out.print(" STATUS=DELETED");
+                    break;
+                case NOT_DELETED: //EVERYTHING EXCEPT DELETED
+                    query.sql("status <> '"+TradeOrder.Status.DELETED+"'");
+                    System.out.print(" STATUS=NOT_DELETED");
+                case ANY: // I DONT CARE, GIVE ME ALL OF THEM
+                    break;
+            }
             System.out.print("\n");
         } catch (ParseException e) {
             System.out.println("Parse Exception on SQL-query while get order by template: " + e.getMessage());

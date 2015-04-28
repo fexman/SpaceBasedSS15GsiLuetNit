@@ -37,7 +37,7 @@ public class Controller implements ITradeOrderSub, IStockPricesSub {
 
     public Controller() {
         ORDER_FILTER = new TradeOrder();
-        ORDER_FILTER.setStatus(TradeOrder.Status.NOT_DELETED);
+        ORDER_FILTER.setStatus(TradeOrder.Status.OPEN);
     }
 
     @FXML
