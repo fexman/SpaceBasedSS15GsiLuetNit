@@ -38,17 +38,16 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
     public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws ConnectionError {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
-        Selector selector = KeyCoordinator.newSelector(marketValue.getCompanyId(),Selector.COUNT_MAX);
+        Selector selector = KeyCoordinator.newSelector(marketValue.getCompanyId(), Selector.COUNT_MAX);
         CoordinationData coordData = KeyCoordinator.newCoordinationData(marketValue.getCompanyId());
 
         //Write to traderOrdersContainer
         try {
-            xc.getCapi().delete(stockPricesContainer, selector, XvsmUtil.ACTION_TIMEOUT,tx);
-            xc.getCapi().write(stockPricesContainer, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(marketValue,coordData));
+            xc.getCapi().delete(stockPricesContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
+            xc.getCapi().write(new Entry(marketValue, coordData), stockPricesContainer, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
-
     }
 
     @Override
