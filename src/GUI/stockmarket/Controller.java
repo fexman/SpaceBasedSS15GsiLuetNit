@@ -12,6 +12,7 @@ import Service.ConnectionError;
 import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -103,8 +104,10 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
 
     private void initTableStocks() {
         TableColumn stockprices_idCol = new TableColumn("Company");
+        stockprices_idCol.setPrefWidth(115d);
         stockprices_idCol.setCellValueFactory(new PropertyValueFactory<MarketValue, String>("companyId"));
         TableColumn stockprices_priceCol = new TableColumn("Price");
+        stockprices_priceCol.setPrefWidth(115d);
         stockprices_priceCol.setCellValueFactory(new PropertyValueFactory<MarketValue, Double>("price"));
         tableStockPrices.getColumns().setAll(stockprices_idCol,stockprices_priceCol);
     }
@@ -211,13 +214,27 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
 
     @Override
     public void pushNewMarketValues(List<MarketValue> newMarketValues) {
-        try {
-            //TODO callback is invoked, but filling list is slower than next callback
-            stockPrices = FXCollections.observableList(stockPricesContainer.getAll(null));
-            tableStockPrices.setItems(stockPrices);
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
+        //To reduce network traffic, since this is called VERY often
+        for (MarketValue mwNew : newMarketValues) {
+            for (MarketValue mwOld : stockPrices) {
+                if (mwOld.getCompanyId().equals(mwNew.getCompanyId())) {
+                    mwOld.setPrice(mwNew.getPrice());
+                    System.out.println("Updated: "+mwOld.getCompanyId()+" with "+mwNew.getPrice());
+                }
+
+            }
         }
+
+        tableStockPrices.setItems(stockPrices);
+
+        //Refresh GUI (is buggy here, dont know why)
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                tableStockPrices.getColumns().get(0).setVisible(false);
+                tableStockPrices.getColumns().get(0).setVisible(true);
+            }
+        });
     }
 
 

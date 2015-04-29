@@ -6,7 +6,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<Pane minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.investor.InvestorController">
+<AnchorPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.investor.InvestorController">
    <children>
       <VBox prefHeight="800.0" prefWidth="700.0">
          <children>
@@ -32,10 +32,10 @@
             </HBox>
             <VBox id="dataContainer" fx:id="dataContainer" prefHeight="738.0" prefWidth="690.0">
                <children>
-                  <HBox prefHeight="36.0" prefWidth="510.0">
+                  <HBox prefHeight="45.0" prefWidth="690.0">
                      <children>
                         <Label prefHeight="30.0" prefWidth="150.0" text="Budget:" />
-                        <TextField id="txtBudget" fx:id="txtBudget" editable="false" prefHeight="0.0" prefWidth="69.0" />
+                        <TextField id="txtBudget" fx:id="txtBudget" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="31.0" prefWidth="69.0" />
                         <Label prefHeight="30.0" prefWidth="9.0" text="€">
                            <HBox.margin>
                               <Insets left="5.0" />
@@ -51,11 +51,12 @@
                   <Separator prefHeight="10.0" prefWidth="510.0">
                      <VBox.margin>
                         <Insets bottom="5.0" top="5.0" />
-                     </VBox.margin></Separator>
-                  <HBox prefHeight="37.0" prefWidth="510.0">
+                     </VBox.margin>
+                  </Separator>
+                  <HBox prefHeight="45.0" prefWidth="690.0">
                      <children>
                         <Label prefHeight="30.0" prefWidth="150.0" text="Total value of stocks:" />
-                        <TextField id="txtTotalStockValue" fx:id="txtTotalStockValue" editable="false" prefHeight="0.0" prefWidth="69.0" />
+                        <TextField id="txtTotalStockValue" fx:id="txtTotalStockValue" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="69.0" />
                         <Label prefHeight="30.0" prefWidth="9.0" text="€">
                            <HBox.margin>
                               <Insets left="5.0" />
@@ -101,4 +102,4 @@
          </padding>
       </VBox>
    </children>
-</Pane>
+</AnchorPane>

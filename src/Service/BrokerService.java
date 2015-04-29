@@ -59,8 +59,10 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
                         stockPricesContainer.addOrUpdateMarketValue(mw,transactionId);
                     }
 
+                    System.out.println("New Price: "+mw.getPrice());
+
                     //Create Trade Order
-                    TradeOrder order = new TradeOrder(isr.getCompany(),isr.getCompany(),isr.getAmount(),isr.getPrice());
+                    TradeOrder order = new TradeOrder(isr.getCompany(),isr.getCompany(),isr.getAmount(),mw.getPrice());
                     tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
                 }
             }

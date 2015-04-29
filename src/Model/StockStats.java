@@ -3,7 +3,6 @@ package Model;
 import org.mozartspaces.capi3.Queryable;
 
 import java.io.Serializable;
-import java.util.DoubleSummaryStatistics;
 
 /**
  * Created by j0h1 on 29.04.2015.
