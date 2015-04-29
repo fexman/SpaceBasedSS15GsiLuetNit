@@ -25,7 +25,7 @@ public class MarketAgentService extends Service {
         stockPricesContainer = factory.newStockPricesContainer();
     }
 
-    public void performMarketAnalysis() throws ConnectionError {
+    public synchronized void performMarketAnalysis() throws ConnectionError {
         String transactionId = "";
         try {
             transactionId = factory.createTransaction();
@@ -78,7 +78,7 @@ public class MarketAgentService extends Service {
         }
     }
 
-    public void addPriceFluctuation(double maxFluctuation) throws ConnectionError {
+    public synchronized void addPriceFluctuation(double maxFluctuation) throws ConnectionError {
         String transactionId = "";
         try {
             transactionId = factory.createTransaction();

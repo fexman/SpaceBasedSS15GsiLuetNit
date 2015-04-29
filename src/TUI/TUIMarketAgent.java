@@ -11,13 +11,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by j0h1 on 28.04.2015.
  */
 public class TUIMarketAgent {
+
     public static void main(String[] args) {
 
         if (args.length != 5) {
@@ -67,40 +67,9 @@ public class TUIMarketAgent {
             System.exit(0);
         }
 
-        final MarketAgentService marketAgentService = new MarketAgentService(marketAgentId, factory);
-
-        Timer marketAnalysisTimer = new Timer();
-        // scheduling task to perform market analysis, starting after inventionTime milliseconds (second parameter),
-        // repeating every inventionTime milliseconds (last parameteter of timer)
-        marketAnalysisTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    System.out.println("MarketAgent: Performing market analysis.");
-                    marketAgentService.performMarketAnalysis();
-                } catch (ConnectionError connectionError) {
-                    connectionError.printStackTrace();
-                }
-            }
-        }, interventionTime, interventionTime);
-
-        //TODO taken out fluctuation generation -> throws error -> have to evaluate why
-
-//        Timer priceFluctuationTimer = new Timer();
-//        final Double finalMaxFluctuation = maxFluctuation;
-//        // scheduling task to perform add a price fluctuation to a random market value, starting after
-//        // 3 x inventionTime milliseconds, repeating every 3 x inventionTime milliseconds
-//        priceFluctuationTimer.scheduleAtFixedRate(new TimerTask() {
-//            @Override
-//            public void run() {
-//                try {
-//                    System.out.println("MarketAgent: Adding price fluctuation.");
-//                    marketAgentService.addPriceFluctuation(finalMaxFluctuation);
-//                } catch (ConnectionError connectionError) {
-//                    connectionError.printStackTrace();
-//                }
-//            }
-//        }, 3 * interventionTime, 3 * interventionTime);
+        // schedule timer task to perform market manipulation operations
+        final Timer operationTimer = new Timer();
+        operationTimer.scheduleAtFixedRate(new OperationTimerTask(factory, marketAgentId, maxFluctuation), interventionTime, interventionTime);
 
         System.out.println("MarketAgent active. Press any key at any time to shutdown.");
 
@@ -110,11 +79,9 @@ public class TUIMarketAgent {
             e.printStackTrace();
         }
 
-        marketAnalysisTimer.cancel();
-//        priceFluctuationTimer.cancel();
+        operationTimer.cancel();
 
         factory.destroy();
-
     }
 
 
@@ -123,6 +90,34 @@ public class TUIMarketAgent {
         System.out.println("\tmode: 0 - XVSM");
         System.out.println("\tmode: 1 - RMI");
         System.exit(0);
+    }
+
+    static class OperationTimerTask extends TimerTask {
+        private MarketAgentService marketAgentService;
+        private double maxFluctuation;
+        private int operationCounter;
+
+        public OperationTimerTask(IFactory factory, String marketAgentId, double maxFluctuation) {
+            this.maxFluctuation = maxFluctuation;
+            marketAgentService = new MarketAgentService(marketAgentId, factory);
+            operationCounter = 0;
+        }
+
+        @Override
+        public void run() {
+            try {
+                operationCounter++;
+                System.out.println("MarketAgent: Performing market analysis.");
+                marketAgentService.performMarketAnalysis();
+                // on every third operation call, additionally add a random price fluctuation
+                if (operationCounter != 0 && operationCounter % 3 == 0) {
+                    System.out.println("MarketAgent: Adding price fluctuation.");
+                    marketAgentService.addPriceFluctuation(maxFluctuation);
+                }
+            } catch (ConnectionError connectionError) {
+                connectionError.printStackTrace();
+            }
+        }
     }
 
 }
