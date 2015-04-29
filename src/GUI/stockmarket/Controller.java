@@ -55,10 +55,9 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
     @FXML
     private TableView<MarketValue> tableStockPrices;
     @FXML
-    private Label statusLabel;
-    @FXML
     private TableView<HistoryEntry> tableHistory;
-
+    @FXML
+    private Label statusLabel;
 
     @FXML
     private void initialize() {
@@ -213,6 +212,7 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
     @Override
     public void pushNewMarketValues(List<MarketValue> newMarketValues) {
         try {
+            //TODO callback is invoked, but filling list is slower than next callback
             stockPrices = FXCollections.observableList(stockPricesContainer.getAll(null));
             tableStockPrices.setItems(stockPrices);
         } catch (ConnectionError connectionError) {

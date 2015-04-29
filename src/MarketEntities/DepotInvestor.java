@@ -1,5 +1,6 @@
 package MarketEntities;
 
+import MarketEntities.XVSM.ISubscribeable;
 import Model.Company;
 import Model.Investor;
 import Model.Stock;
@@ -10,7 +11,7 @@ import java.util.List;
 /**
  * Created by Felix on 14.04.2015.
  */
-public abstract class DepotInvestor extends Depot {
+public abstract class DepotInvestor extends Depot implements ISubscribeable {
 
     private Investor investor;
 

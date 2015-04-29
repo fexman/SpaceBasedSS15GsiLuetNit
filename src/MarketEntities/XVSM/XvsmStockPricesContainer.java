@@ -81,7 +81,6 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
-
     }
 
     @Override

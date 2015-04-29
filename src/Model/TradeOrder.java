@@ -19,17 +19,13 @@ public class TradeOrder implements Serializable {
     private String investorId;  // investorId
     private String companyId;   // companyId of the wanted stocks company
     private Integer totalAmount; // total amount of stocks wanted
+    private Integer openAmount;
     private Integer completedAmount; // amount of stocks already "processed"
     private Double priceLimit;  // upper or lower price limit
     private Status status;
-    @Index
-    private String statusString; // needed for queries, since SQL can't handle ENUMs
     private Type type;
-    @Index
-    private String typeString;   // needed for queries, since SQL can't handle ENUMs
     private InvestorType investorType;
     private Long created;
-
 
     private TradeOrder(String investorId, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
         this.investorId = investorId;
@@ -40,6 +36,7 @@ public class TradeOrder implements Serializable {
 
         this.id = UUID.randomUUID().toString();
         this.completedAmount = 0;
+        this.openAmount = totalAmount;
         this.created = new Date().getTime();
         setStatus(Status.OPEN);
     }
@@ -51,13 +48,13 @@ public class TradeOrder implements Serializable {
     }
 
     public TradeOrder(Investor investor, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
-        this(investor.getId(),  companyOfStocksToBuyOrSell,type, totalAmount,priceLimit);
+        this(investor.getId(),  companyOfStocksToBuyOrSell, type, totalAmount, priceLimit);
         this.investorType = InvestorType.INVESTOR;
         this.created = new Date().getTime();
     }
 
     public TradeOrder(Company investor, Company companyOfStocksToBuyOrSell, Integer totalAmount, Double priceLimit) {
-        this(investor.getId(),  companyOfStocksToBuyOrSell,Type.SELL_ORDER, totalAmount,priceLimit);
+        this(investor.getId(), companyOfStocksToBuyOrSell, Type.SELL_ORDER, totalAmount, priceLimit);
         this.investorType = InvestorType.COMPANY;
         this.created = new Date().getTime();
     }
@@ -86,6 +83,7 @@ public class TradeOrder implements Serializable {
 
     public void setCompletedAmount(Integer completedAmount) {
         this.completedAmount = completedAmount;
+        this.openAmount = totalAmount - completedAmount;
     }
 
     public void setPriceLimit(Double priceLimit) {
@@ -94,7 +92,6 @@ public class TradeOrder implements Serializable {
 
     public void setType(Type type) {
         this.type = type;
-        typeString = type.text;
     }
 
     public void setInvestorType(InvestorType investorType) {
@@ -145,7 +142,6 @@ public class TradeOrder implements Serializable {
 
     public void setStatus(Status status) {
         this.status = status;
-        statusString = status.text;
     }
 
     @Override
@@ -171,12 +167,12 @@ public class TradeOrder implements Serializable {
         this.created = created;
     }
 
-    public String getStatusString() {
-        return statusString;
+    public Integer getOpenAmount() {
+        return openAmount;
     }
 
-    public String getTypeString() {
-        return typeString;
+    public void setOpenAmount(Integer openAmount) {
+        this.openAmount = openAmount;
     }
 
     public enum Status {

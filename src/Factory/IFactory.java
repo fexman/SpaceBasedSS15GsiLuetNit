@@ -1,6 +1,8 @@
 package Factory;
 
 import MarketEntities.*;
+import MarketEntities.Subscribing.InvestorDepot.AInvestorDepotSubManager;
+import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
 import MarketEntities.Subscribing.TransactionHistory.ATransactionHistorySubManager;
 import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import Model.Company;
@@ -37,6 +39,8 @@ public interface IFactory {
     AStockPricesSubManager newStockPricesSubManager(IStockPricesSub subscription);
 
     ATransactionHistorySubManager newTransactionHistorySubManager(ITransactionHistorySub subscription);
+
+    AInvestorDepotSubManager newInvestorDepotSubManager(IInvestorDepotSub subscription);
 
     //Dynamic containers
 

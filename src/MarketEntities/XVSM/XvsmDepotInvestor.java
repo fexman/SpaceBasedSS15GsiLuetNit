@@ -2,6 +2,7 @@ package MarketEntities.XVSM;
 
 import MarketEntities.DepotInvestor;
 import MarketEntities.StockPricesContainer;
+import MarketEntities.Subscribing.ASubManager;
 import Model.Company;
 import Model.Investor;
 import Model.Stock;
@@ -9,11 +10,16 @@ import Service.ConnectionError;
 import Util.*;
 import org.mozartspaces.capi3.*;
 import org.mozartspaces.core.*;
+import org.mozartspaces.notifications.NotificationListener;
+import org.mozartspaces.notifications.NotificationManager;
+import org.mozartspaces.notifications.Operation;
 import org.mozartspaces.xvsmp.util.PredefinedCoordinationDataCreators;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by j0h1 on 22.04.2015.
@@ -95,27 +101,23 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
     @Override
     public List<Stock> readAllStocks(String transactionId) throws ConnectionError {
-//        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
-//
-//
-//        TypeCoordinator.TypeSelector selector = TypeCoordinator.newSelector(Stock.class);
-//        try {
-//            return xc.getCapi().read(investorDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx);
-//        } catch (MzsCoreException e) {
-//            throw new ConnectionError(e);
-//        }
-        //TODO find a way to read only STOCKS from container
+        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
-        return new ArrayList<>();
+        TypeCoordinator.TypeSelector selector = TypeCoordinator.newSelector(Stock.class, MzsConstants.Selecting.COUNT_MAX);
+        try {
+            return xc.getCapi().read(investorDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx);
+        } catch (MzsCoreException e) {
+            throw new ConnectionError(e);
+        }
     }
 
     @Override
     public int getTotalAmountOfStocks(String transactionId) throws ConnectionError {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
-        LabelCoordinator.LabelSelector selector = LabelCoordinator.newSelector(null, MzsConstants.Selecting.COUNT_MAX);
+        TypeCoordinator.TypeSelector selector = TypeCoordinator.newSelector(Stock.class, MzsConstants.Selecting.COUNT_MAX);
         try {
-            return xc.getCapi().read(investorDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx).size() - 1;
+            return xc.getCapi().read(investorDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx).size();
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
@@ -131,6 +133,19 @@ public class XvsmDepotInvestor extends DepotInvestor {
             } catch (MzsCoreException e) {
                 throw new ConnectionError(e);
             }
+        }
+    }
+
+    @Override
+    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
+        NotificationManager notificationManager = new NotificationManager(xc.getCore());
+        Set<Operation> operations = new HashSet<>();
+        operations.add(Operation.WRITE);
+
+        try {
+            notificationManager.createNotification(investorDepot, (NotificationListener) subscriber, operations, null, null);
+        } catch (Exception e) {
+            throw new ConnectionError(e);
         }
     }
 }

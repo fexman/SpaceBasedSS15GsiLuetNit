@@ -6,6 +6,8 @@ import MarketEntities.RMI.RmiDepotCompany;
 import MarketEntities.RMI.RmiISRContainer;
 import MarketEntities.RMI.RmiStockPricesContainer;
 import MarketEntities.RMI.RmiTradeOrderContainer;
+import MarketEntities.Subscribing.InvestorDepot.AInvestorDepotSubManager;
+import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
 import MarketEntities.Subscribing.IssueStockRequests.RmiISRSubManager;
 import MarketEntities.Subscribing.MarketValues.RmiStockPricesSubManager;
 import MarketEntities.Subscribing.TradeOrders.RmiTradeOrderSubManager;
@@ -88,6 +90,12 @@ public class RmiFactory implements IFactory {
 
     @Override
     public ATransactionHistorySubManager newTransactionHistorySubManager(ITransactionHistorySub subscription) {
+        //TODO
+        return null;
+    }
+
+    @Override
+    public AInvestorDepotSubManager newInvestorDepotSubManager(IInvestorDepotSub subscription) {
         //TODO
         return null;
     }

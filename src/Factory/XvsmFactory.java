@@ -1,6 +1,9 @@
 package Factory;
 
 import MarketEntities.*;
+import MarketEntities.Subscribing.InvestorDepot.AInvestorDepotSubManager;
+import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
+import MarketEntities.Subscribing.InvestorDepot.XvsmInvestorDepotSubManager;
 import MarketEntities.Subscribing.TransactionHistory.ATransactionHistorySubManager;
 import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import MarketEntities.Subscribing.TransactionHistory.XvsmTransactionHistorySubManager;
@@ -76,6 +79,11 @@ public class XvsmFactory implements IFactory {
     @Override
     public ATransactionHistorySubManager newTransactionHistorySubManager(ITransactionHistorySub subscription) {
         return new XvsmTransactionHistorySubManager(subscription);
+    }
+
+    @Override
+    public AInvestorDepotSubManager newInvestorDepotSubManager(IInvestorDepotSub subscription) {
+        return new XvsmInvestorDepotSubManager(subscription);
     }
 
     @Override

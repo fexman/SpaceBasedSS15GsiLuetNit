@@ -5,10 +5,12 @@ import Factory.RmiFactory;
 import Factory.XvsmFactory;
 import MarketEntities.DepotInvestor;
 import MarketEntities.StockPricesContainer;
+import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
 import Model.Investor;
 import Model.Stock;
+import Model.StockStats;
 import Model.TradeOrder;
 import Service.ConnectionError;
 import javafx.collections.FXCollections;
@@ -19,6 +21,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -27,9 +32,11 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-public class InvestorController implements ITradeOrderSub, OnBudgetChangedListener {
+public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, OnBudgetChangedListener {
 
     private IFactory factory;
 
@@ -38,6 +45,7 @@ public class InvestorController implements ITradeOrderSub, OnBudgetChangedListen
     private TradeOrder ORDER_FILTER;
 
     private DepotInvestor depotInvestor;
+    private ObservableList<StockStats> stockStats;
 
     private StockPricesContainer stockPricesContainer;
 
@@ -56,7 +64,7 @@ public class InvestorController implements ITradeOrderSub, OnBudgetChangedListen
     @FXML
     private TextField txtTotalStockValue;
     @FXML
-    private TableView<Stock> tabStocks;
+    private TableView<StockStats> tabStocks;
     @FXML
     private TableColumn colStockId;
     @FXML
@@ -64,7 +72,7 @@ public class InvestorController implements ITradeOrderSub, OnBudgetChangedListen
     @FXML
     private TableColumn colStockMarketValue;
     @FXML
-    private TableColumn colStockPrice;
+    private TableColumn colTotalValue;
     @FXML
     private Button btnAddOrder;
     @FXML
@@ -87,6 +95,7 @@ public class InvestorController implements ITradeOrderSub, OnBudgetChangedListen
     private HBox loginContainer;
 
     private Investor investor;
+
     private String serverAdressAndPort;
 
     public InvestorController() {
@@ -105,10 +114,25 @@ public class InvestorController implements ITradeOrderSub, OnBudgetChangedListen
         colOrderType.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("type"));
         colOrderStockId.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("companyId"));
         colOrderLimit.setCellValueFactory(new PropertyValueFactory<TradeOrder, Double>("priceLimit"));
-        //TODO change this
-        colOrderOpenAmount.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("totalAmount"));
+        colOrderOpenAmount.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("openAmount"));
 
-        dataContainer.setVisible(false);
+        colStockId.setCellValueFactory(new PropertyValueFactory<StockStats, String>("stockName"));
+        colStockAmount.setCellValueFactory(new PropertyValueFactory<StockStats, Integer>("amount"));
+        colStockMarketValue.setCellValueFactory(new PropertyValueFactory<StockStats, Double>("marketValue"));
+        colTotalValue.setCellValueFactory(new PropertyValueFactory<StockStats, Double>("totalValue"));
+
+        setDataContainerVisible(false);
+    }
+
+    private void setDataContainerVisible(boolean visible) {
+        if (visible) {
+            dataContainer.setVisible(true);
+            dataContainer.setPrefHeight(738);
+        } else {
+            dataContainer.setVisible(false);
+            dataContainer.setMinHeight(0);
+            dataContainer.setPrefHeight(0);
+        }
     }
 
     public void protocolFieldChanged() {
@@ -149,6 +173,7 @@ public class InvestorController implements ITradeOrderSub, OnBudgetChangedListen
         try {
             // get/create necessary containers
             depotInvestor = factory.newDepotInvestor(investor, null);
+            depotInvestor.subscribe(factory.newInvestorDepotSubManager(this), null);
 
             tradeOrderContainer = factory.newTradeOrdersContainer();
             tradeOrderContainer.subscribe(factory.newTradeOrderSubManager(this), null);
@@ -180,37 +205,34 @@ public class InvestorController implements ITradeOrderSub, OnBudgetChangedListen
         try {
             // make login invisible
             loginContainer.setVisible(false);
+            loginContainer.setMinHeight(0);
             loginContainer.setPrefHeight(0);
 
             // load initial data
             double budget = depotInvestor.getBudget(null);
+            if (budget == 0.0) {
+                // show budget prompt
+                editBudgetButtonClicked();
+            }
             txtBudget.setText("" + budget);
             txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
 
-            populateActiveStocksTable();
+            // init owned stocks table
+            populateStockStatsTable(depotInvestor.readAllStocks(null));
 
-            populateOpenOrdersTable();
+            // init open orders table
+            activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
+            tabOrders.setItems(activeOrders);
 
             // make data container visible
-            dataContainer.setVisible(true);
+            setDataContainerVisible(true);
         } catch (ConnectionError connectionError) {
             statusLabel.textFillProperty().setValue(Color.RED);
             statusLabel.setText("Loading data for investor failed.");
         }
     }
 
-    private void populateActiveStocksTable() {
-        //TODO implement
-    }
-
-    private void populateOpenOrdersTable() throws ConnectionError {
-        activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
-        tabOrders.setItems(activeOrders);
-    }
-
     private double calculateTotalValueOfStocks() throws ConnectionError {
-        //TODO alternative solution: read distinct stocks to reduce getMarketValue() calls
-
         // get all stocks for investor
         List<Stock> allStocksInDepot = depotInvestor.readAllStocks(null);
 
@@ -266,5 +288,35 @@ public class InvestorController implements ITradeOrderSub, OnBudgetChangedListen
         } catch (ConnectionError connectionError) {
             connectionError.printStackTrace();
         }
+    }
+
+    @Override
+    public void pushNewStocks(List<Stock> stocks) {
+        try {
+            populateStockStatsTable(depotInvestor.readAllStocks(null));
+        } catch (ConnectionError connectionError) {
+            connectionError.printStackTrace();
+        }
+    }
+
+    private void populateStockStatsTable(List<Stock> allStocks) throws ConnectionError {
+        // evaluate stock statistics
+        HashMap<String, StockStats> statsMapping = new HashMap<>();
+        for (Stock s : allStocks) {
+            StockStats currentStockStats = statsMapping.get(s.getCompany().getId());
+            if (currentStockStats == null) {
+                // no stock stats for this company evaluated yet (get current market value here)
+                Double marketValue = stockPricesContainer.getMarketValue(s.getCompany(), null).getPrice();
+                statsMapping.put(s.getCompany().getId(), new StockStats(s.getCompany().getId(), 1, marketValue, marketValue));
+
+            } else {
+                // update stock stats amount and totalValue accordingly
+                statsMapping.put(s.getCompany().getId(), new StockStats(s.getCompany().getId(), currentStockStats.getAmount() + 1,
+                        currentStockStats.getMarketValue(), currentStockStats.getMarketValue() * (currentStockStats.getAmount() + 1)));
+            }
+        }
+        // populate table with results
+        stockStats = FXCollections.observableList(new ArrayList<>(statsMapping.values()));
+        tabStocks.setItems(stockStats);
     }
 }
