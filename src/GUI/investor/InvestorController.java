@@ -6,13 +6,12 @@ import Factory.XvsmFactory;
 import MarketEntities.DepotInvestor;
 import MarketEntities.StockPricesContainer;
 import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
+import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
-import Model.Investor;
-import Model.Stock;
-import Model.StockStats;
-import Model.TradeOrder;
+import Model.*;
 import Service.ConnectionError;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -36,7 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, OnBudgetChangedListener {
+public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IStockPricesSub {
 
     private IFactory factory;
 
@@ -146,7 +145,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, On
     public void editBudgetButtonClicked() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("increase_budget.fxml"));
-            fxmlLoader.setController(new BudgetController(factory, investor, this));
+            fxmlLoader.setController(new BudgetController(factory, investor));
             Parent root1 = (Parent) fxmlLoader.load();
             Stage stage = new Stage();
             stage.setTitle("Increase Budget");
@@ -179,6 +178,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, On
             tradeOrderContainer.subscribe(factory.newTradeOrderSubManager(this), null);
 
             stockPricesContainer = factory.newStockPricesContainer();
+            stockPricesContainer.subscribe(factory.newStockPricesSubManager(this), null);
 
             // initialize rest of UI after references to containers are set
             initUi();
@@ -236,10 +236,23 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, On
         // get all stocks for investor
         List<Stock> allStocksInDepot = depotInvestor.readAllStocks(null);
 
+        // get distinct stock names and count
+        HashMap<String, Integer> stockNamesAndCount = new HashMap<>();
+        for (Stock s : allStocksInDepot) {
+            if (stockNamesAndCount.get(s.getCompany().getId()) == null) {
+                stockNamesAndCount.put(s.getCompany().getId(), 1);
+            } else {
+                stockNamesAndCount.put(s.getCompany().getId(), stockNamesAndCount.get(s.getCompany().getId()) + 1);
+            }
+        }
+
         double totalValue = 0;
 
-        for (Stock stock : allStocksInDepot) {
-            totalValue += stockPricesContainer.getMarketValue(stock.getCompany(), null).getPrice();
+        for (String s : stockNamesAndCount.keySet()) {  // only <disctinct company stocks> space operations needed
+            Double price = stockPricesContainer.getMarketValue(new Company(s), null).getPrice();
+            if (price != null) {
+                totalValue += (price * stockNamesAndCount.get(s));
+            }
         }
 
         return totalValue;
@@ -271,32 +284,47 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, On
     }
 
     @Override
-    public void onBudgetChanged() {
-        try {
-            double budget = depotInvestor.getBudget(null);
-            txtBudget.setText("" + budget);
-        } catch (ConnectionError connectionError) {
-            statusLabel.setText("Unable to load new budget.");
-        }
-    }
-
-    @Override
     public void pushNewTradeOrders(TradeOrder tradeOrder) {
-        try {
-            activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
-            tabOrders.setItems(activeOrders);
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
-        }
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
+                    tabOrders.setItems(activeOrders);
+                } catch (ConnectionError connectionError) {
+                    connectionError.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
     public void pushNewStocks(List<Stock> stocks) {
-        try {
-            populateStockStatsTable(depotInvestor.readAllStocks(null));
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
-        }
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    populateStockStatsTable(depotInvestor.readAllStocks(null));
+                } catch (ConnectionError connectionError) {
+                    connectionError.printStackTrace();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void pushNewBudget(final Double budget) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                txtBudget.setText("" + budget.doubleValue());
+                try {
+                    txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
+                } catch (ConnectionError connectionError) {
+                    connectionError.printStackTrace();
+                }
+            }
+        });
     }
 
     private void populateStockStatsTable(List<Stock> allStocks) throws ConnectionError {
@@ -308,7 +336,6 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, On
                 // no stock stats for this company evaluated yet (get current market value here)
                 Double marketValue = stockPricesContainer.getMarketValue(s.getCompany(), null).getPrice();
                 statsMapping.put(s.getCompany().getId(), new StockStats(s.getCompany().getId(), 1, marketValue, marketValue));
-
             } else {
                 // update stock stats amount and totalValue accordingly
                 statsMapping.put(s.getCompany().getId(), new StockStats(s.getCompany().getId(), currentStockStats.getAmount() + 1,
@@ -319,4 +346,20 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, On
         stockStats = FXCollections.observableList(new ArrayList<>(statsMapping.values()));
         tabStocks.setItems(stockStats);
     }
+
+    @Override
+    public void pushNewMarketValues(List<MarketValue> newMarketValues) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
+                    populateStockStatsTable(depotInvestor.readAllStocks(null));
+                } catch (ConnectionError connectionError) {
+                    connectionError.printStackTrace();
+                }
+            }
+        });
+    }
+
 }

@@ -16,6 +16,7 @@ import org.mozartspaces.notifications.NotificationManager;
 import org.mozartspaces.notifications.Operation;
 import org.mozartspaces.util.parser.sql.javacc.ParseException;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -149,6 +150,29 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
         //Get by Template
         try {
             return xc.getCapi().read(tradeOrdersContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
+        } catch (MzsCoreException e) {
+            throw new ConnectionError(e);
+        }
+    }
+
+    @Override
+    public TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionError {
+        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        Query query = new Query();
+        try {
+            query.sql("id = '" + tradeOrder.getId() + "'");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        Selector selector = QueryCoordinator.newSelector(query, Selector.COUNT_MAX);
+
+        try {
+            List<TradeOrder> tradeOrders = xc.getCapi().take(tradeOrdersContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
+            if (tradeOrders.size() > 0) {
+                return tradeOrders.get(0);
+            }
+            return null;
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
