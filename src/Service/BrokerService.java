@@ -37,7 +37,7 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
     public void startBroking() throws ConnectionError {
         takeAndProcessISRs();
         isrContainer.subscribe(factory.newIssueStockRequestSubManager(this), null);
-        tradeOrdersContainer.subscribe(factory.newTradeOrderSubManager(this),null);
+        tradeOrdersContainer.subscribe(factory.newTradeOrderSubManager(this), null);
     }
 
     public void takeAndProcessISRs() throws ConnectionError {
@@ -80,14 +80,6 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
 
     }
 
-    @Override
-    public void pushNewTradeOrders(TradeOrder tradeOrder) {
-        System.out.println("Trade Orders Callback.");
-
-        if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
-            solveOrder(tradeOrder);
-        }
-    }
 
     @Override
     public void pushNewISRs(List<IssueStockRequest> newISRs) {
@@ -99,20 +91,40 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
     }
 
 
-    private void solveOrder(TradeOrder tradeOrder) {
+    @Override
+    public void pushNewTradeOrders(TradeOrder tradeOrder) {
+        System.out.println("Trade Orders Callback.");
+
         try {
             String transactionId = factory.createTransaction();
 
+            if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
+                solveOrder(tradeOrder, transactionId);
+            }
+        } catch (ConnectionError connectionError) {
+            connectionError.printStackTrace();
+        }
+    }
+
+
+    private void solveOrder(TradeOrder tradeOrder, String transactionId) {
+        try {
             TradeOrder matchingTradeOrder = findMatchingTradeOrder(tradeOrder, transactionId);
 
             if (matchingTradeOrder != null) {
                 if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
                     if (validateTradeOrders(tradeOrder, matchingTradeOrder, transactionId)) {
-                        executeTransaction(tradeOrder, matchingTradeOrder, transactionId);
+                        TradeOrder activeOrder = tradeOrdersContainer.takeOrder(tradeOrder, transactionId);  // locks container for other brokers
+                        if (activeOrder != null) {
+                            executeTransaction(tradeOrder, matchingTradeOrder, transactionId);
+                        }
                     }
                 } else {
                     if (validateTradeOrders(matchingTradeOrder, tradeOrder, transactionId)) {
-                        executeTransaction(matchingTradeOrder, tradeOrder, transactionId);
+                        TradeOrder activeOrder = tradeOrdersContainer.takeOrder(tradeOrder, transactionId);  // locks container for other brokers
+                        if (activeOrder != null) {
+                            executeTransaction(matchingTradeOrder, tradeOrder, transactionId);
+                        }
                     }
                 }
             }
@@ -161,7 +173,6 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
 
             System.out.println("Taking " + boughtStocks.size() + " stocks from seller depot.");
 
-
             buyOrder.setStatus(TradeOrder.Status.COMPLETED);
             buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
 
@@ -188,7 +199,13 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
 
         // write transaction to transaction history container
         System.out.println("Writing transaction " + transactionId + " to transaction history.");
-        transactionHistoryContainer.addHistoryEntry(new HistoryEntry(transactionId, id, new Investor(buyOrder.getInvestorId()), sellOrder.getCompany(), buyOrder.getCompanyId(),
+        StockOwner seller;
+        if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
+            seller = sellOrder.getCompany();
+        } else {
+            seller = new Investor(sellOrder.getInvestorId());
+        }
+        transactionHistoryContainer.addHistoryEntry(new HistoryEntry(transactionId, id, new Investor(buyOrder.getInvestorId()), seller, buyOrder.getCompanyId(),
                 buyOrder.getId(), sellOrder.getId(), currentMarketValue, boughtStocks.size(), totalValue + provision, provision), transactionId);
 
         // update trade orders (update completed trade order first to avoid inconsistencies)

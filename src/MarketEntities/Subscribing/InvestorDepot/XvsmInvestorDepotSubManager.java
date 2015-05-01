@@ -30,7 +30,9 @@ public class XvsmInvestorDepotSubManager extends AInvestorDepotSubManager implem
                 newStocks.add(stock);
             } catch (ClassCastException e) {
                 // new budget was pushed
-                //TODO handle budget change!
+                Double newBudget = (Double) ((Entry) s).getValue();
+                subscription.pushNewBudget(newBudget.doubleValue());
+                return;
             }
         }
         subscription.pushNewStocks(newStocks);

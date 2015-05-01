@@ -32,15 +32,12 @@ public class BudgetController {
     @FXML
     private Button btnAddToBudget;
 
-    private OnBudgetChangedListener budgetChangedListener;
-
     public BudgetController() {
     }
 
-    public BudgetController(IFactory factory, Investor investor, OnBudgetChangedListener budgetChangedListener) {
+    public BudgetController(IFactory factory, Investor investor) {
         this.factory = factory;
         this.investor = investor;
-        this.budgetChangedListener = budgetChangedListener;
         investorService = new InvestorService(factory, investor);
     }
 
@@ -53,9 +50,6 @@ public class BudgetController {
         if (isValidInput()) {
             try {
                 investorService.addToBudget(budget);
-
-                // tell main stage to update its budget
-                budgetChangedListener.onBudgetChanged();
 
                 Stage stage = (Stage) btnAddToBudget.getScene().getWindow();
                 stage.close();

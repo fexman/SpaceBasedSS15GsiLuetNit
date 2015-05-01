@@ -12,4 +12,6 @@ public interface IInvestorDepotSub extends Subscription {
 
     void pushNewStocks(List<Stock> stocks);
 
+    void pushNewBudget(Double budget);
+
 }

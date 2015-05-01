@@ -8,11 +8,13 @@ import MarketEntities.RMI.RmiStockPricesContainer;
 import MarketEntities.RMI.RmiTradeOrderContainer;
 import MarketEntities.Subscribing.InvestorDepot.AInvestorDepotSubManager;
 import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
+import MarketEntities.Subscribing.InvestorDepot.RmiInvestorDepotSubManager;
 import MarketEntities.Subscribing.IssueStockRequests.RmiISRSubManager;
 import MarketEntities.Subscribing.MarketValues.RmiStockPricesSubManager;
 import MarketEntities.Subscribing.TradeOrders.RmiTradeOrderSubManager;
 import MarketEntities.Subscribing.TransactionHistory.ATransactionHistorySubManager;
 import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
+import MarketEntities.Subscribing.TransactionHistory.RmiTransactionHistorySubManager;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionError;
@@ -90,13 +92,21 @@ public class RmiFactory implements IFactory {
 
     @Override
     public ATransactionHistorySubManager newTransactionHistorySubManager(ITransactionHistorySub subscription) {
-        //TODO
+        try {
+            return new RmiTransactionHistorySubManager(subscription);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
     @Override
     public AInvestorDepotSubManager newInvestorDepotSubManager(IInvestorDepotSub subscription) {
-        //TODO
+        try {
+            return new RmiInvestorDepotSubManager(subscription);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

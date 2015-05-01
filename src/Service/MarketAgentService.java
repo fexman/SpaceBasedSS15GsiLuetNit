@@ -2,6 +2,8 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.StockPricesContainer;
+import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
+import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
 import Model.MarketValue;
 import Model.TradeOrder;
@@ -119,5 +121,4 @@ public class MarketAgentService extends Service {
     public String getId() {
         return id;
     }
-
 }
