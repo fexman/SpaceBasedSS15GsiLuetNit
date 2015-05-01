@@ -17,9 +17,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ISRContainerProvider implements IISRContainerProvider {
 
-    private List<IssueStockRequest> isrs;
+    private volatile List<IssueStockRequest> isrs;
     private Object lock;
-    private Object resourceLock;
 
     private Set<IRmiCallback<IssueStockRequest>> callbacks;
 
@@ -27,7 +26,6 @@ public class ISRContainerProvider implements IISRContainerProvider {
         isrs = new ArrayList<>();
         callbacks = new HashSet<>();
         lock = new Object();
-        resourceLock = new Object();
     }
 
     public void addIssueStocksRequest(IssueStockRequest isr, String transactionId) throws RemoteException {
@@ -35,8 +33,8 @@ public class ISRContainerProvider implements IISRContainerProvider {
         synchronized (lock) {
             isrs.add(isr);
             System.out.println("Added: "+isr);
-            synchronized (resourceLock) {
-                resourceLock.notifyAll(); //Wake up one Thread waiting for resources
+            synchronized (isrs) {
+                isrs.notifyAll(); //Wake up one Thread waiting for resources
             }
         }
 
@@ -51,12 +49,11 @@ public class ISRContainerProvider implements IISRContainerProvider {
 
     public List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws RemoteException {
 
-        synchronized (resourceLock) {
+        synchronized (isrs) {
             while (isrs.isEmpty()) {
                 try {
-                    resourceLock.wait(); //Wait for change in Resources
+                    isrs.wait(); //Wait for change in Resources
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
             }
         }
