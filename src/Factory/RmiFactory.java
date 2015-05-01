@@ -25,6 +25,7 @@ import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import Util.RmiUtil;
+import Util.TransactionTimeout;
 
 import java.rmi.RemoteException;
 
@@ -121,7 +122,7 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
-    public String createTransaction() throws ConnectionError {
+    public String createTransaction(TransactionTimeout timeout) throws ConnectionError {
         return null;
     }
 

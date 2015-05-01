@@ -4,6 +4,7 @@ import Factory.IFactory;
 import MarketEntities.DepotCompany;
 import MarketEntities.ISRContainer;
 import Model.IssueStockRequest;
+import Util.TransactionTimeout;
 
 /**
  * Created by Felix on 06.04.2015.
@@ -22,7 +23,7 @@ public class CompanyService extends Service {
         try {
 
             //Init transaction
-            transactionId = factory.createTransaction();
+            transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
 
             //Create containers
             DepotCompany depotCompany = factory.newDepotCompany(isr.getCompany(), transactionId);

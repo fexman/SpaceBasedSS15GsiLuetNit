@@ -2,26 +2,24 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.*;
-import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
 import Model.*;
-import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
-import org.mozartspaces.notifications.NotificationManager;
+import Util.TransactionTimeout;
 
-import javax.swing.plaf.synth.SynthTextAreaUI;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Felix on 11.04.2015.
  */
-public class BrokerService extends Service implements IISRRequestSub, ITradeOrderSub {
+public class BrokerService extends Service implements ITradeOrderSub {
 
     private String id;
     private ISRContainer isrContainer;
     private TradeOrderContainer tradeOrdersContainer;
     private StockPricesContainer stockPricesContainer;
     private TransactionHistoryContainer transactionHistoryContainer;
+
+    private ISRThread isrThread;
 
     private final double PROVISION_PERCENTAGE = 0.03;
 
@@ -32,62 +30,68 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
         tradeOrdersContainer = factory.newTradeOrdersContainer();
         stockPricesContainer = factory.newStockPricesContainer();
         transactionHistoryContainer = factory.newTransactionHistoryContainer();
+        this.isrThread = new ISRThread();
     }
 
     public void startBroking() throws ConnectionError {
-        takeAndProcessISRs();
-        isrContainer.subscribe(factory.newIssueStockRequestSubManager(this), null);
         tradeOrdersContainer.subscribe(factory.newTradeOrderSubManager(this), null);
+        new Thread(isrThread).start();
     }
 
-    public void takeAndProcessISRs() throws ConnectionError {
-        String transactionId = null;
-        try {
+    private class ISRThread extends Thread {
 
-            transactionId = factory.createTransaction();
-            List<IssueStockRequest> isrs = isrContainer.takeIssueStockRequests(transactionId);
-            
-            if (isrs.size() > 0) {
-                System.out.println("Got " + isrs.size() + " new ISRs!");
-                for (IssueStockRequest isr : isrs) { //PROCESS NEW ISRS
+        private boolean running;
 
-                    //Set market Value if new stocks
-                    MarketValue mw = stockPricesContainer.getMarketValue(isr.getCompany(),transactionId);
-                    if (mw == null){
-                        System.out.println("Setting new marketValue for "+isr.getCompany()+" on ISR-price.");
-                        mw = new MarketValue(isr.getCompany(),isr.getPrice());
-                        stockPricesContainer.addOrUpdateMarketValue(mw,transactionId);
+        public ISRThread() {
+            this.running = true;
+        }
+
+        @Override
+        public void run() {
+            while (running) {
+                String transactionId = null;
+                try {
+
+                    transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
+                    List<IssueStockRequest> isrs = isrContainer.takeIssueStockRequests(transactionId);
+
+                    if (isrs.size() > 0) {
+                        System.out.println("Got " + isrs.size() + " new ISRs!");
+                        for (IssueStockRequest isr : isrs) { //PROCESS NEW ISRS
+
+                            //Set market Value if new stocks
+                            MarketValue mw = stockPricesContainer.getMarketValue(isr.getCompany(), transactionId);
+                            if (mw == null) {
+                                System.out.println("Setting new marketValue for " + isr.getCompany() + " on ISR-price.");
+                                mw = new MarketValue(isr.getCompany(), isr.getPrice());
+                                stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
+                            }
+
+                            System.out.println("New Price: " + mw.getPrice());
+
+                            //Create Trade Order
+                            TradeOrder order = new TradeOrder(isr.getCompany(), isr.getCompany(), isr.getAmount(), mw.getPrice());
+                            tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
+                        }
                     }
 
-                    System.out.println("New Price: "+mw.getPrice());
+                    factory.commitTransaction(transactionId);
 
-                    //Create Trade Order
-                    TradeOrder order = new TradeOrder(isr.getCompany(),isr.getCompany(),isr.getAmount(),mw.getPrice());
-                    tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
+                } catch (ConnectionError e) {
+                    try {
+                        factory.rollbackTransaction(transactionId);
+                        throw new ConnectionError(e);
+                    } catch (ConnectionError ex) {
+                        System.out.println("Serious connection error on rollback!");
+                    }
                 }
             }
-
-            factory.commitTransaction(transactionId);
-
-        } catch (ConnectionError e) {
-            try {
-                factory.rollbackTransaction(transactionId);
-                throw new ConnectionError(e);
-            } catch (ConnectionError ex) {
-                throw new ConnectionError(ex);
-            }
         }
 
-    }
-
-
-    @Override
-    public void pushNewISRs(List<IssueStockRequest> newISRs) {
-        try {
-            takeAndProcessISRs();
-        } catch (ConnectionError connectionError) {
-            System.out.println("FATAL ERROR: Connection Error on subscription-PUSH.");
+        public void shutdown() {
+            this.running = false;
         }
+
     }
 
 
@@ -96,7 +100,7 @@ public class BrokerService extends Service implements IISRRequestSub, ITradeOrde
         System.out.println("Trade Orders Callback.");
 
         try {
-            String transactionId = factory.createTransaction();
+            String transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
 
             if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
                 solveOrder(tradeOrder, transactionId);

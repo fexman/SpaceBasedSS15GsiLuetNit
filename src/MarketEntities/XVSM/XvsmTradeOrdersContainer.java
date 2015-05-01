@@ -93,13 +93,13 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
             if (order.getPriceLimit() != null) {
                 System.out.print(" PRICELIMIT");
                 switch (order.getType()) {
-                    case BUY_ORDER: //LOOKING FOR BUY ORDER, I AM TRYING TO SELL SOMETHING -> PRICE SHOULD BY ABOVE (OR EQUAL TO) MY LIMIT
+                    case BUY_ORDER: //LOOKING FOR BUY ORDER, INFINITE AM TRYING TO SELL SOMETHING -> PRICE SHOULD BY ABOVE (OR EQUAL TO) MY LIMIT
                         query.sql("priceLimit >= "+order.getPriceLimit()); // search for price bigger than/equal to min price of sell order
                         break;
-                    case SELL_ORDER: //LOOKING FOR SELL ORDER, I AM TRYING TO BUY SOMETHING -> PRICE SHOULD BY UNDER (OR EQUAL TO) MY LIMIT
+                    case SELL_ORDER: //LOOKING FOR SELL ORDER, INFINITE AM TRYING TO BUY SOMETHING -> PRICE SHOULD BY UNDER (OR EQUAL TO) MY LIMIT
                         query.sql("priceLimit <= "+order.getPriceLimit()); // search for price smaller than/equal to max price of buy order
                         break;
-                    case ANY: //I DONT CARE, SIMPLE MATCHING
+                    case ANY: //INFINITE DONT CARE, SIMPLE MATCHING
                         query.sql("priceLimit = "+order.getPriceLimit());
                 }
             }
@@ -137,7 +137,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
                 case NOT_DELETED: //EVERYTHING EXCEPT DELETED
                     query.filter(status.allNotEqualTo(TradeOrder.Status.DELETED));
                     System.out.print(" STATUS=NOT_DELETED");
-                case ANY: // I DONT CARE, GIVE ME ALL OF THEM
+                case ANY: // INFINITE DONT CARE, GIVE ME ALL OF THEM
                     break;
             }
             System.out.print("\n");

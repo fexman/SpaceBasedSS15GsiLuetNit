@@ -20,6 +20,7 @@ import MarketEntities.Subscribing.MarketValues.XvsmStockPricesSubManager;
 import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.Subscribing.TradeOrders.XvsmTradeOrderSubManager;
+import Util.TransactionTimeout;
 import Util.XvsmUtil;
 import org.mozartspaces.core.MzsCoreException;
 
@@ -97,9 +98,9 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public String createTransaction() throws ConnectionError {
+    public String createTransaction(TransactionTimeout timeout) throws ConnectionError {
         try {
-            return XvsmUtil.createTransaction();
+            return XvsmUtil.createTransaction(timeout);
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }

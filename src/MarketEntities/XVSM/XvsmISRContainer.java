@@ -47,10 +47,10 @@ public class XvsmISRContainer extends ISRContainer {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         ArrayList<Selector> selectors = new ArrayList<>();
-        selectors.add(FifoCoordinator.newSelector(MzsConstants.Selecting.COUNT_ALL));
+        selectors.add(FifoCoordinator.newSelector());
 
         try {
-            return xc.getCapi().take(isrContainer, selectors, XvsmUtil.ACTION_TIMEOUT, tx);
+            return xc.getCapi().take(isrContainer, selectors, MzsConstants.RequestTimeout.INFINITE, tx);
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }

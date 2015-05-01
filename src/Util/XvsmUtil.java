@@ -22,7 +22,7 @@ import java.util.UUID;
 
 public class XvsmUtil {
 
-    public static final int ACTION_TIMEOUT = 5000;
+    public static final long ACTION_TIMEOUT = 5000;
 
     private static HashMap<String, TransactionReference> transactions = new HashMap<>();
     private static HashMap<Container, ContainerReference> containers = new HashMap<>();
@@ -113,8 +113,11 @@ public class XvsmUtil {
         return lookUpOrCreateContainer("DEPOT_INVESTOR_" + investorId, xc.getSpace(), xc.getCapi(), tx, coordinatorTypes);
     }
 
-    public static String createTransaction() throws MzsCoreException {
-        TransactionReference tx = xc.getCapi().createTransaction(ACTION_TIMEOUT, xc.getSpace());
+    public static String createTransaction(TransactionTimeout timeout) throws MzsCoreException {
+
+        long timeoutValue = getTransactionTimeoutValue(timeout);
+
+        TransactionReference tx = xc.getCapi().createTransaction(timeoutValue, xc.getSpace());
         UUID transactionId = UUID.randomUUID();
         transactions.put(transactionId.toString(), tx);
         return transactionId.toString();
@@ -136,6 +139,17 @@ public class XvsmUtil {
     public static void rollbackTransaction(String transactionId) throws MzsCoreException {
         xc.getCapi().rollbackTransaction(getTransaction(transactionId));
         deleteTransaction(transactionId);
+    }
+
+    private static long getTransactionTimeoutValue(TransactionTimeout timeout) {
+        switch (timeout) {
+            case INFINITE:
+                return MzsConstants.TransactionTimeout.INFINITE;
+            case TRY_ONCE:
+                return MzsConstants.RequestTimeout.ZERO;
+            default:
+                return ACTION_TIMEOUT;
+        }
     }
 
     /**

@@ -60,17 +60,17 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                 }
                 if (order.getPriceLimit() != null) {
                     switch (order.getType()) {
-                        case BUY_ORDER: //LOOKING FOR BUY ORDER, I AM TRYING TO SELL SOMETHING -> PRICE SHOULD BY ABOVE (OR EQUAL TO) MY LIMIT
+                        case BUY_ORDER: //LOOKING FOR BUY ORDER, INFINITE AM TRYING TO SELL SOMETHING -> PRICE SHOULD BY ABOVE (OR EQUAL TO) MY LIMIT
                             if (to.getPriceLimit() < order.getPriceLimit()) {
                                 continue toLoop;
                             }
                             break;
-                        case SELL_ORDER: //LOOKING FOR SELL ORDER, I AM TRYING TO BUY SOMETHING -> PRICE SHOULD BY UNDER (OR EQUAL TO) MY LIMIT
+                        case SELL_ORDER: //LOOKING FOR SELL ORDER, INFINITE AM TRYING TO BUY SOMETHING -> PRICE SHOULD BY UNDER (OR EQUAL TO) MY LIMIT
                             if (to.getPriceLimit() > order.getPriceLimit()) {
                                 continue toLoop;
                             }
                             break;
-                        case ANY: //I DONT CARE, SIMPLE MATCHING
+                        case ANY: //INFINITE DONT CARE, SIMPLE MATCHING
 
                     }
                 }
@@ -105,7 +105,7 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                             continue toLoop;
                         }
                         break;
-                    case ANY: // I DONT CARE, GIVE ME ALL OF THEM
+                    case ANY: // INFINITE DONT CARE, GIVE ME ALL OF THEM
                         break;
                 }
 

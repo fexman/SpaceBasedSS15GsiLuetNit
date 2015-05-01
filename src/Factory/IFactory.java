@@ -14,6 +14,7 @@ import MarketEntities.Subscribing.MarketValues.AStockPricesSubManager;
 import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
+import Util.TransactionTimeout;
 
 /**
  * Created by Felix on 16.04.2015.
@@ -50,7 +51,7 @@ public interface IFactory {
 
     //Transaction stuff
 
-    String createTransaction() throws ConnectionError;
+    String createTransaction(TransactionTimeout timeout) throws ConnectionError;
 
     void commitTransaction(String transactionId) throws ConnectionError;
 

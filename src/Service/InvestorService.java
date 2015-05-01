@@ -6,6 +6,7 @@ import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
 import Model.Investor;
 import Model.TradeOrder;
+import Util.TransactionTimeout;
 
 /**
  * Created by j0h1 on 24.04.2015.
@@ -28,7 +29,7 @@ public class InvestorService extends Service implements ITradeOrderSub {
         String transactionId = "";
 
         try {
-            transactionId = factory.createTransaction();
+            transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
 
             // get trade order container instance
             TradeOrderContainer tradeOrderContainer = factory.newTradeOrdersContainer();
@@ -52,7 +53,7 @@ public class InvestorService extends Service implements ITradeOrderSub {
         String transactionId = "";
 
         try {
-            transactionId = factory.createTransaction();
+            transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
 
             DepotInvestor depotInvestor = factory.newDepotInvestor(investor, transactionId);
 

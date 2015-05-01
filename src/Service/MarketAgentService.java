@@ -2,11 +2,10 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.StockPricesContainer;
-import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
-import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
 import Model.MarketValue;
 import Model.TradeOrder;
+import Util.TransactionTimeout;
 
 import java.util.List;
 import java.util.Random;
@@ -30,7 +29,7 @@ public class MarketAgentService extends Service {
     public synchronized void performMarketAnalysis() throws ConnectionError {
         String transactionId = "";
         try {
-            transactionId = factory.createTransaction();
+            transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
 
             List<MarketValue> marketValues = stockPricesContainer.getAll(transactionId);
             for (MarketValue marketValue : marketValues) {
@@ -83,7 +82,7 @@ public class MarketAgentService extends Service {
     public synchronized void addPriceFluctuation(double maxFluctuation) throws ConnectionError {
         String transactionId = "";
         try {
-            transactionId = factory.createTransaction();
+            transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
 
             List<MarketValue> marketValues = stockPricesContainer.getAll(transactionId);
             if (marketValues.size() > 0) {
