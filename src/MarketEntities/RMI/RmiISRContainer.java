@@ -3,8 +3,10 @@ package MarketEntities.RMI;
 import MarketEntities.ISRContainer;
 import MarketEntities.Subscribing.ASubManager;
 import Model.IssueStockRequest;
+import RMIServer.CallbackDummy;
 import RMIServer.EntityProviders.IISRContainerProvider;
 import MarketEntities.Subscribing.IRmiCallback;
+import RMIServer.ICallbackDummy;
 import Service.ConnectionError;
 import Util.Container;
 import Util.RmiUtil;
@@ -40,7 +42,9 @@ public class RmiISRContainer extends ISRContainer {
     @Override
     public List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws ConnectionError {
         try {
-            return isrContainer.takeIssueStockRequests(transactionId);
+            ICallbackDummy callerDummy = new CallbackDummy();
+            UnicastRemoteObject.exportObject(callerDummy,0);
+            return isrContainer.takeIssueStockRequests(transactionId, callerDummy);
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }

@@ -22,4 +22,5 @@ public class RmiISRSubManager extends AISRSubManager implements IRmiCallback<Iss
     public void newData(List<IssueStockRequest> newData) throws RemoteException {
         subscription.pushNewISRs(newData);
     }
+
 }

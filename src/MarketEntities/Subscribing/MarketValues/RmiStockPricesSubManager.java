@@ -22,4 +22,5 @@ public class RmiStockPricesSubManager extends AStockPricesSubManager implements 
     public void newData(List<MarketValue> newData) throws RemoteException {
         subscription.pushNewMarketValues(newData);
     }
+
 }

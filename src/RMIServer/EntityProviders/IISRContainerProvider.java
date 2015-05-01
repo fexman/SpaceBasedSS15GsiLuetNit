@@ -2,6 +2,7 @@ package RMIServer.EntityProviders;
 
 import Model.IssueStockRequest;
 import MarketEntities.Subscribing.IRmiCallback;
+import RMIServer.ICallbackDummy;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -13,7 +14,7 @@ public interface IISRContainerProvider extends IProvider {
 
     void addIssueStocksRequest(IssueStockRequest isr, String transactionId) throws RemoteException;
 
-    List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws RemoteException;
+    List<IssueStockRequest> takeIssueStockRequests(String transactionId, ICallbackDummy callerDummy) throws RemoteException;
 
     void subscribe(IRmiCallback<IssueStockRequest> callback) throws RemoteException;
 

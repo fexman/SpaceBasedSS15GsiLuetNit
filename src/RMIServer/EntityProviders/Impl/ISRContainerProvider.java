@@ -3,6 +3,7 @@ package RMIServer.EntityProviders.Impl;
 import Model.IssueStockRequest;
 import RMIServer.EntityProviders.IISRContainerProvider;
 import MarketEntities.Subscribing.IRmiCallback;
+import RMIServer.ICallbackDummy;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ public class ISRContainerProvider implements IISRContainerProvider {
         System.out.println("Isrs-size:"+isrs.size());
     }
 
-    public List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws RemoteException {
+    public List<IssueStockRequest> takeIssueStockRequests(String transactionId, ICallbackDummy callerDummy) throws RemoteException {
 
         synchronized (isrs) {
             while (isrs.isEmpty()) {
@@ -58,10 +59,19 @@ public class ISRContainerProvider implements IISRContainerProvider {
             }
         }
 
-        synchronized (lock) { //Only one at a time
-            List<IssueStockRequest> returnVal = new ArrayList<>(isrs);
-            isrs = new ArrayList<>();
-            return returnVal;
+        try {
+            callerDummy.testConnection();
+
+            synchronized (lock) { //Only one at a time
+                System.out.println("TAKING!");
+                List<IssueStockRequest> returnVal = new ArrayList<>(isrs);
+                isrs = new ArrayList<>();
+                return returnVal;
+            }
+
+        } catch (RemoteException e) {
+            System.out.println("He's gone :(.");
+            return null;
         }
 
     }

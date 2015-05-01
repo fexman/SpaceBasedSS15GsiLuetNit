@@ -2,7 +2,6 @@ package MarketEntities.Subscribing.TradeOrders;
 
 import Model.TradeOrder;
 import MarketEntities.Subscribing.IRmiCallback;
-import Service.ConnectionError;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
