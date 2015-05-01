@@ -34,7 +34,7 @@ public class BrokerService extends Service implements ITradeOrderSub {
     }
 
     public void startBroking() throws ConnectionError {
-        tradeOrdersContainer.subscribe(factory.newTradeOrderSubManager(this), null);
+        //tradeOrdersContainer.subscribe(factory.newTradeOrderSubManager(this), null);
         new Thread(isrThread).start();
     }
 
@@ -51,7 +51,7 @@ public class BrokerService extends Service implements ITradeOrderSub {
             while (running) {
                 String transactionId = null;
                 try {
-
+                    System.out.println("ISR begin.");
                     transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
                     List<IssueStockRequest> isrs = isrContainer.takeIssueStockRequests(transactionId);
 
@@ -82,7 +82,7 @@ public class BrokerService extends Service implements ITradeOrderSub {
                         factory.rollbackTransaction(transactionId);
                         throw new ConnectionError(e);
                     } catch (ConnectionError ex) {
-                        System.out.println("Serious connection error on rollback!");
+                        ex.printStackTrace();
                     }
                 }
             }

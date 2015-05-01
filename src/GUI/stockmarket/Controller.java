@@ -178,10 +178,10 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
             tableStockPrices.setItems(stockPrices);
             stockPricesContainer.subscribe(factory.newStockPricesSubManager(this), null);
 
-            transactionHistoryContainer = factory.newTransactionHistoryContainer();
-            historyEntries = FXCollections.observableList(transactionHistoryContainer.getTransactionHistory(null));
-            tableHistory.setItems(historyEntries);
-            transactionHistoryContainer.subscribe(factory.newTransactionHistorySubManager(this), null);
+//            transactionHistoryContainer = factory.newTransactionHistoryContainer();
+//            historyEntries = FXCollections.observableList(transactionHistoryContainer.getTransactionHistory(null));
+//            tableHistory.setItems(historyEntries);
+//            transactionHistoryContainer.subscribe(factory.newTransactionHistorySubManager(this), null);
 
             statusLabel.textFillProperty().setValue(Color.DARKGREEN);
             statusLabel.setText("Connected.");
