@@ -215,13 +215,19 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
     @Override
     public void pushNewMarketValues(List<MarketValue> newMarketValues) {
         //To reduce network traffic, since this is called VERY often
-        for (MarketValue mwNew : newMarketValues) {
-            for (MarketValue mwOld : stockPrices) {
-                if (mwOld.getCompanyId().equals(mwNew.getCompanyId())) {
-                    mwOld.setPrice(mwNew.getPrice());
-                    System.out.println("Updated: "+mwOld.getCompanyId()+" with "+mwNew.getPrice());
-                }
 
+        for (MarketValue mwNew : newMarketValues) {
+            if (stockPrices.contains(mwNew)) {
+                for (MarketValue mwOld : stockPrices) {
+                    if (mwOld.getCompanyId().equals(mwNew.getCompanyId())) {
+                        mwOld.setPrice(mwNew.getPrice());
+                        System.out.println("Updated: " + mwOld.getCompanyId() + " with " + mwNew.getPrice());
+                    }
+
+                }
+            }
+            else {
+                stockPrices.add(mwNew);
             }
         }
 
