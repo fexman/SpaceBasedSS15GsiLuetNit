@@ -1,7 +1,9 @@
 package Util;
 
 import Model.Company;
+import Model.Investor;
 import RMIServer.EntityProviders.IDepotCompanyProvider;
+import RMIServer.EntityProviders.IDepotInvestorProvider;
 import RMIServer.EntityProviders.IProvider;
 import RMIServer.IRmiServer;
 
@@ -38,8 +40,9 @@ public class RmiUtil {
         //Adding providers
         try {
             providers.put(Container.ISSUED_STOCK_REQUESTS, rc.getRmiServer().getIssueStockRequestContainer());
-            providers.put(Container.TRADE_ORDERS,rc.getRmiServer().getTradeOrderContainer());
-            providers.put(Container.STOCK_PRICES,rc.getRmiServer().getStockPricesContainer());
+            providers.put(Container.TRADE_ORDERS, rc.getRmiServer().getTradeOrderContainer());
+            providers.put(Container.STOCK_PRICES, rc.getRmiServer().getStockPricesContainer());
+            providers.put(Container.TRANSACTION_HISTORY, rc.getRmiServer().getTransactionHistoryContainer());
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }
@@ -53,6 +56,14 @@ public class RmiUtil {
     public static IDepotCompanyProvider getDepot(Company company) throws ConnectionError {
         try {
             return rc.getRmiServer().getDepotCompany(company);
+        } catch (RemoteException e) {
+            throw new ConnectionError(e);
+        }
+    }
+
+    public static IDepotInvestorProvider getDepot(String investorId) throws ConnectionError {
+        try {
+            return rc.getRmiServer().getDepotInvestor(investorId);
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }

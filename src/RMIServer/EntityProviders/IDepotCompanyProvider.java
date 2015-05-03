@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface IDepotCompanyProvider extends IDepotProvider {
 
-    public Company getCompany() throws RemoteException;
+    Company getCompany() throws RemoteException;
 
-    public List<Stock> takeStocks(int amount, String transactionId) throws RemoteException;
+    List<Stock> takeStocks(int amount, String transactionId) throws RemoteException;
 }

@@ -35,6 +35,7 @@ public class DepotCompanyProvider implements IDepotCompanyProvider {
             for (int i = 1; i <= amount; i++) {
                 tempStocks.add(new Stock(company));
             }
+            //TODO remove <amount> elements instead of element at index <amount>
             stocks.remove(amount);
             return tempStocks;
         }

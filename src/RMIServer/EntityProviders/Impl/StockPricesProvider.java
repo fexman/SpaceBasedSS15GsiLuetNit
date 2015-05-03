@@ -39,7 +39,6 @@ public class StockPricesProvider implements IStockPricesProvider {
         for (IRmiCallback<MarketValue> callback : callbacks) {
             callback.newData(newMWs);
         }
-
     }
 
     @Override

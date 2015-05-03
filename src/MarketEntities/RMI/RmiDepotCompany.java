@@ -22,9 +22,9 @@ public class RmiDepotCompany extends DepotCompany {
         super(comp, transactionId);
 
         //Setting Depot-name
-        this.depotName = Container.DEPOT_COMPANY_TOKEN+comp.getId();
+        this.depotName = Container.DEPOT_COMPANY_TOKEN + comp.getId();
 
-        //gethandler
+        //get handler
         depotCompany = RmiUtil.getDepot(comp);
     }
 

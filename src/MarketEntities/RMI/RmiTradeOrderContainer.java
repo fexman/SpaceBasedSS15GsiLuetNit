@@ -31,7 +31,7 @@ public class RmiTradeOrderContainer extends TradeOrderContainer {
     @Override
     public void addOrUpdateOrder(TradeOrder order, String transactionId) throws ConnectionError {
         try {
-            toContainer.addOrUpdateOrder(order,transactionId);
+            toContainer.addOrUpdateOrder(order, transactionId);
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }
@@ -48,7 +48,7 @@ public class RmiTradeOrderContainer extends TradeOrderContainer {
 
     @Override
     public TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionError {
-        //TODO implement
+        //TODO
         return null;
     }
 
@@ -89,6 +89,6 @@ public class RmiTradeOrderContainer extends TradeOrderContainer {
         } catch (RemoteException e) {
             throw new ConnectionError(e);
         }
-
     }
+
 }

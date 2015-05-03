@@ -33,13 +33,12 @@ public class ISRContainerProvider implements IISRContainerProvider {
 
         synchronized (lock) {
             isrs.add(isr);
-            System.out.println("Added: "+isr);
+            System.out.println("Added: " + isr);
             synchronized (isrs) {
                 isrs.notifyAll(); //Wake up one Thread waiting for resources
             }
         }
 
-        //Callback
         List<IssueStockRequest> newIsrs = new ArrayList<>();
         newIsrs.add(isr);
         for (IRmiCallback<IssueStockRequest> callback: callbacks) {
@@ -68,7 +67,6 @@ public class ISRContainerProvider implements IISRContainerProvider {
                 isrs = new ArrayList<>();
                 return returnVal;
             }
-
         } catch (RemoteException e) {
             System.out.println("He's gone :(.");
             return null;

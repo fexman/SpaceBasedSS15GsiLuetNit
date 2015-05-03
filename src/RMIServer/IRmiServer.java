@@ -2,10 +2,7 @@ package RMIServer;
 
 
 import Model.Company;
-import RMIServer.EntityProviders.IDepotCompanyProvider;
-import RMIServer.EntityProviders.IISRContainerProvider;
-import RMIServer.EntityProviders.IStockPricesProvider;
-import RMIServer.EntityProviders.ITradeOrderProvider;
+import RMIServer.EntityProviders.*;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -21,5 +18,9 @@ public interface IRmiServer extends Remote {
 
     ITradeOrderProvider getTradeOrderContainer() throws RemoteException;
 
+    ITransactionHistoryProvider getTransactionHistoryContainer() throws RemoteException;
+
     IDepotCompanyProvider getDepotCompany(Company company) throws RemoteException;
+
+    IDepotInvestorProvider getDepotInvestor(String investorId) throws RemoteException;
 }

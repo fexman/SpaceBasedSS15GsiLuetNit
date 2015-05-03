@@ -12,11 +12,11 @@ import java.util.List;
  */
 public interface IStockPricesProvider extends IProvider {
 
-    public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws RemoteException;
+    void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws RemoteException;
 
-    public MarketValue getMarketValue(Company comp, String transactionId) throws RemoteException;
+    MarketValue getMarketValue(Company comp, String transactionId) throws RemoteException;
 
-    public List<MarketValue> getAll(String transactionId) throws RemoteException;
+    List<MarketValue> getAll(String transactionId) throws RemoteException;
 
     void subscribe(IRmiCallback<MarketValue> callback) throws RemoteException;
 

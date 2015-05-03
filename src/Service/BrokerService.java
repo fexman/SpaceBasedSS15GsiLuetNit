@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by Felix on 11.04.2015.
  */
-public class BrokerService extends Service implements ITradeOrderSub {
+public class BrokerService extends Service {
 
     private String id;
     private ISRContainer isrContainer;
@@ -20,6 +20,7 @@ public class BrokerService extends Service implements ITradeOrderSub {
     private TransactionHistoryContainer transactionHistoryContainer;
 
     private ISRThread isrThread;
+    private TradeOrderThread toThread;
 
     private final double PROVISION_PERCENTAGE = 0.03;
 
@@ -31,10 +32,10 @@ public class BrokerService extends Service implements ITradeOrderSub {
         stockPricesContainer = factory.newStockPricesContainer();
         transactionHistoryContainer = factory.newTransactionHistoryContainer();
         this.isrThread = new ISRThread();
+        this.toThread = new TradeOrderThread();
     }
 
     public void startBroking() throws ConnectionError {
-        //tradeOrdersContainer.subscribe(factory.newTradeOrderSubManager(this), null);
         new Thread(isrThread).start();
     }
 
@@ -94,49 +95,72 @@ public class BrokerService extends Service implements ITradeOrderSub {
 
     }
 
+    private class TradeOrderThread extends Thread {
 
-    @Override
-    public void pushNewTradeOrders(TradeOrder tradeOrder) {
-        System.out.println("Trade Orders Callback.");
+        private boolean running;
 
-        try {
-            String transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
+        public TradeOrderThread() {
+            this.running = true;
+        }
 
-            if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
-                solveOrder(tradeOrder, transactionId);
+        @Override
+        public void run() {
+            while (running) {
+                System.out.println("Processing trade order.");
+
+                String transactionId = "";
+                try {
+                    transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
+
+                    TradeOrder filter = new TradeOrder();
+                    filter.setJustChanged(true);
+
+                    List<TradeOrder> newTradeOrders = tradeOrdersContainer.getOrders(filter, transactionId);
+
+                    for (TradeOrder recentlyUpdatedTradeOrder : newTradeOrders) {
+                        tradeOrdersContainer.takeOrder(recentlyUpdatedTradeOrder, transactionId);
+
+                        if (recentlyUpdatedTradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || recentlyUpdatedTradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
+                            solveOrder(recentlyUpdatedTradeOrder, transactionId);
+                        }
+                    }
+                } catch (ConnectionError connectionError) {
+                    try {
+                        factory.rollbackTransaction(transactionId);
+                        throw new ConnectionError(connectionError);
+                    } catch (ConnectionError ex) {
+                        ex.printStackTrace();
+                    }
+                }
             }
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
+        }
+
+        public void shutdown() {
+            this.running = false;
         }
     }
 
 
-    private void solveOrder(TradeOrder tradeOrder, String transactionId) {
-        try {
-            TradeOrder matchingTradeOrder = findMatchingTradeOrder(tradeOrder, transactionId);
+    private void solveOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionError {
+        TradeOrder matchingTradeOrder = findMatchingTradeOrder(tradeOrder, transactionId);
 
-            if (matchingTradeOrder != null) {
-                if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
-                    if (validateTradeOrders(tradeOrder, matchingTradeOrder, transactionId)) {
-                        TradeOrder activeOrder = tradeOrdersContainer.takeOrder(tradeOrder, transactionId);  // locks container for other brokers
-                        if (activeOrder != null) {
-                            executeTransaction(tradeOrder, matchingTradeOrder, transactionId);
-                        }
-                    }
-                } else {
-                    if (validateTradeOrders(matchingTradeOrder, tradeOrder, transactionId)) {
-                        TradeOrder activeOrder = tradeOrdersContainer.takeOrder(tradeOrder, transactionId);  // locks container for other brokers
-                        if (activeOrder != null) {
-                            executeTransaction(matchingTradeOrder, tradeOrder, transactionId);
-                        }
-                    }
+        if (matchingTradeOrder != null) {
+            if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
+                if (validateTradeOrders(tradeOrder, matchingTradeOrder, transactionId)) {
+                    executeTransaction(tradeOrder, matchingTradeOrder, transactionId);
+                }
+            } else {
+                if (validateTradeOrders(matchingTradeOrder, tradeOrder, transactionId)) {
+                    executeTransaction(matchingTradeOrder, tradeOrder, transactionId);
                 }
             }
-            // finally commit
-            factory.commitTransaction(transactionId);
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
+        } else {
+            // no matching trade order found
+            tradeOrder.setJustChanged(false);
+            tradeOrdersContainer.addOrUpdateOrder(tradeOrder, transactionId);
         }
+        // finally commit
+        factory.commitTransaction(transactionId);
     }
 
 
@@ -161,15 +185,18 @@ public class BrokerService extends Service implements ITradeOrderSub {
 
             if (buyOrder.getPendingAmount() == sellOrder.getPendingAmount()) {
                 System.out.println("Buy order completed.");
+                buyOrder.setJustChanged(false);
                 buyOrder.setStatus(TradeOrder.Status.COMPLETED); // should be equal to totalAmount when completed
             } else {
                 System.out.println("Buy order partially completed.");
+                buyOrder.setJustChanged(true);
                 buyOrder.setStatus(TradeOrder.Status.PARTIALLY_COMPLETED);
             }
             buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
 
             System.out.println("Sell order completed.");
             sellOrder.setStatus(TradeOrder.Status.COMPLETED);
+            sellOrder.setJustChanged(false);
             sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
         }  else {
             // take the amount required in buy order from seller depot
@@ -178,10 +205,12 @@ public class BrokerService extends Service implements ITradeOrderSub {
             System.out.println("Taking " + boughtStocks.size() + " stocks from seller depot.");
 
             buyOrder.setStatus(TradeOrder.Status.COMPLETED);
+            buyOrder.setJustChanged(false);
             buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
 
             System.out.println("Sell order partially completed.");
             sellOrder.setStatus(TradeOrder.Status.PARTIALLY_COMPLETED);
+            sellOrder.setJustChanged(true);
             sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
         }
 
@@ -209,6 +238,7 @@ public class BrokerService extends Service implements ITradeOrderSub {
         } else {
             seller = new Investor(sellOrder.getInvestorId());
         }
+
         transactionHistoryContainer.addHistoryEntry(new HistoryEntry(transactionId, id, new Investor(buyOrder.getInvestorId()), seller, buyOrder.getCompanyId(),
                 buyOrder.getId(), sellOrder.getId(), currentMarketValue, boughtStocks.size(), totalValue + provision, provision), transactionId);
 

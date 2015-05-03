@@ -20,7 +20,7 @@ public class RmiTradeOrderSubManager extends ATradeOrderSubManager implements IR
     @Override
     public void newData(List<TradeOrder> newData) throws RemoteException {
         for (TradeOrder tradeOrder : newData) {
-                subscription.pushNewTradeOrders(tradeOrder);
+            subscription.pushNewTradeOrders(tradeOrder);
         }
     }
 

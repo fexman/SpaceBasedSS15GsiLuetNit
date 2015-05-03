@@ -1,11 +1,9 @@
 package RMIServer;
 
 import Model.Company;
+import Model.Investor;
 import RMIServer.EntityProviders.*;
-import RMIServer.EntityProviders.Impl.DepotCompanyProvider;
-import RMIServer.EntityProviders.Impl.ISRContainerProvider;
-import RMIServer.EntityProviders.Impl.StockPricesProvider;
-import RMIServer.EntityProviders.Impl.TradeOrderProvider;
+import RMIServer.EntityProviders.Impl.*;
 import Util.RmiUtil;
 
 import java.io.IOException;
@@ -24,9 +22,12 @@ public class RmiServer extends Thread implements IRmiServer {
     private int port;
     private Registry registry;
     private HashMap<Company,IDepotCompanyProvider> companyDepots;
+    private HashMap<String, IDepotInvestorProvider> investorDepots;
     private IISRContainerProvider isrContainerProvider;
     private ITradeOrderProvider tradeOrderContainerProvider;
     private IStockPricesProvider stockPricesProvider;
+    private ITransactionHistoryProvider transactionHistoryProvider;
+
 
     public RmiServer(int port) {
         this.port = port;
@@ -34,8 +35,9 @@ public class RmiServer extends Thread implements IRmiServer {
         isrContainerProvider = new ISRContainerProvider();
         tradeOrderContainerProvider = new TradeOrderProvider();
         stockPricesProvider = new StockPricesProvider();
+        transactionHistoryProvider = new TransactionHistoryProvider();
         companyDepots = new HashMap<>();
-
+        investorDepots = new HashMap<>();
     }
 
     @Override
@@ -51,6 +53,7 @@ public class RmiServer extends Thread implements IRmiServer {
             UnicastRemoteObject.exportObject(isrContainerProvider, 0);
             UnicastRemoteObject.exportObject(tradeOrderContainerProvider, 0);
             UnicastRemoteObject.exportObject(stockPricesProvider, 0);
+            UnicastRemoteObject.exportObject(transactionHistoryProvider, 0);
 
         } catch (Exception e) {
             System.out.println("Error on startup: "+e.getMessage());
@@ -71,6 +74,8 @@ public class RmiServer extends Thread implements IRmiServer {
                 case "!isrinfo":
                     System.out.println(isrContainerProvider.toString());
                     break;
+                case "!thinfo":
+                    System.out.println(transactionHistoryProvider.toString());
                 case "!depots_c":
                     String info = "======== COMPANY DEPOTS ========\n";
                     int counter = 1;
@@ -103,19 +108,24 @@ public class RmiServer extends Thread implements IRmiServer {
     private void shutDown() {
         try {
             //Unexport providers
-            UnicastRemoteObject.unexportObject(isrContainerProvider,true);
-            UnicastRemoteObject.unexportObject(tradeOrderContainerProvider,true);
-            UnicastRemoteObject.unexportObject(stockPricesProvider,true);
+            UnicastRemoteObject.unexportObject(isrContainerProvider, true);
+            UnicastRemoteObject.unexportObject(tradeOrderContainerProvider, true);
+            UnicastRemoteObject.unexportObject(stockPricesProvider, true);
+            UnicastRemoteObject.unexportObject(transactionHistoryProvider, true);
 
             //Unexport depots
             for (IDepotCompanyProvider iDepotCompanyHandler : companyDepots.values()) {
                 UnicastRemoteObject.unexportObject(iDepotCompanyHandler, true);
             }
 
+            for (IDepotInvestorProvider investorDepotHandler : investorDepots.values()) {
+                UnicastRemoteObject.unexportObject(investorDepotHandler, true);
+            }
+
             //Shutdown
             UnicastRemoteObject.unexportObject(this, true);
             registry.unbind(RmiUtil.RMI_SERVER_BINDING);
-            UnicastRemoteObject.unexportObject(registry,true);
+            UnicastRemoteObject.unexportObject(registry, true);
         } catch (Exception e) {
             System.out.println("Error on shutdown: "+e.getMessage());
             System.exit(-1);
@@ -138,6 +148,11 @@ public class RmiServer extends Thread implements IRmiServer {
         return tradeOrderContainerProvider;
     }
 
+    @Override
+    public ITransactionHistoryProvider getTransactionHistoryContainer() throws RemoteException {
+        return transactionHistoryProvider;
+    }
+
     public IDepotCompanyProvider getDepotCompany(Company company) throws RemoteException{
 
         //Depot already existing?
@@ -154,4 +169,20 @@ public class RmiServer extends Thread implements IRmiServer {
         return depotCompanyHandler;
 
     }
+
+    @Override
+    public IDepotInvestorProvider getDepotInvestor(String investorId) throws RemoteException {
+
+        if (investorDepots.containsKey(investorId)) {
+            return investorDepots.get(investorId);
+        }
+
+        IDepotInvestorProvider depotInvestorHandler = new DepotInvestorProvider(new Investor(investorId));
+        UnicastRemoteObject.exportObject(depotInvestorHandler, 0);
+        investorDepots.put(investorId, depotInvestorHandler);
+
+        return depotInvestorHandler;
+    }
+
+
 }

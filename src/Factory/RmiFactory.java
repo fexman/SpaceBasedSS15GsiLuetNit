@@ -2,10 +2,7 @@ package Factory;
 
 
 import MarketEntities.*;
-import MarketEntities.RMI.RmiDepotCompany;
-import MarketEntities.RMI.RmiISRContainer;
-import MarketEntities.RMI.RmiStockPricesContainer;
-import MarketEntities.RMI.RmiTradeOrderContainer;
+import MarketEntities.RMI.*;
 import MarketEntities.Subscribing.InvestorDepot.AInvestorDepotSubManager;
 import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
 import MarketEntities.Subscribing.InvestorDepot.RmiInvestorDepotSubManager;
@@ -57,8 +54,7 @@ public class RmiFactory implements IFactory {
 
     @Override
     public TransactionHistoryContainer newTransactionHistoryContainer() {
-        //TODO
-        return null;
+        return new RmiTransactionHistoryContainer();
     }
 
     @Override
@@ -113,12 +109,12 @@ public class RmiFactory implements IFactory {
 
     @Override
     public DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
-        return null;
+        return new RmiDepotInvestor(investor, transactionId);
     }
 
     @Override
     public DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionError {
-        return new RmiDepotCompany(comp,transactionId);
+        return new RmiDepotCompany(comp, transactionId);
     }
 
     @Override

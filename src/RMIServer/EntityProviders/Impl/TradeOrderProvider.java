@@ -1,8 +1,10 @@
 package RMIServer.EntityProviders.Impl;
 
+import Model.IssueStockRequest;
 import Model.TradeOrder;
 import RMIServer.EntityProviders.ITradeOrderProvider;
 import MarketEntities.Subscribing.IRmiCallback;
+import RMIServer.ICallbackDummy;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -30,13 +32,22 @@ public class TradeOrderProvider implements ITradeOrderProvider {
     public void addOrUpdateOrder(TradeOrder order, String transactionId) throws RemoteException {
         synchronized (lock) {
             tradeOrders.add(order);
+            System.out.println("Added: " + order);
+            synchronized (order) {
+                if (order.getJustChanged()) {
+                    order.notifyAll(); //Wake up one Thread waiting for resources
+                }
+            }
         }
+
+        System.out.println("TAKING TRADE ORDER!");
         List<TradeOrder> newTOs = new ArrayList<TradeOrder>();
         newTOs.add(order);
         for (IRmiCallback<TradeOrder> callback : callbacks) {
             callback.newData(newTOs);
         }
     }
+
 
     @Override
     public List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws RemoteException {
@@ -58,15 +69,20 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                         continue toLoop;
                     }
                 }
+                if (order.getJustChanged() != null) {
+                    if (!order.getJustChanged().equals(to.getJustChanged())) {
+                        continue toLoop;
+                    }
+                }
                 if (order.getPriceLimit() != null) {
                     switch (order.getType()) {
                         case BUY_ORDER: //LOOKING FOR BUY ORDER, INFINITE AM TRYING TO SELL SOMETHING -> PRICE SHOULD BY ABOVE (OR EQUAL TO) MY LIMIT
-                            if (to.getPriceLimit() < order.getPriceLimit()) {
+                            if (to.getPriceLimit() <= order.getPriceLimit()) {
                                 continue toLoop;
                             }
                             break;
                         case SELL_ORDER: //LOOKING FOR SELL ORDER, INFINITE AM TRYING TO BUY SOMETHING -> PRICE SHOULD BY UNDER (OR EQUAL TO) MY LIMIT
-                            if (to.getPriceLimit() > order.getPriceLimit()) {
+                            if (to.getPriceLimit() >= order.getPriceLimit()) {
                                 continue toLoop;
                             }
                             break;
@@ -119,6 +135,23 @@ public class TradeOrderProvider implements ITradeOrderProvider {
     @Override
     public List<TradeOrder> getAllOrders(String transactionId) throws RemoteException {
         return new ArrayList<>(tradeOrders);
+    }
+
+    @Override
+    public TradeOrder takeOrder(TradeOrder tradeOrder, ICallbackDummy callerDummy, String transactionId) throws RemoteException {
+        try {
+            callerDummy.testConnection();   // broker still alive?
+
+            synchronized (lock) { // lock provider
+                if (tradeOrders.remove(tradeOrder)) {
+                    return tradeOrder;
+                }
+                return null;
+            }
+        } catch (RemoteException e) {
+            System.out.println("He's gone :(.");
+            return null;
+        }
     }
 
     @Override

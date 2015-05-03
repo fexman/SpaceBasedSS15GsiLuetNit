@@ -25,6 +25,7 @@ public class TradeOrder implements Serializable {
     private Status status;
     private Type type;
     private InvestorType investorType;
+    private Boolean justChanged;
     private Long created;
 
     private TradeOrder(String investorId, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
@@ -37,6 +38,7 @@ public class TradeOrder implements Serializable {
         this.id = UUID.randomUUID().toString();
         this.completedAmount = 0;
         this.openAmount = totalAmount;
+        this.justChanged = true;
         this.created = new Date().getTime();
         setStatus(Status.OPEN);
     }
@@ -48,7 +50,7 @@ public class TradeOrder implements Serializable {
     }
 
     public TradeOrder(Investor investor, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
-        this(investor.getId(),  companyOfStocksToBuyOrSell, type, totalAmount, priceLimit);
+        this(investor.getId(), companyOfStocksToBuyOrSell, type, totalAmount, priceLimit);
         this.investorType = InvestorType.INVESTOR;
         this.created = new Date().getTime();
     }
@@ -173,6 +175,14 @@ public class TradeOrder implements Serializable {
 
     public void setOpenAmount(Integer openAmount) {
         this.openAmount = openAmount;
+    }
+
+    public Boolean getJustChanged() {
+        return justChanged;
+    }
+
+    public void setJustChanged(Boolean justChanged) {
+        this.justChanged = justChanged;
     }
 
     public enum Status {

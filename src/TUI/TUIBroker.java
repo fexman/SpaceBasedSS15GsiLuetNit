@@ -56,7 +56,7 @@ public class TUIBroker {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //Terminate connection
+
         factory.destroy();
         //
         // System.exit(0);
