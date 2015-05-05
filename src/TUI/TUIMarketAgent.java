@@ -71,7 +71,7 @@ public class TUIMarketAgent {
         final Timer operationTimer = new Timer();
         operationTimer.scheduleAtFixedRate(new OperationTimerTask(factory, marketAgentId, maxFluctuation), interventionTime, interventionTime);
 
-        System.out.println("MarketAgent active. Press any key at any time to shutdown.");
+        System.out.println("MarketAgent active. Press any key at any time to rollbackOpenTransactions.");
 
         try {
             System.in.read();

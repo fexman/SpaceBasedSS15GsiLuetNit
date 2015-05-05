@@ -53,6 +53,9 @@ public class XvsmISRContainer extends ISRContainer {
             return xc.getCapi().take(isrContainer, selectors, MzsConstants.RequestTimeout.INFINITE, tx);
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
+        } catch (TransactionException e) {
+            //Rollback on quit
+            return null;
         }
     }
 

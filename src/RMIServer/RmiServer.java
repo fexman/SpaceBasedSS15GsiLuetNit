@@ -60,7 +60,7 @@ public class RmiServer extends Thread implements IRmiServer {
             System.exit(-1);
         }
 
-        System.out.println("StockMarketServer with port "+port+" is up! Enter !exit to shutdown, !help for help.");
+        System.out.println("StockMarketServer with port "+port+" is up! Enter !exit to rollbackOpenTransactions, !help for help.");
         Scanner scan = new Scanner(System.in);
         while (scan.hasNext()) {
             String input = scan.next();
@@ -95,7 +95,7 @@ public class RmiServer extends Thread implements IRmiServer {
                     shutDown();
                     break;
                 case "!help":
-                    System.out.print("Available commands:\n\t!exit\t\tshutdown server\n\t!help\t\tcommand info\n\n\t!isrinfo\tisr container provider info\n" +
+                    System.out.print("Available commands:\n\t!exit\t\trollbackOpenTransactions server\n\t!help\t\tcommand info\n\n\t!isrinfo\tisr container provider info\n" +
                             "\t!toinfo\t\ttrade order container provider info\n" +
                             "\t!spinfo\t\tstock prices container provider info\n\n\t!depots_c\tcompany depots info\n\t!depots_i\tinvestor depots info\n");
                     break;
@@ -127,7 +127,7 @@ public class RmiServer extends Thread implements IRmiServer {
             registry.unbind(RmiUtil.RMI_SERVER_BINDING);
             UnicastRemoteObject.unexportObject(registry, true);
         } catch (Exception e) {
-            System.out.println("Error on shutdown: "+e.getMessage());
+            System.out.println("Error on rollbackOpenTransactions: "+e.getMessage());
             System.exit(-1);
         }
     }

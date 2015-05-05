@@ -11,10 +11,12 @@ public class MarketValue implements Serializable {
 
     private String companyId;
     private Double price;
+    private Integer tradeVolume;
 
-    public MarketValue(Company company, Double price) {
+    public MarketValue(Company company, Double price, Integer tradeVolume) {
         this.companyId = company.getId();
         this.price = price;
+        this.tradeVolume = tradeVolume;
     }
 
     public Company getCompany() {
@@ -37,8 +39,16 @@ public class MarketValue implements Serializable {
         this.price = price;
     }
 
+    public Integer getTradeVolume() {
+        return tradeVolume;
+    }
+
+    public void setTradeVolume(Integer tradeVolume) {
+        this.tradeVolume = tradeVolume;
+    }
+
     public String toString() {
-        return "MarketValue of "+companyId+": "+price+"$";
+        return "MarketValue of "+companyId+" ("+tradeVolume+"): $"+price;
     }
 
     @Override

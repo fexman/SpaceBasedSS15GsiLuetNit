@@ -20,7 +20,7 @@ public class XvsmServer extends Thread {
         try {
             XvsmUtil.initConnection(uri, true);
             Scanner scan = new Scanner(System.in);
-            System.out.println("Hit <enter> to shutdown!");
+            System.out.println("Hit <enter> to rollbackOpenTransactions!");
             scan.nextLine();
             System.exit(0);
         } catch (MzsCoreException e) {

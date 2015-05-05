@@ -56,6 +56,18 @@ public class XvsmUtil {
     }
 
 
+    public static void rollbackOpenTransactions() {
+        if (xc != null) {
+            for (TransactionReference tx : transactions.values()) {
+                try {
+                    xc.getCapi().rollbackTransaction(tx);
+                } catch (MzsCoreException e) {
+                    System.out.println("What happend to: "+tx+"?");
+                }
+            }
+        }
+    }
+
     /**
      * Connects to a XVSM-Space and returns XvsmConnection.
      *
@@ -158,18 +170,14 @@ public class XvsmUtil {
         return transactions.get(transactionId);
     }
 
-    public static void deleteTransaction(String transactionId) {
-        transactions.remove(transactionId);
-    }
-
     public static void commitTransaction(String transactionId) throws MzsCoreException {
         xc.getCapi().commitTransaction(getTransaction(transactionId));
-        deleteTransaction(transactionId);
+        transactions.remove(transactionId);
     }
 
     public static void rollbackTransaction(String transactionId) throws MzsCoreException {
         xc.getCapi().rollbackTransaction(getTransaction(transactionId));
-        deleteTransaction(transactionId);
+        transactions.remove(transactionId);
     }
 
     private static long getTransactionTimeoutValue(TransactionTimeout timeout) {
@@ -203,7 +211,7 @@ public class XvsmUtil {
             if (withSpace) {
                 this.core = DefaultMzsCore.newInstance(this.space.getPort());
             } else {
-                this.core = DefaultMzsCore.newInstanceWithoutSpace();
+                this.core = DefaultMzsCore.newInstance(0);
             }
             this.capi = new Capi(core);
         }

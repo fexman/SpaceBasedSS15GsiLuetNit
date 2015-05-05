@@ -104,12 +104,15 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
 
     private void initTableStocks() {
         TableColumn stockprices_idCol = new TableColumn("Company");
-        stockprices_idCol.setPrefWidth(115d);
+        stockprices_idCol.setPrefWidth(75d);
         stockprices_idCol.setCellValueFactory(new PropertyValueFactory<MarketValue, String>("companyId"));
         TableColumn stockprices_priceCol = new TableColumn("Price");
-        stockprices_priceCol.setPrefWidth(115d);
+        stockprices_priceCol.setPrefWidth(75d);
         stockprices_priceCol.setCellValueFactory(new PropertyValueFactory<MarketValue, Double>("price"));
-        tableStockPrices.getColumns().setAll(stockprices_idCol,stockprices_priceCol);
+        TableColumn stockprices_tradeVolCol = new TableColumn("Trade Volume");
+        stockprices_tradeVolCol.setPrefWidth(80d);
+        stockprices_tradeVolCol.setCellValueFactory(new PropertyValueFactory<MarketValue, Integer>("tradeVolume"));
+        tableStockPrices.getColumns().setAll(stockprices_idCol,stockprices_priceCol,stockprices_tradeVolCol);
     }
 
     private void initTableHistory() {
@@ -221,6 +224,7 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
                 for (MarketValue mwOld : stockPrices) {
                     if (mwOld.getCompanyId().equals(mwNew.getCompanyId())) {
                         mwOld.setPrice(mwNew.getPrice());
+                        mwOld.setTradeVolume(mwNew.getTradeVolume());
                         System.out.println("Updated: " + mwOld.getCompanyId() + " with " + mwNew.getPrice());
                     }
 

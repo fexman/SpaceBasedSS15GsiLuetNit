@@ -131,8 +131,10 @@ public class XvsmFactory implements IFactory {
 
     @Override
     public void destroy() {
-        xc.getCore().shutdown(false);
 
+        XvsmUtil.rollbackOpenTransactions();
+
+        xc.getCore().shutdown(false);
         TimerTask shutdownTask = new TimerTask() {
 
             @Override

@@ -68,16 +68,23 @@ public class BrokerService extends Service {
 
                     //Blocking
                     List<IssueStockRequest> isrs = isrContainer.takeIssueStockRequests(transactionId);
+                    if (isrs == null) {
+                        running = false;
+                        continue;
+                    }
 
                     if (isrs.size() > 0) {
                         System.out.println("ISR: Got " + isrs.size() + " new ISRs!");
                         for (IssueStockRequest isr : isrs) {
 
-                            //Set market Value if new stocks
+                            //Set market Value of new stocks
                             MarketValue mw = stockPricesContainer.getMarketValue(isr.getCompany(), transactionId);
                             if (mw == null) {
                                 System.out.println("Setting new marketValue for " + isr.getCompany() + " on ISR-price: "+isr.getPrice());
-                                mw = new MarketValue(isr.getCompany(), isr.getPrice());
+                                mw = new MarketValue(isr.getCompany(), isr.getPrice(),isr.getAmount());
+                                stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
+                            } else {
+                                mw.setTradeVolume(mw.getTradeVolume()+isr.getAmount());
                                 stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
                             }
 
@@ -99,6 +106,7 @@ public class BrokerService extends Service {
                     }
                 }
             }
+            System.out.println("ISR: Goodbye!");
         }
 
         public void shutdown() {
