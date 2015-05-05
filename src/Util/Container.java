@@ -8,6 +8,8 @@ public enum Container {
     TRANSACTION_HISTORY("transactionHistory"),
     STOCK_PRICES("stockPrices"),
     TRADE_ORDERS("tradeOrders"),
+    BROKER_SPSUPPORT("brokerStockPrices"),
+    BROKER_TOSUPPORT("brokerTradeOrders"),
     DEPOT_COMPANY_TOKEN("depot_company_"),
     DEPOT_INVESTOR_TOKEN("depot_investor_");
 

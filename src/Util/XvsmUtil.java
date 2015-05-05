@@ -9,6 +9,10 @@ import Model.TradeOrder;
 import Service.ConnectionError;
 import org.mozartspaces.capi3.*;
 import org.mozartspaces.core.*;
+import org.mozartspaces.core.aspects.AbstractContainerAspect;
+import org.mozartspaces.core.aspects.AspectResult;
+import org.mozartspaces.core.aspects.ContainerIPoint;
+import org.mozartspaces.core.requests.WriteEntriesRequest;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -30,6 +34,7 @@ public class XvsmUtil {
 
     /**
      * Looks up container from space with given capi and uri, or creates new one if not existent.
+     *
      * @param containerName
      * @param space
      * @param capi
@@ -42,7 +47,7 @@ public class XvsmUtil {
             cref = capi.lookupContainer(containerName, space, MzsConstants.RequestTimeout.DEFAULT, tx);
         } catch (MzsCoreException e) {
             ArrayList<Coordinator> obligatoryCoords = new ArrayList<Coordinator>();
-            for (CoordinatorType ct: types) {
+            for (CoordinatorType ct : types) {
                 obligatoryCoords.add(CoordinatorType.getCoordinator(ct));
             }
             cref = capi.createContainer(containerName, space, MzsConstants.Container.UNBOUNDED, obligatoryCoords, null, tx);
@@ -53,36 +58,60 @@ public class XvsmUtil {
 
     /**
      * Connects to a XVSM-Space and returns XvsmConnection.
+     *
      * @param spaceUri Uri of the XVSM-Space
      * @return XvsmConnection containing capi and space Uri
      */
-    public static XvsmConnection initConnection(String spaceUri) throws MzsCoreException {
+    public static XvsmConnection initConnection(String spaceUri, boolean withSpace) throws MzsCoreException {
 
         if (xc != null) {
             xc.getCore().shutdown(false);
         }
 
-        xc = new XvsmConnection(spaceUri);
+        xc = new XvsmConnection(spaceUri, withSpace);
         System.out.println("XvsmUtil: Connection initialized - XVSM up and running.");
 
         //Create "hardcoded" containers
-        containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(),null,
-                new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR); }}));
-        containers.put(Container.TRANSACTION_HISTORY, lookUpOrCreateContainer(Container.TRANSACTION_HISTORY.toString(), xc.getSpace(), xc.getCapi(),null,
-                new ArrayList<CoordinatorType>() {{ add(CoordinatorType.FIFO_COORDINATOR); }}));
-        containers.put(Container.TRADE_ORDERS, lookUpOrCreateContainer(Container.TRADE_ORDERS.toString(), xc.getSpace(), xc.getCapi(),null,
-                new ArrayList<CoordinatorType>() {{ add(CoordinatorType.QUERY_COORDINATOR); }}));
+        containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(), null,
+                new ArrayList<CoordinatorType>() {{
+                    add(CoordinatorType.FIFO_COORDINATOR);
+                }}));
+        containers.put(Container.TRANSACTION_HISTORY, lookUpOrCreateContainer(Container.TRANSACTION_HISTORY.toString(), xc.getSpace(), xc.getCapi(), null,
+                new ArrayList<CoordinatorType>() {{
+                    add(CoordinatorType.FIFO_COORDINATOR);
+                }}));
+        containers.put(Container.TRADE_ORDERS, lookUpOrCreateContainer(Container.TRADE_ORDERS.toString(), xc.getSpace(), xc.getCapi(), null,
+                new ArrayList<CoordinatorType>() {{
+                    add(CoordinatorType.QUERY_COORDINATOR);
+                }}));
         containers.put(Container.STOCK_PRICES, lookUpOrCreateContainer(Container.STOCK_PRICES.toString(), xc.getSpace(), xc.getCapi(), null,
                 new ArrayList<CoordinatorType>() {{
-                    add(CoordinatorType.KEY_COORDINATOR); add(CoordinatorType.FIFO_COORDINATOR);
+                    add(CoordinatorType.KEY_COORDINATOR);
+                    add(CoordinatorType.FIFO_COORDINATOR);
                 }}));
 
+        containers.put(Container.BROKER_SPSUPPORT, lookUpOrCreateContainer(Container.BROKER_SPSUPPORT.toString(), xc.getSpace(), xc.getCapi(), null,
+                new ArrayList<CoordinatorType>() {{
+                    add(CoordinatorType.FIFO_COORDINATOR);
+                }}));
+
+        containers.put(Container.BROKER_TOSUPPORT, lookUpOrCreateContainer(Container.BROKER_TOSUPPORT.toString(), xc.getSpace(), xc.getCapi(), null,
+                new ArrayList<CoordinatorType>() {{
+                    add(CoordinatorType.FIFO_COORDINATOR);
+                }}));
+
+        //Server only
+        if (withSpace) {
+            //xc.getCapi().addContainerAspect(new BrokerStockPricesAspect(), containers.get(Container.STOCK_PRICES), ContainerIPoint.POST_WRITE);
+            xc.getCapi().addContainerAspect(new BrokerTradeOrdersAspect(), containers.get(Container.TRADE_ORDERS), ContainerIPoint.POST_WRITE);
+        }
         return xc;
     }
 
     /**
      * Returns "hardcoded" container-instances, like ISSUED_STOCK_REQUESTS.
      * For "dynamic" container-instances like Company and Investor-Depots use see getDepot(Company)/getDepot(Investor)
+     *
      * @param cont
      * @return
      */
@@ -92,6 +121,7 @@ public class XvsmUtil {
 
     /**
      * Creates or looks up a company-stock-depot
+     *
      * @param company
      * @return
      * @throws MzsCoreException
@@ -102,6 +132,7 @@ public class XvsmUtil {
 
     /**
      * Creates or looks up an investor-stock-depot
+     *
      * @param investorId
      * @return
      * @throws MzsCoreException
@@ -154,9 +185,10 @@ public class XvsmUtil {
 
     /**
      * Returns the current connection to a XVSM-Space, may return null if no connection was estalbished yet.
+     *
      * @return
      */
-    public static XvsmConnection getXvsmConnection () {
+    public static XvsmConnection getXvsmConnection() {
         return xc;
     }
 
@@ -166,13 +198,19 @@ public class XvsmUtil {
         private Capi capi;
         private MzsCore core;
 
-        public XvsmConnection(String spaceUri) {
+        public XvsmConnection(String spaceUri, boolean withSpace) {
             this.space = URI.create(spaceUri);
-            this.core = DefaultMzsCore.newInstanceWithoutSpace();
+            if (withSpace) {
+                this.core = DefaultMzsCore.newInstance(this.space.getPort());
+            } else {
+                this.core = DefaultMzsCore.newInstanceWithoutSpace();
+            }
             this.capi = new Capi(core);
         }
 
-        public MzsCore getCore() { return core; }
+        public MzsCore getCore() {
+            return core;
+        }
 
         public URI getSpace() {
             return space;
@@ -215,6 +253,44 @@ public class XvsmUtil {
                 default:
                     return new AnyCoordinator();
             }
+        }
+    }
+
+    private static class BrokerStockPricesAspect extends AbstractContainerAspect {
+
+        @Override
+        public AspectResult postWrite(WriteEntriesRequest request,
+                                      Transaction tx, SubTransaction stx, Capi3AspectPort capi3,
+                                      int executionCount) {
+            try {
+                xc.getCapi().write(request.getEntries(), containers.get(Container.BROKER_SPSUPPORT), ACTION_TIMEOUT, new TransactionReference(tx.getId(), xc.getSpace()));
+            } catch (MzsCoreException e) {
+                e.printStackTrace();
+                return AspectResult.SKIP;
+            }
+            System.out.println("Broker SPAspect executed."+request.getEntries());
+            return AspectResult.OK;
+        }
+    }
+
+    private static class BrokerTradeOrdersAspect extends AbstractContainerAspect {
+
+        public AspectResult postWrite(WriteEntriesRequest request,
+                                      Transaction tx, SubTransaction stx, Capi3AspectPort capi3,
+                                      int executionCount) {
+            try {
+                for (Entry e : request.getEntries()) {
+                    TradeOrder to = (TradeOrder)e.getValue();
+                    if (to.getJustChanged()) {
+                        xc.getCapi().write(e, containers.get(Container.BROKER_TOSUPPORT), ACTION_TIMEOUT, new TransactionReference(tx.getId(), xc.getSpace()));
+                        System.out.println("Broker TOAspect executed for: " + e.getValue());
+                    }
+                }
+            } catch (MzsCoreException e) {
+                e.printStackTrace();
+                return AspectResult.SKIP;
+            }
+            return AspectResult.OK;
         }
     }
 

@@ -31,6 +31,8 @@ public interface IFactory {
 
     TransactionHistoryContainer newTransactionHistoryContainer();
 
+    BrokerSupportContainer newBrokerSupportContainer();
+
     //Subscription-manager
 
     AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription);
