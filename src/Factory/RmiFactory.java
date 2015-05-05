@@ -58,6 +58,11 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
+    public BrokerSupportContainer newBrokerSupportContainer() {
+        return null;
+    }
+
+    @Override
     public AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription) {
         try {
             return new RmiISRSubManager(subscription);

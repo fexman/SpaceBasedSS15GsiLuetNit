@@ -36,7 +36,7 @@ public class XvsmFactory implements IFactory {
 
     public XvsmFactory(String uri) throws ConnectionError {
         try {
-            this.xc = XvsmUtil.initConnection(uri);
+            this.xc = XvsmUtil.initConnection(uri, false);
         } catch (MzsCoreException e) {
             throw new ConnectionError(e);
         }
@@ -60,6 +60,11 @@ public class XvsmFactory implements IFactory {
     @Override
     public TransactionHistoryContainer newTransactionHistoryContainer() {
         return new XvsmTransactionHistoryContainer();
+    }
+
+    @Override
+    public BrokerSupportContainer newBrokerSupportContainer() {
+        return new XvsmBrokerSupportContainer();
     }
 
     @Override

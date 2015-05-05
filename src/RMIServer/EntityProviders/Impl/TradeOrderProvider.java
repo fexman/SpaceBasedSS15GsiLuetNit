@@ -140,6 +140,7 @@ public class TradeOrderProvider implements ITradeOrderProvider {
     @Override
     public TradeOrder takeOrder(TradeOrder tradeOrder, ICallbackDummy callerDummy, String transactionId) throws RemoteException {
         try {
+
             callerDummy.testConnection();   // broker still alive?
 
             synchronized (lock) { // lock provider
