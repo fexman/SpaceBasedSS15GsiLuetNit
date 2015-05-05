@@ -1,6 +1,6 @@
 package TUI;
 
-import XVSMServer.XvsmServer;
+import XvsmServer.XvsmServer;
 
 /**
  * Created by Felix on 05.05.2015.

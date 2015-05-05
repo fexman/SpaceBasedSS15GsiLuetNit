@@ -1,4 +1,4 @@
-package XVSMServer;
+package XvsmServer;
 
 import Util.XvsmUtil;
 import org.mozartspaces.core.MzsCoreException;

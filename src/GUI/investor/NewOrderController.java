@@ -113,6 +113,7 @@ public class NewOrderController {
             tradeOrder.setPriceLimit(orderLimit);
             tradeOrder.setType(orderType.getValue());
             tradeOrder.setStatus(TradeOrder.Status.OPEN);
+            tradeOrder.setJustChanged(true);
 
             try {
                 tradeOrderContainer.addOrUpdateOrder(tradeOrder, null);

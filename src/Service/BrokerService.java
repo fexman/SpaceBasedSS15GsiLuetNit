@@ -4,7 +4,11 @@ import Factory.IFactory;
 import MarketEntities.*;
 import Model.*;
 import Util.TransactionTimeout;
+import Util.XvsmUtil;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -118,26 +122,25 @@ public class BrokerService extends Service {
 
                 String transactionId = "";
                 try {
-                    //This is going to be blocking --> Transaction could take forever
-                    transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
 
-//                    TradeOrder filter = new TradeOrder();
-//                    filter.setJustChanged(true);
 
                     //Blocking, as state above
-                    List<TradeOrder> newTradeOrders = brokerSupportContainer.takeNewTradeOrders(transactionId);
+                    List<TradeOrder> newTradeOrders = brokerSupportContainer.takeNewTradeOrders(null);
 
-                    System.out.println("TO: Got TO "+newTradeOrders);
+                    System.out.println("TO: Got TO " + newTradeOrders);
 
                     for (TradeOrder recentlyUpdatedTradeOrder : newTradeOrders) {
+                        //This is going to be blocking --> Transaction could take forever
+                        transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
+
                         tradeOrdersContainer.takeOrder(recentlyUpdatedTradeOrder, transactionId); //Remove since Broker will be processing it
                         if (recentlyUpdatedTradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || recentlyUpdatedTradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
                             solveOrder(recentlyUpdatedTradeOrder, transactionId);
+
+                            System.out.println("TO: Commit.");
+                            factory.commitTransaction(transactionId);
                         }
                     }
-
-                    System.out.println("TO: Commit.");
-                    factory.commitTransaction(transactionId);
                 } catch (ConnectionError connectionError) {
                     try {
                         factory.rollbackTransaction(transactionId);
@@ -261,6 +264,7 @@ public class BrokerService extends Service {
             }
         }
 
+
         private List<Stock> takeStocksFromSellerDepot(Depot depotSeller, TradeOrder sellOrder, int amount, String transactionId) throws ConnectionError {
             if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
                 return ((DepotCompany) depotSeller).takeStocks(amount, transactionId);
@@ -307,15 +311,45 @@ public class BrokerService extends Service {
 
                 if (matchingOrders.size() > 0) {
                     System.out.println("Matching trade order found!");
-                    // find oldest matching order
-                    TradeOrder oldestMatchingOrder = new TradeOrder();
-                    oldestMatchingOrder.setCreated(Long.MAX_VALUE);
+
+                    // get current stock price
+                    double currentStockPrice = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
+
+                    List<TradeOrder> compatibleMatchingTradeOrders = new ArrayList<>();
+
+                    // find oldest matching order that is compatible to the current stock price
                     for (int i = 0; i < matchingOrders.size(); i++) {
-                        if (matchingOrders.get(i).getCreated() < oldestMatchingOrder.getCreated()) {
-                            oldestMatchingOrder = matchingOrders.get(i);
+                        boolean compatibleWithMarketValue;
+                        if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
+                            compatibleWithMarketValue = checkCompatibilityWithMarketValue(tradeOrder, matchingOrders.get(i), currentStockPrice, transactionId);
+                        } else {
+                            compatibleWithMarketValue = checkCompatibilityWithMarketValue(matchingOrders.get(i), tradeOrder, currentStockPrice, transactionId);
+                        }
+                        if (compatibleWithMarketValue) {
+                            System.out.println("Matching trade order, which is compatible with the current stock price, found!");
+                            // trade order is compatible with current market value -> 3rd condition valid -> add them to the list
+                            compatibleMatchingTradeOrders.add(matchingOrders.get(i));
                         }
                     }
-                    return oldestMatchingOrder;
+
+                    // sorting from newest (index 0) to oldest (index size - 1) compatible matching trade order and try to take them in order
+                    Collections.sort(compatibleMatchingTradeOrders, new Comparator<TradeOrder>() {
+                        @Override
+                        public int compare(TradeOrder tradeOrder1, TradeOrder tradeOrder2) {
+                            return tradeOrder1.getCreated().compareTo(tradeOrder2.getCreated());
+                        }
+                    });
+
+                    if (compatibleMatchingTradeOrders.size() > 0) {
+                        for (int i = compatibleMatchingTradeOrders.size() - 1; i >= 0; i--) {
+                            TradeOrder finalMatch = tradeOrdersContainer.takeOrder(compatibleMatchingTradeOrders.get(0), transactionId);
+                            if (finalMatch != null) {
+                                return finalMatch;
+                            }
+                        }
+                    } else {
+                        return null;
+                    }
                 } else {
                     System.out.println("No matching trade oder found :(");
                 }
@@ -324,6 +358,15 @@ public class BrokerService extends Service {
                 connectionError.printStackTrace();
             }
             return null;
+        }
+
+
+        private boolean checkCompatibilityWithMarketValue(TradeOrder buyOrder, TradeOrder sellOrder, double currentStockPrice, String transactionId) throws ConnectionError {
+            // current stock price must higher or equal to the minimum selling price and lower than the maximum buying price
+            if (currentStockPrice >= sellOrder.getPriceLimit() && currentStockPrice <= buyOrder.getPriceLimit()) {
+                return true;
+            }
+            return false;
         }
 
 

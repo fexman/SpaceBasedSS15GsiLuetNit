@@ -1,5 +1,6 @@
 package MarketEntities.XVSM;
 
+import MarketEntities.StockPricesContainer;
 import MarketEntities.Subscribing.ASubManager;
 import MarketEntities.TradeOrderContainer;
 import Model.TradeOrder;
@@ -7,10 +8,7 @@ import Service.ConnectionError;
 import Util.Container;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.*;
-import org.mozartspaces.core.ContainerReference;
-import org.mozartspaces.core.Entry;
-import org.mozartspaces.core.MzsCoreException;
-import org.mozartspaces.core.TransactionReference;
+import org.mozartspaces.core.*;
 import org.mozartspaces.notifications.NotificationListener;
 import org.mozartspaces.notifications.NotificationManager;
 import org.mozartspaces.notifications.Operation;
@@ -168,13 +166,14 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
         Selector selector = QueryCoordinator.newSelector(query, Selector.COUNT_MAX);
 
         try {
-            List<TradeOrder> tradeOrders = xc.getCapi().take(tradeOrdersContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
+            List<TradeOrder> tradeOrders = xc.getCapi().take(tradeOrdersContainer, selector, MzsConstants.RequestTimeout.TRY_ONCE, tx);
             if (tradeOrders.size() > 0) {
                 return tradeOrders.get(0);
             }
             return null;
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            // trade order already taken
+            return null;
         }
     }
 
