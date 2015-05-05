@@ -112,6 +112,8 @@ public class BrokerService extends Service {
                 try {
                     transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
 
+                    // TODO take at least 1 element from TO container
+
                     TradeOrder filter = new TradeOrder();
                     filter.setJustChanged(true);
 
