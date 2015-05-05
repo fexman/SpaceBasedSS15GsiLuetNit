@@ -83,7 +83,8 @@ public class XvsmUtil {
         xc = new XvsmConnection(spaceUri, withSpace);
         System.out.println("XvsmUtil: Connection initialized - XVSM up and running.");
 
-        //Create "hardcoded" containers
+        //Crea
+        // te "hardcoded" containers
         containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(), null,
                 new ArrayList<CoordinatorType>() {{
                     add(CoordinatorType.FIFO_COORDINATOR);
@@ -114,7 +115,7 @@ public class XvsmUtil {
 
         //Server only
         if (withSpace) {
-            //xc.getCapi().addContainerAspect(new BrokerStockPricesAspect(), containers.get(Container.STOCK_PRICES), ContainerIPoint.POST_WRITE);
+            xc.getCapi().addContainerAspect(new BrokerStockPricesAspect(), containers.get(Container.STOCK_PRICES), ContainerIPoint.POST_WRITE);
             xc.getCapi().addContainerAspect(new BrokerTradeOrdersAspect(), containers.get(Container.TRADE_ORDERS), ContainerIPoint.POST_WRITE);
         }
         return xc;
@@ -271,7 +272,10 @@ public class XvsmUtil {
                                       Transaction tx, SubTransaction stx, Capi3AspectPort capi3,
                                       int executionCount) {
             try {
-                xc.getCapi().write(request.getEntries(), containers.get(Container.BROKER_SPSUPPORT), ACTION_TIMEOUT, new TransactionReference(tx.getId(), xc.getSpace()));
+                for (Entry e: request.getEntries()) {
+                    //new Entry(e.getValue()) to discard Key-Coord-Data
+                    xc.getCapi().write(new Entry(e.getValue()), containers.get(Container.BROKER_SPSUPPORT), ACTION_TIMEOUT, new TransactionReference(tx.getId(), xc.getSpace()));
+                }
             } catch (MzsCoreException e) {
                 e.printStackTrace();
                 return AspectResult.SKIP;
