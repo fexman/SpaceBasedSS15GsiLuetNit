@@ -11,7 +11,11 @@ import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
 import Model.*;
 import Service.ConnectionError;
+import Util.TransactionTimeout;
+import Util.XvsmUtil;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -24,11 +28,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.mozartspaces.core.MzsConstants;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -92,10 +99,14 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     private VBox dataContainer;
     @FXML
     private HBox loginContainer;
+    @FXML
+    private Button btnDeleteOrder;
 
     private Investor investor;
 
     private String serverAdressAndPort;
+
+    private TradeOrder selectedOrder;
 
     public InvestorController() {
 
@@ -119,6 +130,16 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         colStockAmount.setCellValueFactory(new PropertyValueFactory<StockStats, Integer>("amount"));
         colStockMarketValue.setCellValueFactory(new PropertyValueFactory<StockStats, Double>("marketValue"));
         colTotalValue.setCellValueFactory(new PropertyValueFactory<StockStats, Double>("totalValue"));
+
+        tabOrders.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<TradeOrder>() {
+            @Override
+            public void changed(ObservableValue<? extends TradeOrder> observable, TradeOrder oldValue, TradeOrder newValue) {
+                selectedOrder = newValue;
+                if (btnDeleteOrder.isDisabled()) {
+                    btnDeleteOrder.setDisable(false);
+                }
+            }
+        });
 
         setDataContainerVisible(false);
     }
@@ -272,6 +293,20 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         }
     }
 
+    public void deleteOrderButtonClicked() {
+        if (selectedOrder != null) {
+            System.out.println("To delete: " + selectedOrder);
+            try {
+                String transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
+                selectedOrder.setStatus(TradeOrder.Status.DELETED);
+                tradeOrderContainer.addOrUpdateOrder(selectedOrder, transactionId);
+                factory.commitTransaction(transactionId);
+            } catch (ConnectionError connectionError) {
+                System.out.print(connectionError);
+            }
+        }
+    }
+
     public void addShutdownHook(Stage primaryStage) {
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -284,16 +319,25 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     }
 
     @Override
-    public void pushNewTradeOrders(TradeOrder tradeOrder) {
+    public void pushNewTradeOrders(final TradeOrder tradeOrder) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                try {
-                    activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
-                    tabOrders.setItems(activeOrders);
-                } catch (ConnectionError connectionError) {
-                    connectionError.printStackTrace();
+                if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
+                    if (activeOrders.contains(tradeOrder)) {
+                        int index = activeOrders.indexOf(tradeOrder);
+                        activeOrders.set(index, tradeOrder);
+                    } else {
+                        activeOrders.add(tradeOrder);
+                    }
+                } else {
+                    activeOrders.remove(tradeOrder);  // only removes if present
                 }
+
+                tabOrders.setItems(activeOrders);
+
+                tabOrders.getColumns().get(4).setVisible(false);
+                tabOrders.getColumns().get(4).setVisible(true);
             }
         });
     }

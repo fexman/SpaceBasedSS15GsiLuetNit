@@ -6,42 +6,38 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.investor.InvestorController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="535.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.investor.InvestorController">
    <children>
-      <VBox prefHeight="800.0" prefWidth="700.0">
+      <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="800.0" prefWidth="525.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <HBox id="loginContainer" fx:id="loginContainer" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="31.0" prefWidth="700.0">
+            <HBox id="loginContainer" fx:id="loginContainer" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="525.0" VBox.vgrow="NEVER">
                <children>
-                  <Label id="txtStatus" fx:id="txtStatus" prefHeight="31.0" prefWidth="114.0" text="Enter Username:" />
-                  <TextField id="txtUsername" fx:id="txtUsername" prefHeight="31.0" prefWidth="214.0">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </TextField>
-                  <ComboBox id="protocolField" fx:id="protocolField" onAction="#protocolFieldChanged" prefHeight="31.0" prefWidth="120.0">
+                  <Label id="txtStatus" fx:id="txtStatus" minWidth="-Infinity" prefHeight="31.0" prefWidth="114.0" text="Enter Username:" />
+                  <TextField id="txtUsername" fx:id="txtUsername" prefHeight="31.0" prefWidth="214.0" />
+                  <ComboBox id="protocolField" fx:id="protocolField" minWidth="-Infinity" onAction="#protocolFieldChanged" prefHeight="31.0" prefWidth="120.0">
                      <HBox.margin>
                         <Insets left="5.0" />
                      </HBox.margin>
                   </ComboBox>
-                  <Button id="btnLogin" fx:id="btnLogin" mnemonicParsing="false" onAction="#loginButtonClicked" prefHeight="31.0" prefWidth="76.0" text="Login">
+                  <Button id="btnLogin" fx:id="btnLogin" minWidth="-Infinity" mnemonicParsing="false" onAction="#loginButtonClicked" prefWidth="60.0" text="Login">
                      <HBox.margin>
                         <Insets left="5.0" />
                      </HBox.margin>
                   </Button>
                </children>
             </HBox>
-            <VBox id="dataContainer" fx:id="dataContainer" prefHeight="738.0" prefWidth="690.0">
+            <VBox id="dataContainer" fx:id="dataContainer">
                <children>
-                  <HBox prefHeight="45.0" prefWidth="690.0">
+                  <HBox minWidth="-Infinity" prefWidth="525.0">
                      <children>
-                        <Label prefHeight="30.0" prefWidth="150.0" text="Budget:" />
-                        <TextField id="txtBudget" fx:id="txtBudget" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="31.0" prefWidth="69.0" />
-                        <Label prefHeight="30.0" prefWidth="9.0" text="€">
+                        <Label minWidth="-Infinity" prefHeight="30.0" prefWidth="150.0" text="Budget:" HBox.hgrow="NEVER" />
+                        <TextField id="txtBudget" fx:id="txtBudget" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="31.0" prefWidth="100.0" />
+                        <Label minWidth="-Infinity" prefHeight="30.0" prefWidth="10.0" text="€">
                            <HBox.margin>
                               <Insets left="5.0" />
                            </HBox.margin>
                         </Label>
-                        <Button id="btnEditBudget" fx:id="btnEditBudget" mnemonicParsing="false" onAction="#editBudgetButtonClicked" prefHeight="31.0" prefWidth="78.0" text="Raise">
+                        <Button id="btnEditBudget" fx:id="btnEditBudget" minWidth="-Infinity" mnemonicParsing="false" onAction="#editBudgetButtonClicked" prefHeight="31.0" prefWidth="80.0" text="Raise">
                            <HBox.margin>
                               <Insets left="10.0" />
                            </HBox.margin>
@@ -53,41 +49,46 @@
                         <Insets bottom="5.0" top="5.0" />
                      </VBox.margin>
                   </Separator>
-                  <HBox prefHeight="45.0" prefWidth="690.0">
+                  <HBox VBox.vgrow="NEVER">
                      <children>
-                        <Label prefHeight="30.0" prefWidth="150.0" text="Total value of stocks:" />
-                        <TextField id="txtTotalStockValue" fx:id="txtTotalStockValue" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="69.0" />
-                        <Label prefHeight="30.0" prefWidth="9.0" text="€">
+                        <Label minWidth="-Infinity" prefHeight="30.0" prefWidth="150.0" text="Total value of stocks:" />
+                        <TextField id="txtTotalStockValue" fx:id="txtTotalStockValue" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="100.0" />
+                        <Label minWidth="-Infinity" prefHeight="30.0" prefWidth="10.0" text="€">
                            <HBox.margin>
                               <Insets left="5.0" />
                            </HBox.margin>
                         </Label>
                      </children>
                   </HBox>
-                  <TableView id="tabStocks" fx:id="tabStocks" prefHeight="324.0" prefWidth="690.0">
+                  <TableView id="tabStocks" fx:id="tabStocks" minWidth="-Infinity" prefHeight="309.0" prefWidth="524.0">
                     <columns>
                       <TableColumn id="colStockId" fx:id="colStockId" prefWidth="106.0" text="Stock ID" />
-                      <TableColumn id="colStockCount" fx:id="colStockAmount" prefWidth="84.0" text="Amount" />
-                        <TableColumn id="colStockMarketValue" fx:id="colStockMarketValue" prefWidth="115.0" text="Market Value" />
-                        <TableColumn id="colStockValue" fx:id="colTotalValue" prefWidth="98.0" text="Total Value" />
+                      <TableColumn id="colStockCount" fx:id="colStockAmount" prefWidth="124.0" text="Amount" />
+                        <TableColumn id="colStockMarketValue" fx:id="colStockMarketValue" prefWidth="144.0" text="Market Value" />
+                        <TableColumn id="colStockValue" fx:id="colTotalValue" prefWidth="150.0" text="Total Value" />
                     </columns>
                      <VBox.margin>
                         <Insets bottom="5.0" top="10.0" />
                      </VBox.margin>
                   </TableView>
-                  <HBox prefHeight="40.0" prefWidth="510.0">
+                  <HBox>
                      <children>
-                        <Label prefHeight="29.0" prefWidth="152.0" text="Active trade orders" />
-                        <Button id="btnAddOrder" fx:id="btnAddOrders" contentDisplay="RIGHT" mnemonicParsing="false" onAction="#addOrderButtonClicked" text="+" />
+                        <Label prefHeight="29.0" prefWidth="398.0" text="Active trade orders" />
+                        <Button id="btnAddOrder" fx:id="btnAddOrders" contentDisplay="RIGHT" mnemonicParsing="false" onAction="#addOrderButtonClicked" text="New" />
+                        <Button fx:id="btnDeleteOrder" disable="true" mnemonicParsing="false" onAction="#deleteOrderButtonClicked" text="Delete">
+                           <HBox.margin>
+                              <Insets left="10.0" />
+                           </HBox.margin>
+                        </Button>
                      </children>
                   </HBox>
-                  <TableView id="tabOrders" fx:id="tabOrders" prefHeight="388.0" prefWidth="690.0">
+                  <TableView id="tabOrders" fx:id="tabOrders" prefHeight="292.0" prefWidth="432.0">
                     <columns>
-                      <TableColumn id="colOrderId" fx:id="colOrderId" prefWidth="75.0" text="Order ID" />
-                      <TableColumn id="colOrderType" fx:id="colOrderType" prefWidth="75.0" text="Type" />
-                        <TableColumn id="colOrderStockId" fx:id="colOrderStockId" prefWidth="98.0" text="Stock ID" />
-                        <TableColumn id="colOrderLimit" fx:id="colOrderLimit" prefWidth="91.0" text="Limit" />
-                        <TableColumn id="colOrderOpenAmount" fx:id="colOrderOpenAmount" prefWidth="145.0" text="Amount (pending)" />
+                      <TableColumn id="colOrderId" fx:id="colOrderId" prefWidth="90.0" text="Order ID" />
+                      <TableColumn id="colOrderType" fx:id="colOrderType" prefWidth="77.0" text="Type" />
+                        <TableColumn id="colOrderStockId" fx:id="colOrderStockId" prefWidth="122.0" text="Stock ID" />
+                        <TableColumn id="colOrderLimit" fx:id="colOrderLimit" prefWidth="95.0" text="Limit" />
+                        <TableColumn id="colOrderOpenAmount" fx:id="colOrderOpenAmount" prefWidth="140.0" text="Amount (pending)" />
                     </columns>
                      <VBox.margin>
                         <Insets top="10.0" />
@@ -95,7 +96,7 @@
                   </TableView>
                </children>
             </VBox>
-            <Label id="statusLabel" fx:id="statusLabel" prefHeight="21.0" prefWidth="690.0" />
+            <Label id="statusLabel" fx:id="statusLabel" />
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
