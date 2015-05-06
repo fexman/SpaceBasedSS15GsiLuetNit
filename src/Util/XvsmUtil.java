@@ -5,6 +5,7 @@ import MarketEntities.DepotInvestor;
 import MarketEntities.StockPricesContainer;
 import Model.Company;
 import Model.Investor;
+import Model.MarketValue;
 import Model.TradeOrder;
 import Service.ConnectionError;
 import org.mozartspaces.capi3.*;
@@ -273,8 +274,10 @@ public class XvsmUtil {
                                       int executionCount) {
             try {
                 for (Entry e: request.getEntries()) {
-                    //new Entry(e.getValue()) to discard Key-Coord-Data
-                    xc.getCapi().write(new Entry(e.getValue()), containers.get(Container.BROKER_SPSUPPORT), ACTION_TIMEOUT, new TransactionReference(tx.getId(), xc.getSpace()));
+                    MarketValue mw = (MarketValue)e.getValue();
+                    if (mw.isPriceChanged()) {
+                        xc.getCapi().write(new Entry(e.getValue()), containers.get(Container.BROKER_SPSUPPORT), ACTION_TIMEOUT, new TransactionReference(tx.getId(), xc.getSpace()));
+                    }
                 }
             } catch (MzsCoreException e) {
                 e.printStackTrace();

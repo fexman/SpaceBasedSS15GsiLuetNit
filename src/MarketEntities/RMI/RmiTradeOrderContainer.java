@@ -48,8 +48,11 @@ public class RmiTradeOrderContainer extends TradeOrderContainer {
 
     @Override
     public TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionError {
-        //TODO
-        return null;
+        try {
+            return toContainer.takeOrder(tradeOrder,transactionId);
+        } catch (RemoteException e) {
+            throw new ConnectionError(e);
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@ package RMIServer.EntityProviders.Impl;
 import MarketEntities.Subscribing.IRmiCallback;
 import Model.Company;
 import Model.MarketValue;
+import RMIServer.EntityProviders.IBrokerSupportProvider;
 import RMIServer.EntityProviders.IStockPricesProvider;
 import Service.ConnectionError;
 
@@ -21,11 +22,13 @@ public class StockPricesProvider implements IStockPricesProvider {
     private Set<MarketValue> stockPrices;
     private Object lock;
     private Set<IRmiCallback<MarketValue>> callbacks;
+    private IBrokerSupportProvider bsp;
 
-    public StockPricesProvider() {
+    public StockPricesProvider(IBrokerSupportProvider bsp) {
         stockPrices = new HashSet<>();
         callbacks = new HashSet<>();
         lock = new Object();
+        this.bsp = bsp;
     }
 
     @Override
@@ -36,6 +39,10 @@ public class StockPricesProvider implements IStockPricesProvider {
 
         List<MarketValue> newMWs = new ArrayList<MarketValue>();
         newMWs.add(marketValue);
+        if (marketValue.isPriceChanged()) {
+            bsp.addNewStockPrices(newMWs);
+            System.out.println(getClass().getSimpleName() + ": addOrUpdateMarketValue :"+marketValue);
+        }
         for (IRmiCallback<MarketValue> callback : callbacks) {
             callback.newData(newMWs);
         }
@@ -46,9 +53,11 @@ public class StockPricesProvider implements IStockPricesProvider {
         synchronized (lock) {
             for (MarketValue mw : stockPrices) {
                 if (mw.getCompany().equals(comp)) {
+                    System.out.println(getClass().getSimpleName()+": getMarketValue "+mw);
                     return mw;
                 }
             }
+            System.out.println(getClass().getSimpleName()+": getMarketValue NULL");
             return null;
         }
     }

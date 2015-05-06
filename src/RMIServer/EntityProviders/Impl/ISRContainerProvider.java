@@ -33,7 +33,7 @@ public class ISRContainerProvider implements IISRContainerProvider {
 
         synchronized (lock) {
             isrs.add(isr);
-            System.out.println("Added: " + isr);
+            System.out.println(getClass().getSimpleName() + ": addIssueStocksRequest: " + isr);
             synchronized (isrs) {
                 isrs.notifyAll(); //Wake up one Thread waiting for resources
             }
@@ -44,35 +44,42 @@ public class ISRContainerProvider implements IISRContainerProvider {
         for (IRmiCallback<IssueStockRequest> callback: callbacks) {
             callback.newData(newIsrs);
         }
-        System.out.println("Isrs-size:"+isrs.size());
     }
 
     public List<IssueStockRequest> takeIssueStockRequests(String transactionId, ICallbackDummy callerDummy) throws RemoteException {
 
-        synchronized (isrs) {
-            while (isrs.isEmpty()) {
+        repeat: while (true) {
+            synchronized (isrs) { //Only one at a time
+                while (isrs.isEmpty()) {
+                    try {
+                        isrs.wait(); //Wait for change in Resources
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+            synchronized (lock) {
                 try {
-                    isrs.wait(); //Wait for change in Resources
-                } catch (InterruptedException e) {
+
+                    if (isrs.isEmpty()) {
+                        continue repeat;
+                    }
+
+                    callerDummy.testConnection();
+                    System.out.println(getClass().getSimpleName() + ": takeIssueStockRequests");
+                    List<IssueStockRequest> returnVal = new ArrayList<>(isrs);
+                    isrs = new ArrayList<>();
+                    return returnVal;
+                } catch (RemoteException e) {
+                    System.out.println("That did not work out. :(");
+                    return null;
                 }
             }
         }
 
-        try {
-            callerDummy.testConnection();
-
-            synchronized (lock) { //Only one at a time
-                System.out.println("TAKING!");
-                List<IssueStockRequest> returnVal = new ArrayList<>(isrs);
-                isrs = new ArrayList<>();
-                return returnVal;
-            }
-        } catch (RemoteException e) {
-            System.out.println("He's gone :(.");
-            return null;
-        }
 
     }
+
+
 
     public void subscribe(IRmiCallback<IssueStockRequest> callback) throws RemoteException {
         callbacks.add(callback);

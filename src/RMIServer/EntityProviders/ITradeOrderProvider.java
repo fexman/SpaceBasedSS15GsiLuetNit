@@ -19,7 +19,7 @@ public interface ITradeOrderProvider extends IProvider {
 
     List<TradeOrder> getAllOrders(String transactionId) throws RemoteException;
 
-    TradeOrder takeOrder(TradeOrder tradeOrder, ICallbackDummy callerDummy, String transactionId) throws RemoteException;
+    TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws RemoteException;
 
     void subscribe(IRmiCallback<TradeOrder> callback) throws RemoteException;
 

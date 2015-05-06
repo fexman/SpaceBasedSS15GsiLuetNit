@@ -97,7 +97,8 @@ public class MarketAgentService extends Service {
                 MarketValue randomMarketValue = marketValues.get(randomMarketValueIndex);
 
                 // this calculates a random number between -maxFluctuation and +maxFluctuation
-                double randomFluctuation = -maxFluctuation + (2 * maxFluctuation) * rand.nextDouble();
+                //double randomFluctuation = -maxFluctuation + (2 * maxFluctuation) * rand.nextDouble();
+                double randomFluctuation = -0.05d;
 
                 // calculating the new market value price, considering a random fluctuation within a specified range
                 double newMarketValuePrice = randomMarketValue.getPrice() + (randomMarketValue.getPrice() * randomFluctuation);

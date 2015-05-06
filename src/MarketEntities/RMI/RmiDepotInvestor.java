@@ -11,6 +11,7 @@ import Service.ConnectionError;
 import Util.Container;
 import Util.RmiUtil;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
@@ -95,7 +96,7 @@ public class RmiDepotInvestor extends DepotInvestor {
 
     @Override
     public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
-        IRmiCallback<Stock> rmiSub = (IRmiCallback<Stock>) subscriber;
+        IRmiCallback<Serializable> rmiSub = (IRmiCallback<Serializable>) subscriber;
         try {
             UnicastRemoteObject.exportObject(rmiSub, 0);
             depotInvestor.subscribe(rmiSub);

@@ -5,6 +5,7 @@ import Model.Company;
 import Model.Investor;
 import Model.Stock;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public interface IDepotInvestorProvider extends IDepotProvider {
 
     List<Stock> readAllStocks(String transactionId) throws RemoteException;
 
-    void subscribe(IRmiCallback<Stock> callback) throws RemoteException;
+    void subscribe(IRmiCallback<Serializable> callback) throws RemoteException;
 
-    void unsubscribe(IRmiCallback<Stock> callback) throws RemoteException;
+    void unsubscribe(IRmiCallback<Serializable> callback) throws RemoteException;
 }

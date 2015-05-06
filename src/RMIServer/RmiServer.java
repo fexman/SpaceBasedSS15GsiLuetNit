@@ -27,14 +27,16 @@ public class RmiServer extends Thread implements IRmiServer {
     private ITradeOrderProvider tradeOrderContainerProvider;
     private IStockPricesProvider stockPricesProvider;
     private ITransactionHistoryProvider transactionHistoryProvider;
+    private IBrokerSupportProvider brokerSupportProvider;
 
 
     public RmiServer(int port) {
         this.port = port;
 
         isrContainerProvider = new ISRContainerProvider();
-        tradeOrderContainerProvider = new TradeOrderProvider();
-        stockPricesProvider = new StockPricesProvider();
+        brokerSupportProvider = new BrokerSupportProvider();
+        tradeOrderContainerProvider = new TradeOrderProvider(brokerSupportProvider);
+        stockPricesProvider = new StockPricesProvider(brokerSupportProvider);
         transactionHistoryProvider = new TransactionHistoryProvider();
         companyDepots = new HashMap<>();
         investorDepots = new HashMap<>();
@@ -50,6 +52,7 @@ public class RmiServer extends Thread implements IRmiServer {
             registry.bind(RmiUtil.RMI_SERVER_BINDING, remote);
 
             //Export providers
+            UnicastRemoteObject.exportObject(brokerSupportProvider,0);
             UnicastRemoteObject.exportObject(isrContainerProvider, 0);
             UnicastRemoteObject.exportObject(tradeOrderContainerProvider, 0);
             UnicastRemoteObject.exportObject(stockPricesProvider, 0);
@@ -60,7 +63,7 @@ public class RmiServer extends Thread implements IRmiServer {
             System.exit(-1);
         }
 
-        System.out.println("StockMarketServer with port "+port+" is up! Enter !exit to rollbackOpenTransactions, !help for help.");
+        System.out.println("StockMarketServer with port "+port+" is up! Enter !exit to shutdown, !help for help.");
         Scanner scan = new Scanner(System.in);
         while (scan.hasNext()) {
             String input = scan.next();
@@ -109,6 +112,7 @@ public class RmiServer extends Thread implements IRmiServer {
         try {
             //Unexport providers
             UnicastRemoteObject.unexportObject(isrContainerProvider, true);
+            UnicastRemoteObject.unexportObject(brokerSupportProvider, true);
             UnicastRemoteObject.unexportObject(tradeOrderContainerProvider, true);
             UnicastRemoteObject.unexportObject(stockPricesProvider, true);
             UnicastRemoteObject.unexportObject(transactionHistoryProvider, true);
@@ -132,11 +136,16 @@ public class RmiServer extends Thread implements IRmiServer {
         }
     }
 
-
     @Override
     public IStockPricesProvider getStockPricesContainer() throws RemoteException {
         return stockPricesProvider;
     }
+
+    @Override
+    public IBrokerSupportProvider getBrokerSupportProvider() throws RemoteException {
+        return brokerSupportProvider;
+    }
+
 
     @Override
     public IISRContainerProvider getIssueStockRequestContainer() throws RemoteException {

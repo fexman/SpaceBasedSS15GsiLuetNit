@@ -2,6 +2,7 @@ package RMIServer.EntityProviders.Impl;
 
 import Model.IssueStockRequest;
 import Model.TradeOrder;
+import RMIServer.EntityProviders.IBrokerSupportProvider;
 import RMIServer.EntityProviders.ITradeOrderProvider;
 import MarketEntities.Subscribing.IRmiCallback;
 import RMIServer.ICallbackDummy;
@@ -20,11 +21,13 @@ public class TradeOrderProvider implements ITradeOrderProvider {
     private Set<TradeOrder> tradeOrders;
     private Object lock;
     private Set<IRmiCallback<TradeOrder>> callbacks;
+    private IBrokerSupportProvider bsp;
 
-    public TradeOrderProvider() {
+    public TradeOrderProvider(IBrokerSupportProvider bsp) {
         tradeOrders = new HashSet<>();
         callbacks = new HashSet<>();
         lock = new Object();
+        this.bsp = bsp;
     }
 
 
@@ -32,7 +35,6 @@ public class TradeOrderProvider implements ITradeOrderProvider {
     public void addOrUpdateOrder(TradeOrder order, String transactionId) throws RemoteException {
         synchronized (lock) {
             tradeOrders.add(order);
-            System.out.println("Added: " + order);
             synchronized (order) {
                 if (order.getJustChanged()) {
                     order.notifyAll(); //Wake up one Thread waiting for resources
@@ -40,9 +42,12 @@ public class TradeOrderProvider implements ITradeOrderProvider {
             }
         }
 
-        System.out.println("TAKING TRADE ORDER!");
         List<TradeOrder> newTOs = new ArrayList<TradeOrder>();
         newTOs.add(order);
+        if (order.getJustChanged()) {
+            bsp.addNewTradeOrders(newTOs);
+            System.out.println(getClass().getSimpleName() + ": addOrUpdateOrder :" + order);
+        }
         for (IRmiCallback<TradeOrder> callback : callbacks) {
             callback.newData(newTOs);
         }
@@ -77,12 +82,12 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                 if (order.getPriceLimit() != null) {
                     switch (order.getType()) {
                         case BUY_ORDER: //LOOKING FOR BUY ORDER, INFINITE AM TRYING TO SELL SOMETHING -> PRICE SHOULD BY ABOVE (OR EQUAL TO) MY LIMIT
-                            if (to.getPriceLimit() <= order.getPriceLimit()) {
+                            if (to.getPriceLimit() < order.getPriceLimit()) {
                                 continue toLoop;
                             }
                             break;
                         case SELL_ORDER: //LOOKING FOR SELL ORDER, INFINITE AM TRYING TO BUY SOMETHING -> PRICE SHOULD BY UNDER (OR EQUAL TO) MY LIMIT
-                            if (to.getPriceLimit() >= order.getPriceLimit()) {
+                            if (to.getPriceLimit() > order.getPriceLimit()) {
                                 continue toLoop;
                             }
                             break;
@@ -138,21 +143,28 @@ public class TradeOrderProvider implements ITradeOrderProvider {
     }
 
     @Override
-    public TradeOrder takeOrder(TradeOrder tradeOrder, ICallbackDummy callerDummy, String transactionId) throws RemoteException {
-        try {
+    public TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws RemoteException {
 
-            callerDummy.testConnection();   // broker still alive?
+        synchronized (lock) { // lock provider
 
-            synchronized (lock) { // lock provider
-                if (tradeOrders.remove(tradeOrder)) {
-                    return tradeOrder;
-                }
-                return null;
+
+            System.out.println(this.getClass().getSimpleName()+" IS HERE BIATCH!! DOING SOME TRADE ORDER TAKING.");
+            System.out.println("IM LOOKING FOR: "+tradeOrder);
+            for (TradeOrder to : tradeOrders) {
+                System.out.println("IVE GOT THIS: "+to);
             }
-        } catch (RemoteException e) {
-            System.out.println("He's gone :(.");
+
+            List<TradeOrder> results = getOrders(tradeOrder, transactionId);
+            if (results.size() > 0) {
+                System.out.println("SIZE WAS OK");
+                tradeOrders.remove(results.get(0));
+                System.out.println("GONNA RETURN THIS: "+results.get(0));
+                return results.get(0);
+            }
+            System.out.println("SIZE WAS 0 THOUGH");
             return null;
         }
+
     }
 
     @Override

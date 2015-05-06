@@ -59,7 +59,7 @@ public class RmiFactory implements IFactory {
 
     @Override
     public BrokerSupportContainer newBrokerSupportContainer() {
-        return null;
+        return new RmiBrokerSupportContainer();
     }
 
     @Override

@@ -39,8 +39,8 @@ public class BrokerService extends Service {
         transactionHistoryContainer = factory.newTransactionHistoryContainer();
         brokerSupportContainer = factory.newBrokerSupportContainer();
         this.isrThread = new ISRThread();
-        this.toThread = new TradeOrderThread();
-        this.spThread = new StockPricesThread();
+        //this.toThread = new TradeOrderThread();
+        //this.spThread = new StockPricesThread();
     }
 
     public void startBroking() throws ConnectionError {
@@ -84,7 +84,8 @@ public class BrokerService extends Service {
                                 mw = new MarketValue(isr.getCompany(), isr.getPrice(),isr.getAmount());
                                 stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
                             } else {
-                                mw.setTradeVolume(mw.getTradeVolume()+isr.getAmount());
+                                mw.setTradeVolume(mw.getTradeVolume() + isr.getAmount());
+                                mw.setPriceChanged(false);
                                 stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
                             }
 
@@ -219,6 +220,7 @@ public class BrokerService extends Service {
         TradeOrder matchingTradeOrder = findMatchingTradeOrder(tradeOrder, transactionId);
 
         if (matchingTradeOrder != null) {
+            System.out.println("Solveorder: Match was not null.");
             if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
                 if (validateTradeOrders(tradeOrder, matchingTradeOrder, transactionId)) {
                     executeTransaction(tradeOrder, matchingTradeOrder, transactionId);
@@ -229,7 +231,9 @@ public class BrokerService extends Service {
                 }
             }
         } else {
+
             // no matching trade order found
+            System.out.println("Solveorder: Match WAS null.");
             tradeOrder.setJustChanged(false);
             tradeOrdersContainer.addOrUpdateOrder(tradeOrder, transactionId);
         }
@@ -340,7 +344,9 @@ public class BrokerService extends Service {
     private boolean validateTradeOrders(TradeOrder buyOrder, TradeOrder sellOrder, String transactionId) throws ConnectionError {
         DepotInvestor depotInvestor = factory.newDepotInvestor(new Investor(buyOrder.getInvestorId()), transactionId);
         if (buyerHasEnoughMoney(buyOrder, depotInvestor, transactionId)) {
+            System.out.println("Buyer has enough money");
             if (sellerHasEnoughStocks(sellOrder, transactionId)) {
+                System.out.println("Seller has enough stocks");
                 return true;
             } else {
                 sellOrder.setStatus(TradeOrder.Status.DELETED);
@@ -405,8 +411,11 @@ public class BrokerService extends Service {
 
                 if (compatibleMatchingTradeOrders.size() > 0) {
                     for (int i = compatibleMatchingTradeOrders.size() - 1; i >= 0; i--) {
-                        TradeOrder finalMatch = tradeOrdersContainer.takeOrder(compatibleMatchingTradeOrders.get(0), transactionId);
+                        System.out.println("CompTos #" + i + ": " + compatibleMatchingTradeOrders.get(0));
+                        TradeOrder finalMatch = tradeOrdersContainer.takeOrder(compatibleMatchingTradeOrders.get(i), transactionId);
+                        System.out.println("Final match #"+i+": "+finalMatch);
                         if (finalMatch != null) {
+                            System.out.println("Found final match: "+finalMatch);
                             return finalMatch;
                         }
                     }

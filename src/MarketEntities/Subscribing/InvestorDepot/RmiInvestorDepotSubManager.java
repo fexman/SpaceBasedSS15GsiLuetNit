@@ -25,11 +25,11 @@ public class RmiInvestorDepotSubManager extends AInvestorDepotSubManager impleme
         List<Stock> newStocks = new ArrayList<>();
         for (Serializable s : newData) {
             try {
-                Stock stock = (Stock) ((Entry) s).getValue();
+                Stock stock = (Stock) s;
                 newStocks.add(stock);
             } catch (ClassCastException e) {
                 // new budget was pushed
-                Double newBudget = (Double) ((Entry) s).getValue();
+                Double newBudget = (Double) s;
                 subscription.pushNewBudget(newBudget.doubleValue());
                 return;
             }
