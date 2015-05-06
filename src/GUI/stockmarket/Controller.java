@@ -181,10 +181,10 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
             tableStockPrices.setItems(stockPrices);
             stockPricesContainer.subscribe(factory.newStockPricesSubManager(this), null);
 
-//            transactionHistoryContainer = factory.newTransactionHistoryContainer();
-//            historyEntries = FXCollections.observableList(transactionHistoryContainer.getTransactionHistory(null));
-//            tableHistory.setItems(historyEntries);
-//            transactionHistoryContainer.subscribe(factory.newTransactionHistorySubManager(this), null);
+            transactionHistoryContainer = factory.newTransactionHistoryContainer();
+            historyEntries = FXCollections.observableList(transactionHistoryContainer.getTransactionHistory(null));
+            tableHistory.setItems(historyEntries);
+            transactionHistoryContainer.subscribe(factory.newTransactionHistorySubManager(this), null);
 
             statusLabel.textFillProperty().setValue(Color.DARKGREEN);
             statusLabel.setText("Connected.");
@@ -200,34 +200,20 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
             statusLabel.setText("Connection failed.");
             e.printStackTrace();
         }
-
-
     }
 
     @Override
     public void pushNewTradeOrders(TradeOrder tradeOrder) {
 
-        boolean remove = false;
-
-        if (orders.contains(tradeOrder)) {
-            for (TradeOrder toOld : orders) {
-                if (toOld.getId().equals(tradeOrder.getId())) {
-                    if (tradeOrder.getStatus().equals(TradeOrder.Status.DELETED) || tradeOrder.getStatus().equals(TradeOrder.Status.COMPLETED)) {
-                        remove = true;
-                    } else {
-                        toOld.setStatus(tradeOrder.getStatus());
-                        toOld.setCompletedAmount(tradeOrder.getCompletedAmount());
-                    }
-                }
-
+        if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
+            if (orders.contains(tradeOrder)) {
+                int index = orders.indexOf(tradeOrder);
+                orders.set(index, tradeOrder);
+            } else {
+                orders.add(tradeOrder);
             }
-        }
-        else {
-            orders.add(tradeOrder);
-        }
-
-        if (remove) {
-            orders.remove(tradeOrder);
+        } else {
+            orders.remove(tradeOrder);  // only removes if present
         }
 
         tableOrders.setItems(orders);
@@ -246,20 +232,12 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
 
     @Override
     public void pushNewMarketValues(List<MarketValue> newMarketValues) {
-        //To reduce network traffic, since this is called VERY often
-
         for (MarketValue mwNew : newMarketValues) {
             if (stockPrices.contains(mwNew)) {
-                for (MarketValue mwOld : stockPrices) {
-                    if (mwOld.getCompanyId().equals(mwNew.getCompanyId())) {
-                        mwOld.setPrice(mwNew.getPrice());
-                        mwOld.setTradeVolume(mwNew.getTradeVolume());
-                        System.out.println("Updated: " + mwOld.getCompanyId() + " with " + mwNew.getPrice());
-                    }
-
-                }
-            }
-            else {
+                System.out.println("Updated: " + stockPrices.indexOf(mwNew) + " with " + mwNew.getPrice());
+                int index = stockPrices.indexOf(mwNew);
+                stockPrices.set(index, mwNew);
+            } else {
                 stockPrices.add(mwNew);
             }
         }
@@ -279,11 +257,6 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
 
     @Override
     public void pushNewHistoryEntry(HistoryEntry historyEntry) {
-        try {
-            historyEntries = FXCollections.observableList(transactionHistoryContainer.getTransactionHistory(null));
-            tableHistory.setItems(historyEntries);
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
-        }
+        tableHistory.getItems().add(historyEntry);
     }
 }

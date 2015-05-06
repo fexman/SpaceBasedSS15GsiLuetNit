@@ -6,6 +6,7 @@ import Model.Investor;
 import Model.Stock;
 import RMIServer.EntityProviders.IDepotInvestorProvider;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.*;
 

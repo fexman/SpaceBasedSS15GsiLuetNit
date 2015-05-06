@@ -130,8 +130,6 @@ public class BrokerService extends Service {
 
                 String transactionId = "";
                 try {
-
-
                     //Blocking, as state above
                     List<TradeOrder> newTradeOrders = brokerSupportContainer.takeNewTradeOrders(null);
 
@@ -179,26 +177,25 @@ public class BrokerService extends Service {
 
                 String transactionId = "";
                 try {
-
-
                     //Blocking, as state above
                     List<MarketValue> newStockPrices = brokerSupportContainer.takeNewStockPrices(null);
 
                     System.out.println("SP: Got SP " + newStockPrices);
 
                     for (MarketValue recentlyUpdatedMarketValue : newStockPrices) {
-                        //This is going to be blocking --> Transaction could take forever
-                        transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
-
                         TradeOrder filter = new TradeOrder();
                         filter.setCompany(recentlyUpdatedMarketValue.getCompany());
                         filter.setStatus(TradeOrder.Status.NOT_COMPLETED);
                         for (TradeOrder to : tradeOrdersContainer.getOrders(filter,transactionId)) {
+                            //This is going to be blocking --> Transaction could take forever
+                            transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
+
                             tradeOrdersContainer.takeOrder(to, transactionId);
                             solveOrder(to, transactionId);
+
+                            System.out.println("SP: Commit.");
+                            factory.commitTransaction(transactionId);
                         }
-                        System.out.println("SP: Commit.");
-                        factory.commitTransaction(transactionId);
                     }
                 } catch (ConnectionError connectionError) {
                     try {
