@@ -1,11 +1,6 @@
 package TUI;
 
-import Factory.IFactory;
-import Factory.XvsmFactory;
-import Model.Company;
 import RMIServer.RmiServer;
-import Service.CompanyService;
-import Service.ConnectionError;
 
 /**
  * Created by Felix on 21.04.2015.

@@ -5,7 +5,7 @@ import Factory.RmiFactory;
 import Factory.XvsmFactory;
 import Model.Company;
 import Service.CompanyService;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 
 /**
  * Created by Felix on 06.04.2015.
@@ -49,9 +49,9 @@ public class TUICompany {
                     break;
                 default: showUsage();
             }
-        } catch (ConnectionError connectionError) {
-            System.out.println("Error while connecting: "+connectionError.getMessage());
-            connectionError.printStackTrace();
+        } catch (ConnectionErrorException connectionErrorException) {
+            System.out.println("Error while connecting: "+ connectionErrorException.getMessage());
+            connectionErrorException.printStackTrace();
             System.exit(0);
         }
 
@@ -59,8 +59,8 @@ public class TUICompany {
         CompanyService compService = new CompanyService(factory);
         try {
             compService.issueStocks(comp.createIssueStockRequest(amount,price));
-        } catch (ConnectionError connectionError) {
-            System.out.println("Error while issuing stocks: " + connectionError.getMessage());
+        } catch (ConnectionErrorException connectionErrorException) {
+            System.out.println("Error while issuing stocks: " + connectionErrorException.getMessage());
         }
 
         //Terminate connection

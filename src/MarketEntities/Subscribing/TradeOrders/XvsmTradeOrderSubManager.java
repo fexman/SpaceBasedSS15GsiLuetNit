@@ -1,15 +1,12 @@
 package MarketEntities.Subscribing.TradeOrders;
 
 import Model.TradeOrder;
-import Service.ConnectionError;
-import Service.InvalidTradeOrderException;
 import org.mozartspaces.core.Entry;
 import org.mozartspaces.notifications.Notification;
 import org.mozartspaces.notifications.NotificationListener;
 import org.mozartspaces.notifications.Operation;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

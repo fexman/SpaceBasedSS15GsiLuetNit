@@ -2,7 +2,7 @@ package MarketEntities;
 
 import MarketEntities.XVSM.ISubscribeable;
 import Model.HistoryEntry;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 
 import java.util.List;
 
@@ -11,8 +11,8 @@ import java.util.List;
  */
 public abstract class TransactionHistoryContainer implements ISubscribeable {
 
-    public abstract void addHistoryEntry(HistoryEntry historyEntry, String transactionId) throws ConnectionError;
+    public abstract void addHistoryEntry(HistoryEntry historyEntry, String transactionId) throws ConnectionErrorException;
 
-    public abstract List<HistoryEntry> getTransactionHistory(String transactionId) throws ConnectionError;
+    public abstract List<HistoryEntry> getTransactionHistory(String transactionId) throws ConnectionErrorException;
 
 }

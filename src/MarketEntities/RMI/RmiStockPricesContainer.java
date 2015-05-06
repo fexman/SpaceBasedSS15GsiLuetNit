@@ -6,7 +6,7 @@ import MarketEntities.Subscribing.IRmiCallback;
 import Model.Company;
 import Model.MarketValue;
 import RMIServer.EntityProviders.IStockPricesProvider;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Util.Container;
 import Util.RmiUtil;
 
@@ -30,34 +30,34 @@ public class RmiStockPricesContainer extends StockPricesContainer{
     }
 
     @Override
-    public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws ConnectionError {
+    public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws ConnectionErrorException {
         try {
             spContainer.addOrUpdateMarketValue(marketValue, transactionId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public MarketValue getMarketValue(Company comp, String transactionId) throws ConnectionError {
+    public MarketValue getMarketValue(Company comp, String transactionId) throws ConnectionErrorException {
         try {
             return spContainer.getMarketValue(comp, transactionId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public List<MarketValue> getAll(String transactionId) throws ConnectionError {
+    public List<MarketValue> getAll(String transactionId) throws ConnectionErrorException {
         try {
             return spContainer.getAll(transactionId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
+    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionErrorException {
         IRmiCallback<MarketValue> rmiSub = (IRmiCallback<MarketValue>)subscriber;
         try {
             UnicastRemoteObject.exportObject(rmiSub, 0);
@@ -68,21 +68,21 @@ public class RmiStockPricesContainer extends StockPricesContainer{
                     spContainer.subscribe(rmiSub);
                     return;
                 } catch (RemoteException e1) {
-                    throw new ConnectionError(e);
+                    throw new ConnectionErrorException(e);
                 }
             }
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
-    public void removeSubscriptions() throws ConnectionError{
+    public void removeSubscriptions() throws ConnectionErrorException {
         try {
             for (IRmiCallback<MarketValue> rmiSub : callbacks) {
                 spContainer.unsubscribe(rmiSub);
                 UnicastRemoteObject.unexportObject(rmiSub, true);
             }
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
 
     }

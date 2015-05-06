@@ -2,7 +2,7 @@ package MarketEntities;
 
 import Model.Company;
 import Model.Stock;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public abstract class DepotCompany extends Depot {
 
     private Company comp;
 
-    public DepotCompany(Company comp, String transactionId) throws ConnectionError {
+    public DepotCompany(Company comp, String transactionId) throws ConnectionErrorException {
         this.comp = comp;
     }
 
@@ -21,6 +21,6 @@ public abstract class DepotCompany extends Depot {
         return comp;
     }
 
-    public abstract List<Stock> takeStocks(int amount, String transactionId) throws ConnectionError;
+    public abstract List<Stock> takeStocks(int amount, String transactionId) throws ConnectionErrorException;
 
 }

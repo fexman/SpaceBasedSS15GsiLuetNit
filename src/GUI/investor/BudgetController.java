@@ -1,12 +1,10 @@
 package GUI.investor;
 
 import Factory.IFactory;
-import MarketEntities.DepotInvestor;
 import Model.Investor;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Service.InvestorService;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -53,9 +51,9 @@ public class BudgetController {
 
                 Stage stage = (Stage) btnAddToBudget.getScene().getWindow();
                 stage.close();
-            } catch (ConnectionError connectionError) {
+            } catch (ConnectionErrorException connectionErrorException) {
                 statusLabel.setText("Increasing budget failed.");
-                connectionError.printStackTrace();
+                connectionErrorException.printStackTrace();
             }
         }
     }

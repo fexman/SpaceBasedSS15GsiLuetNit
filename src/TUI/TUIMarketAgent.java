@@ -3,15 +3,12 @@ package TUI;
 import Factory.IFactory;
 import Factory.RmiFactory;
 import Factory.XvsmFactory;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Service.MarketAgentService;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.*;
 
 /**
  * Created by j0h1 on 28.04.2015.
@@ -43,9 +40,9 @@ public class TUIMarketAgent {
                     break;
                 default: showUsage();
             }
-        } catch (ConnectionError connectionError) {
-            System.out.println("Error while connecting: " + connectionError.getMessage());
-            connectionError.printStackTrace();
+        } catch (ConnectionErrorException connectionErrorException) {
+            System.out.println("Error while connecting: " + connectionErrorException.getMessage());
+            connectionErrorException.printStackTrace();
             System.exit(0);
         }
 
@@ -114,8 +111,8 @@ public class TUIMarketAgent {
                     System.out.println("MarketAgent: Adding price fluctuation.");
                     marketAgentService.addPriceFluctuation(maxFluctuation);
                 }
-            } catch (ConnectionError connectionError) {
-                connectionError.printStackTrace();
+            } catch (ConnectionErrorException connectionErrorException) {
+                connectionErrorException.printStackTrace();
             }
         }
     }

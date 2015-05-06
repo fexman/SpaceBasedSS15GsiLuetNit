@@ -1,7 +1,7 @@
 package MarketEntities;
 
 import Model.Stock;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 
 import java.util.List;
 
@@ -17,8 +17,8 @@ public abstract class Depot {
         return depotName;
     }
 
-    public abstract int getTotalAmountOfStocks(String transactionId) throws ConnectionError;
+    public abstract int getTotalAmountOfStocks(String transactionId) throws ConnectionErrorException;
 
-    public abstract void addStocks(List<Stock> stocks, String transactionId) throws ConnectionError;
+    public abstract void addStocks(List<Stock> stocks, String transactionId) throws ConnectionErrorException;
 
 }

@@ -3,15 +3,15 @@ package Service;
 /**
  * Created by Felix on 06.04.2015.
  */
-public class ConnectionError extends Exception {
+public class ConnectionErrorException extends Exception {
 
     private Exception e;
 
-    public ConnectionError(String message) {
+    public ConnectionErrorException(String message) {
         e = new Exception(message);
     }
 
-    public ConnectionError(Exception e) {
+    public ConnectionErrorException(Exception e) {
         this.e = e;
     }
 

@@ -5,7 +5,7 @@ import MarketEntities.TradeOrderContainer;
 import Model.Company;
 import Model.Investor;
 import Model.TradeOrder;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -86,8 +86,8 @@ public class NewOrderController {
             // extract stock names (company id)
             List<String> stockNames = new ArrayList<>(availableCompanies.keySet());
             stockName.getItems().addAll(stockNames);
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
+        } catch (ConnectionErrorException connectionErrorException) {
+            connectionErrorException.printStackTrace();
         }
     }
 
@@ -123,8 +123,8 @@ public class NewOrderController {
                 performFaceOut(statusLabel);
 
                 System.out.println("Trade order added: " + tradeOrder);
-            } catch (ConnectionError connectionError) {
-                connectionError.printStackTrace();
+            } catch (ConnectionErrorException connectionErrorException) {
+                connectionErrorException.printStackTrace();
             }
         } else {
             statusLabel.textFillProperty().setValue(Color.RED);

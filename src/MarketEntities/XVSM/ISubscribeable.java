@@ -1,12 +1,12 @@
 package MarketEntities.XVSM;
 
 import MarketEntities.Subscribing.ASubManager;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 
 /**
  * Created by Felix on 23.04.2015.
  */
 public interface ISubscribeable  {
 
-    void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError;
+    void subscribe(ASubManager subscriber, String transactionId) throws ConnectionErrorException;
 }

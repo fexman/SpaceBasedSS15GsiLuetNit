@@ -2,7 +2,8 @@ package MarketEntities;
 
 import Model.MarketValue;
 import Model.TradeOrder;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
+import Service.TransactionTimeoutException;
 
 import java.util.List;
 
@@ -11,8 +12,8 @@ import java.util.List;
  */
 public abstract class BrokerSupportContainer {
 
-        public abstract List<TradeOrder> takeNewTradeOrders(String transactionId) throws ConnectionError;
+        public abstract List<TradeOrder> takeNewTradeOrders(String transactionId) throws ConnectionErrorException, TransactionTimeoutException;
 
-        public abstract List<MarketValue> takeNewStockPrices(String transactionId) throws ConnectionError;
+        public abstract List<MarketValue> takeNewStockPrices(String transactionId) throws ConnectionErrorException, TransactionTimeoutException;
 
 }

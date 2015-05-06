@@ -2,8 +2,7 @@ package MarketEntities;
 
 import MarketEntities.XVSM.ISubscribeable;
 import Model.TradeOrder;
-import Service.ConnectionError;
-import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
+import Service.ConnectionErrorException;
 
 import java.util.List;
 
@@ -12,12 +11,12 @@ import java.util.List;
  */
 public abstract class TradeOrderContainer implements ISubscribeable {
 
-    public abstract void addOrUpdateOrder(TradeOrder order, String transactionId) throws ConnectionError;
+    public abstract void addOrUpdateOrder(TradeOrder order, String transactionId) throws ConnectionErrorException;
 
-    public abstract List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws ConnectionError;
+    public abstract List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws ConnectionErrorException;
 
-    public abstract TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionError;
+    public abstract TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException;
 
-    public abstract List<TradeOrder> getAllOrders(String transactionId) throws ConnectionError;
+    public abstract List<TradeOrder> getAllOrders(String transactionId) throws ConnectionErrorException;
 
 }

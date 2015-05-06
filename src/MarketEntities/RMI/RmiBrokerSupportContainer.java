@@ -6,7 +6,7 @@ import Model.TradeOrder;
 import RMIServer.CallbackDummy;
 import RMIServer.EntityProviders.IBrokerSupportProvider;
 import RMIServer.ICallbackDummy;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Util.Container;
 import Util.RmiUtil;
 
@@ -26,24 +26,24 @@ public class RmiBrokerSupportContainer extends BrokerSupportContainer {
     }
 
     @Override
-    public List<TradeOrder> takeNewTradeOrders(String transactionId) throws ConnectionError {
+    public List<TradeOrder> takeNewTradeOrders(String transactionId) throws ConnectionErrorException {
         try {
             ICallbackDummy callerDummy = new CallbackDummy();
             UnicastRemoteObject.exportObject(callerDummy, 0);
             return bspContainer.takeNewTradeOrders(transactionId,callerDummy);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public List<MarketValue> takeNewStockPrices(String transactionId) throws ConnectionError {
+    public List<MarketValue> takeNewStockPrices(String transactionId) throws ConnectionErrorException {
         try {
             ICallbackDummy callerDummy = new CallbackDummy();
             UnicastRemoteObject.exportObject(callerDummy,0);
             return bspContainer.takeNewStockPrices(transactionId,callerDummy);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 

@@ -1,9 +1,9 @@
 package MarketEntities;
 
-import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
 import MarketEntities.XVSM.ISubscribeable;
 import Model.IssueStockRequest;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
+import Service.TransactionTimeoutException;
 
 import java.util.List;
 
@@ -12,8 +12,8 @@ import java.util.List;
  */
 public abstract class ISRContainer implements ISubscribeable {
 
-    public abstract void addIssueStocksRequest(IssueStockRequest isr, String transactionId) throws ConnectionError;
+    public abstract void addIssueStocksRequest(IssueStockRequest isr, String transactionId) throws ConnectionErrorException;
 
-    public abstract List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws ConnectionError;
+    public abstract List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws ConnectionErrorException, TransactionTimeoutException;
 
 }
