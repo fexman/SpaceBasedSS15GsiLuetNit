@@ -19,7 +19,7 @@ import java.util.Set;
 public class StockPricesProvider implements IStockPricesProvider {
 
 
-    private Set<MarketValue> stockPrices;
+    private volatile Set<MarketValue> stockPrices;
     private Object lock;
     private Set<IRmiCallback<MarketValue>> callbacks;
     private IBrokerSupportProvider bsp;
@@ -34,6 +34,7 @@ public class StockPricesProvider implements IStockPricesProvider {
     @Override
     public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws RemoteException {
         synchronized (lock) {
+            stockPrices.remove(marketValue);
             stockPrices.add(marketValue);
         }
 
@@ -41,7 +42,9 @@ public class StockPricesProvider implements IStockPricesProvider {
         newMWs.add(marketValue);
         if (marketValue.isPriceChanged()) {
             bsp.addNewStockPrices(newMWs);
-            System.out.println(getClass().getSimpleName() + ": addOrUpdateMarketValue :"+marketValue);
+            System.out.println(getClass().getSimpleName() + ": addOrUpdateMarketValue : PRICE AND AMOUNT : "+marketValue+": sizenow :"+stockPrices.size());
+        } else {
+            System.out.println(getClass().getSimpleName() + ": addOrUpdateMarketValue : JUST AMOUNT :"+marketValue+": sizenow :"+stockPrices.size());
         }
         for (IRmiCallback<MarketValue> callback : callbacks) {
             callback.newData(newMWs);

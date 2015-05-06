@@ -57,21 +57,20 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
     public List<Stock> takeStocks(Company comp, int amount, String transactionId) throws RemoteException {
         synchronized (lock) {
             List<Stock> stocksOfCompany = stocks.get(comp.getId());    // get stocks of company
+            List<Stock> tempStocks = new ArrayList<>();
 
-            // delete amount of stocks to be taken out and create list of stocks to be returned
-            List<Stock> takenStocks = new ArrayList<>();
-            int deleted = 0;
-            for (Iterator<Stock> iterator = stocksOfCompany.iterator(); iterator.hasNext(); ) {
-                if (deleted == amount) {
-                    break;
-                }
-                iterator.remove();
-                takenStocks.add(new Stock(comp));
-
-                deleted++;
+            for (int i = 0; i < (stocksOfCompany.size()-amount);i++) {
+                tempStocks.add(new Stock(comp));
             }
 
-            return takenStocks;
+            stocksOfCompany = tempStocks;
+            tempStocks = new ArrayList<>();
+
+            for (int i = 0; i < amount; i++) {
+                tempStocks.add(new Stock(comp));
+            }
+
+            return tempStocks;
         }
     }
 

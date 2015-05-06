@@ -95,6 +95,13 @@ public class TradeOrderProvider implements ITradeOrderProvider {
 
                     }
                 }
+                if (order.getType() != null) {
+                    if (!order.getType().equals(TradeOrder.Type.ANY)) {
+                        if (!to.getType().equals(order.getType())) {
+                            continue toLoop;
+                        }
+                    }
+                }
                 switch (order.getStatus()) { //LOOKING FOR ORDERS WITH STATUS ...
                     case OPEN: // OPEN
                         if (to.getStatus() != TradeOrder.Status.OPEN) {

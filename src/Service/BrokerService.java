@@ -39,8 +39,8 @@ public class BrokerService extends Service {
         transactionHistoryContainer = factory.newTransactionHistoryContainer();
         brokerSupportContainer = factory.newBrokerSupportContainer();
         this.isrThread = new ISRThread();
-        //this.toThread = new TradeOrderThread();
-        //this.spThread = new StockPricesThread();
+        this.toThread = new TradeOrderThread();
+        this.spThread = new StockPricesThread();
     }
 
     public void startBroking() throws ConnectionError {
@@ -84,6 +84,7 @@ public class BrokerService extends Service {
                                 mw = new MarketValue(isr.getCompany(), isr.getPrice(),isr.getAmount());
                                 stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
                             } else {
+                                System.out.println("Updating marketValue of " + mw.getTradeVolume() + " for "+ isr.getAmount() + " (from ISR) resulting in "+(mw.getTradeVolume() + isr.getAmount()));
                                 mw.setTradeVolume(mw.getTradeVolume() + isr.getAmount());
                                 mw.setPriceChanged(false);
                                 stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);

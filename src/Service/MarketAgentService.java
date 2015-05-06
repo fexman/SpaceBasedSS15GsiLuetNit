@@ -45,6 +45,7 @@ public class MarketAgentService extends Service {
                 for (TradeOrder buyOrder : buyOrders) {
                     stockDemand += buyOrder.getPendingAmount();
                 }
+                System.out.println("Found " + buyOrders.size() + " buy orders with demand " + stockDemand + ".");
 
                 // get all open/partially completed sell orders of current market value
                 TradeOrder sellOrdersFilter = new TradeOrder();
@@ -58,6 +59,8 @@ public class MarketAgentService extends Service {
                 for (TradeOrder sellOrder : sellOrders) {
                     stockSupply += sellOrder.getPendingAmount();
                 }
+                System.out.println("Found " + sellOrders.size() + " sell orders with supply " + stockSupply + ".");
+
 
                 double currentStockPrice = marketValue.getPrice();
 
@@ -67,6 +70,8 @@ public class MarketAgentService extends Service {
                 // write new stock price to stock price container
                 marketValue.setPrice(newStockPrice);
                 stockPricesContainer.addOrUpdateMarketValue(marketValue, transactionId);
+
+                System.out.println("Updated " + marketValue.getCompanyId() + "'s market value from " + currentStockPrice + " to " + newStockPrice);
             }
             factory.commitTransaction(transactionId);
         } catch (ConnectionError e) {

@@ -11,7 +11,7 @@ public class IssueStockRequest implements Serializable {
 
 
     private static final long serialVersionUID = 545149035659778572L;
-    //TODO Kürzel verwenden, nicht company (company mittels id als Key im Space speichern)
+
     private String companyId;
     private Double price;
     private Integer amount;

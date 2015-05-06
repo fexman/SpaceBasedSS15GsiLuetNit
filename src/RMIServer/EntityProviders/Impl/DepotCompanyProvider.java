@@ -6,6 +6,7 @@ import RMIServer.EntityProviders.IDepotCompanyProvider;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -32,11 +33,18 @@ public class DepotCompanyProvider implements IDepotCompanyProvider {
     public List<Stock> takeStocks(int amount, String transactionId) throws RemoteException {
         synchronized (lock) {
             List<Stock> tempStocks = new ArrayList<>();
-            for (int i = 1; i <= amount; i++) {
+
+            for (int i = 0; i < (stocks.size()-amount);i++) {
                 tempStocks.add(new Stock(company));
             }
-            //TODO remove <amount> elements instead of element at index <amount>
-            stocks.remove(amount);
+
+            stocks = tempStocks;
+            tempStocks = new ArrayList<>();
+
+            for (int i = 0; i < amount; i++) {
+                tempStocks.add(new Stock(company));
+            }
+
             return tempStocks;
         }
     }
