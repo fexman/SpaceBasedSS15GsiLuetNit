@@ -206,12 +206,41 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
 
     @Override
     public void pushNewTradeOrders(TradeOrder tradeOrder) {
-        try {
-            orders = FXCollections.observableList(ordersContainer.getOrders(ORDER_FILTER, null));
-            tableOrders.setItems(orders);
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
+
+        boolean remove = false;
+
+        if (orders.contains(tradeOrder)) {
+            for (TradeOrder toOld : orders) {
+                if (toOld.getId().equals(tradeOrder.getId())) {
+                    if (tradeOrder.getStatus().equals(TradeOrder.Status.DELETED) || tradeOrder.getStatus().equals(TradeOrder.Status.COMPLETED)) {
+                        remove = true;
+                    } else {
+                        toOld.setStatus(tradeOrder.getStatus());
+                        toOld.setCompletedAmount(tradeOrder.getCompletedAmount());
+                    }
+                }
+
+            }
         }
+        else {
+            orders.add(tradeOrder);
+        }
+
+        if (remove) {
+            orders.remove(tradeOrder);
+        }
+
+        tableOrders.setItems(orders);
+
+        //Refresh GUI (is buggy here, dont know why)
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                tableOrders.getColumns().get(0).setVisible(false);
+                tableOrders.getColumns().get(0).setVisible(true);
+            }
+        });
+
     }
 
 
