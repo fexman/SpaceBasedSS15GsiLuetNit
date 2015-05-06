@@ -26,7 +26,7 @@ public class MarketAgentService extends Service {
         stockPricesContainer = factory.newStockPricesContainer();
     }
 
-    public synchronized void performMarketAnalysis() throws ConnectionError {
+    public synchronized void performMarketAnalysis() throws ConnectionErrorException {
         String transactionId = "";
         try {
             transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
@@ -74,17 +74,17 @@ public class MarketAgentService extends Service {
                 System.out.println("Updated " + marketValue.getCompanyId() + "'s market value from " + currentStockPrice + " to " + newStockPrice);
             }
             factory.commitTransaction(transactionId);
-        } catch (ConnectionError e) {
+        } catch (ConnectionErrorException e) {
             try {
                 factory.rollbackTransaction(transactionId);
-                throw new ConnectionError(e);
-            } catch (ConnectionError ex) {
-                throw new ConnectionError(ex);
+                throw new ConnectionErrorException(e);
+            } catch (ConnectionErrorException ex) {
+                throw new ConnectionErrorException(ex);
             }
         }
     }
 
-    public synchronized void addPriceFluctuation(double maxFluctuation) throws ConnectionError {
+    public synchronized void addPriceFluctuation(double maxFluctuation) throws ConnectionErrorException {
         String transactionId = "";
         try {
             transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
@@ -113,12 +113,12 @@ public class MarketAgentService extends Service {
                 stockPricesContainer.addOrUpdateMarketValue(randomMarketValue, transactionId);
                 factory.commitTransaction(transactionId);
             }
-        } catch (ConnectionError e) {
+        } catch (ConnectionErrorException e) {
             try {
                 factory.rollbackTransaction(transactionId);
-                throw new ConnectionError(e);
-            } catch (ConnectionError ex) {
-                throw new ConnectionError(ex);
+                throw new ConnectionErrorException(e);
+            } catch (ConnectionErrorException ex) {
+                throw new ConnectionErrorException(ex);
             }
         }
     }

@@ -38,18 +38,18 @@ public class InvestorService extends Service implements ITradeOrderSub {
 
             factory.commitTransaction(transactionId);
             System.out.println("Committed: " + tradeOrder);
-        } catch (ConnectionError e) {
+        } catch (ConnectionErrorException e) {
             try {
                 factory.rollbackTransaction(transactionId);
                 throw e;
-            } catch (ConnectionError ex) {
+            } catch (ConnectionErrorException ex) {
                 System.out.println("Error on tradeOrders push");
                 ex.printStackTrace();
             }
         }
     }
 
-    public void addToBudget(double amountToBeAdded) throws ConnectionError{
+    public void addToBudget(double amountToBeAdded) throws ConnectionErrorException {
         String transactionId = "";
 
         try {
@@ -62,7 +62,7 @@ public class InvestorService extends Service implements ITradeOrderSub {
             factory.commitTransaction(transactionId);
 
             System.out.println("Added " + amountToBeAdded + " to " + investor.getId() + "'s  budget.");
-        } catch (ConnectionError e) {
+        } catch (ConnectionErrorException e) {
             factory.rollbackTransaction(transactionId);
             throw e;
         }

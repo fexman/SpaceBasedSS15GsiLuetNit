@@ -10,7 +10,7 @@ import MarketEntities.Subscribing.TransactionHistory.XvsmTransactionHistorySubMa
 import MarketEntities.XVSM.*;
 import Model.Company;
 import Model.Investor;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
 import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
 import MarketEntities.Subscribing.IssueStockRequests.XvsmISRSubManager;
@@ -34,11 +34,11 @@ public class XvsmFactory implements IFactory {
 
     private XvsmUtil.XvsmConnection xc;
 
-    public XvsmFactory(String uri) throws ConnectionError {
+    public XvsmFactory(String uri) throws ConnectionErrorException {
         try {
             this.xc = XvsmUtil.initConnection(uri, false);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
@@ -93,39 +93,46 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
+    public DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionErrorException {
         return new XvsmDepotInvestor(investor, transactionId);
     }
 
     @Override
-    public DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionError {
+    public DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionErrorException {
         return new XvsmDepotCompany(comp, transactionId);
     }
 
     @Override
-    public String createTransaction(TransactionTimeout timeout) throws ConnectionError {
+    public String createTransaction(TransactionTimeout timeout) throws ConnectionErrorException {
         try {
             return XvsmUtil.createTransaction(timeout);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public void commitTransaction(String transactionId) throws ConnectionError {
+    public void removeTransaction(String transactionId) {
+        XvsmUtil.removeTransaction(transactionId);
+    }
+
+    @Override
+    public void commitTransaction(String transactionId) throws ConnectionErrorException {
         try {
             XvsmUtil.commitTransaction(transactionId);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
+
+
     @Override
-    public void rollbackTransaction(String transactionId) throws ConnectionError {
+    public void rollbackTransaction(String transactionId) throws ConnectionErrorException {
         try {
             XvsmUtil.rollbackTransaction(transactionId);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 

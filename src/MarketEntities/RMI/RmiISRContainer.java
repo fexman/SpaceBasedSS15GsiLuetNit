@@ -7,7 +7,7 @@ import RMIServer.CallbackDummy;
 import RMIServer.EntityProviders.IISRContainerProvider;
 import MarketEntities.Subscribing.IRmiCallback;
 import RMIServer.ICallbackDummy;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Util.Container;
 import Util.RmiUtil;
 
@@ -31,27 +31,27 @@ public class RmiISRContainer extends ISRContainer {
     }
 
     @Override
-    public void addIssueStocksRequest(IssueStockRequest isr, String transactionId) throws ConnectionError {
+    public void addIssueStocksRequest(IssueStockRequest isr, String transactionId) throws ConnectionErrorException {
         try {
             isrContainer.addIssueStocksRequest(isr,transactionId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws ConnectionError {
+    public List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws ConnectionErrorException {
         try {
             ICallbackDummy callerDummy = new CallbackDummy();
             UnicastRemoteObject.exportObject(callerDummy,0);
             return isrContainer.takeIssueStockRequests(transactionId, callerDummy);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
+    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionErrorException {
         IRmiCallback<IssueStockRequest> rmiSub = (IRmiCallback<IssueStockRequest>)subscriber;
         try {
             UnicastRemoteObject.exportObject(rmiSub,0);
@@ -62,21 +62,21 @@ public class RmiISRContainer extends ISRContainer {
                     isrContainer.subscribe(rmiSub);
                     return;
                 } catch (RemoteException e1) {
-                    throw new ConnectionError(e);
+                    throw new ConnectionErrorException(e);
                 }
             }
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
-    public void removeSubscriptions() throws ConnectionError{
+    public void removeSubscriptions() throws ConnectionErrorException {
         try {
             for (IRmiCallback<IssueStockRequest> rmiSub : callbacks) {
                 isrContainer.unsubscribe(rmiSub);
                 UnicastRemoteObject.unexportObject(rmiSub, true);
             }
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
 
     }

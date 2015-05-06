@@ -10,7 +10,7 @@ import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
 import Model.*;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -182,8 +182,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
             // initialize rest of UI after references to containers are set
             initUi();
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
+        } catch (ConnectionErrorException connectionErrorException) {
+            connectionErrorException.printStackTrace();
         }
     }
 
@@ -194,14 +194,14 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             } else {
                 factory = new RmiFactory(serverAdressAndPort);
             }
-        } catch (ConnectionError e) {
+        } catch (ConnectionErrorException e) {
             statusLabel.textFillProperty().setValue(Color.RED);
             statusLabel.setText("Connection failed.");
             e.printStackTrace();
         }
     }
 
-    private void initUi() throws ConnectionError {
+    private void initUi() throws ConnectionErrorException {
         try {
             // make login invisible
             loginContainer.setVisible(false);
@@ -226,13 +226,13 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
             // make data container visible
             setDataContainerVisible(true);
-        } catch (ConnectionError connectionError) {
+        } catch (ConnectionErrorException connectionErrorException) {
             statusLabel.textFillProperty().setValue(Color.RED);
             statusLabel.setText("Loading data for investor failed.");
         }
     }
 
-    private double calculateTotalValueOfStocks() throws ConnectionError {
+    private double calculateTotalValueOfStocks() throws ConnectionErrorException {
         // get all stocks for investor
         List<Stock> allStocksInDepot = depotInvestor.readAllStocks(null);
 
@@ -291,8 +291,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 try {
                     activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
                     tabOrders.setItems(activeOrders);
-                } catch (ConnectionError connectionError) {
-                    connectionError.printStackTrace();
+                } catch (ConnectionErrorException connectionErrorException) {
+                    connectionErrorException.printStackTrace();
                 }
             }
         });
@@ -305,8 +305,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             public void run() {
                 try {
                     populateStockStatsTable(depotInvestor.readAllStocks(null));
-                } catch (ConnectionError connectionError) {
-                    connectionError.printStackTrace();
+                } catch (ConnectionErrorException connectionErrorException) {
+                    connectionErrorException.printStackTrace();
                 }
             }
         });
@@ -320,14 +320,14 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 txtBudget.setText("" + budget.doubleValue());
                 try {
                     txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
-                } catch (ConnectionError connectionError) {
-                    connectionError.printStackTrace();
+                } catch (ConnectionErrorException connectionErrorException) {
+                    connectionErrorException.printStackTrace();
                 }
             }
         });
     }
 
-    private void populateStockStatsTable(List<Stock> allStocks) throws ConnectionError {
+    private void populateStockStatsTable(List<Stock> allStocks) throws ConnectionErrorException {
         // evaluate stock statistics
         HashMap<String, StockStats> statsMapping = new HashMap<>();
         for (Stock s : allStocks) {
@@ -355,8 +355,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 try {
                     txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
                     populateStockStatsTable(depotInvestor.readAllStocks(null));
-                } catch (ConnectionError connectionError) {
-                    connectionError.printStackTrace();
+                } catch (ConnectionErrorException connectionErrorException) {
+                    connectionErrorException.printStackTrace();
                 }
             }
         });

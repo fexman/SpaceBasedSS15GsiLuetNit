@@ -4,7 +4,7 @@ import Factory.IFactory;
 import Factory.RmiFactory;
 import Factory.XvsmFactory;
 import Service.BrokerService;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 
 import java.io.IOException;
 
@@ -39,8 +39,8 @@ public class TUIBroker {
                     break;
                 default: showUsage();
             }
-        } catch (ConnectionError connectionError) {
-            System.out.println("Error while connecting: "+connectionError.getMessage());
+        } catch (ConnectionErrorException connectionErrorException) {
+            System.out.println("Error while connecting: "+ connectionErrorException.getMessage());
         }
 
         //Issue stocks
@@ -48,8 +48,8 @@ public class TUIBroker {
         System.out.println("Will broke now. Press any key at any time to rollbackOpenTransactions.");
         try {
             broker.startBroking();
-        } catch (ConnectionError connectionError) {
-            System.out.println("Error on startup: " + connectionError.getMessage());
+        } catch (ConnectionErrorException connectionErrorException) {
+            System.out.println("Error on startup: " + connectionErrorException.getMessage());
         }
         try {
             System.in.read();

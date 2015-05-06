@@ -1,13 +1,12 @@
 package Util;
 
 import Model.Company;
-import Model.Investor;
 import RMIServer.EntityProviders.IDepotCompanyProvider;
 import RMIServer.EntityProviders.IDepotInvestorProvider;
 import RMIServer.EntityProviders.IProvider;
 import RMIServer.IRmiServer;
 
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -23,16 +22,16 @@ public class RmiUtil {
     private static HashMap<Container, IProvider> providers = new HashMap<>();
     public static final String RMI_SERVER_BINDING = "MarketServer";
 
-    public static RmiConnection initConnection(String uri) throws ConnectionError {
+    public static RmiConnection initConnection(String uri) throws ConnectionErrorException {
         String[] uriSplit = uri.split(":");
         if (uriSplit.length != 2) {
-            throw new ConnectionError("Could not parse uri: Invalid format");
+            throw new ConnectionErrorException("Could not parse uri: Invalid format");
         }
         int port = 0;
         try {
             port = Integer.parseInt(uriSplit[1]);
         } catch (NumberFormatException e) {
-            throw new ConnectionError("Invalid port: "+uriSplit[1]+" is not a valid integer-number!");
+            throw new ConnectionErrorException("Invalid port: "+uriSplit[1]+" is not a valid integer-number!");
         }
 
         rc = new RmiConnection(uriSplit[0],port);
@@ -45,7 +44,7 @@ public class RmiUtil {
             providers.put(Container.TRANSACTION_HISTORY, rc.getRmiServer().getTransactionHistoryContainer());
             providers.put(Container.BROKER_TOSUPPORT, rc.getRmiServer().getBrokerSupportProvider());
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
         return rc;
     }
@@ -54,19 +53,19 @@ public class RmiUtil {
         return providers.get(cont);
     }
 
-    public static IDepotCompanyProvider getDepot(Company company) throws ConnectionError {
+    public static IDepotCompanyProvider getDepot(Company company) throws ConnectionErrorException {
         try {
             return rc.getRmiServer().getDepotCompany(company);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
-    public static IDepotInvestorProvider getDepot(String investorId) throws ConnectionError {
+    public static IDepotInvestorProvider getDepot(String investorId) throws ConnectionErrorException {
         try {
             return rc.getRmiServer().getDepotInvestor(investorId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
@@ -79,12 +78,12 @@ public class RmiUtil {
         private Registry registry;
         private IRmiServer rmiServer;
 
-        public RmiConnection(String address, int port) throws ConnectionError {
+        public RmiConnection(String address, int port) throws ConnectionErrorException {
             try {
                 registry = LocateRegistry.getRegistry(address, port);
                 rmiServer = (IRmiServer) registry.lookup(RMI_SERVER_BINDING);
             } catch (Exception e) {
-                throw new ConnectionError(e);
+                throw new ConnectionErrorException(e);
             }
         }
 

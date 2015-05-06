@@ -7,7 +7,7 @@ import MarketEntities.Subscribing.TransactionHistory.ATransactionHistorySubManag
 import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import Model.Company;
 import Model.Investor;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
 import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
 import MarketEntities.Subscribing.MarketValues.AStockPricesSubManager;
@@ -47,17 +47,19 @@ public interface IFactory {
 
     //Dynamic containers
 
-    DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionError;
+    DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionErrorException;
 
-    DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionError;
+    DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionErrorException;
 
     //Transaction stuff
 
-    String createTransaction(TransactionTimeout timeout) throws ConnectionError;
+    String createTransaction(TransactionTimeout timeout) throws ConnectionErrorException;
 
-    void commitTransaction(String transactionId) throws ConnectionError;
+    void removeTransaction(String transactionId);
 
-    void rollbackTransaction(String transactionId) throws ConnectionError;
+    void commitTransaction(String transactionId) throws ConnectionErrorException;
+
+    void rollbackTransaction(String transactionId) throws ConnectionErrorException;
 
     //Closing ressources
 

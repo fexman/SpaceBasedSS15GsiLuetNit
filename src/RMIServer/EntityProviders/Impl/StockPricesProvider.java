@@ -5,7 +5,6 @@ import Model.Company;
 import Model.MarketValue;
 import RMIServer.EntityProviders.IBrokerSupportProvider;
 import RMIServer.EntityProviders.IStockPricesProvider;
-import Service.ConnectionError;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;

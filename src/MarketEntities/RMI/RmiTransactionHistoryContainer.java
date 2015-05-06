@@ -5,7 +5,7 @@ import MarketEntities.Subscribing.IRmiCallback;
 import MarketEntities.TransactionHistoryContainer;
 import Model.HistoryEntry;
 import RMIServer.EntityProviders.ITransactionHistoryProvider;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Util.Container;
 import Util.RmiUtil;
 
@@ -29,25 +29,25 @@ public class RmiTransactionHistoryContainer extends TransactionHistoryContainer 
     }
 
     @Override
-    public void addHistoryEntry(HistoryEntry historyEntry, String transactionId) throws ConnectionError {
+    public void addHistoryEntry(HistoryEntry historyEntry, String transactionId) throws ConnectionErrorException {
         try {
             transactionHistoryContainer.addHistoryEntry(historyEntry, transactionId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public List<HistoryEntry> getTransactionHistory(String transactionId) throws ConnectionError {
+    public List<HistoryEntry> getTransactionHistory(String transactionId) throws ConnectionErrorException {
         try {
             return transactionHistoryContainer.getTransactionHistory(transactionId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
+    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionErrorException {
         IRmiCallback<HistoryEntry> rmiSub = (IRmiCallback<HistoryEntry>) subscriber;
         try {
             UnicastRemoteObject.exportObject(rmiSub, 0);
@@ -58,21 +58,21 @@ public class RmiTransactionHistoryContainer extends TransactionHistoryContainer 
                     transactionHistoryContainer.subscribe(rmiSub);
                     return;
                 } catch (RemoteException e1) {
-                    throw new ConnectionError(e);
+                    throw new ConnectionErrorException(e);
                 }
             }
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
-    public void removeSubscriptions() throws ConnectionError{
+    public void removeSubscriptions() throws ConnectionErrorException {
         try {
             for (IRmiCallback<HistoryEntry> rmiSub : callbacks) {
                 transactionHistoryContainer.unsubscribe(rmiSub);
                 UnicastRemoteObject.unexportObject(rmiSub, true);
             }
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 

@@ -3,11 +3,10 @@ package MarketEntities.XVSM;
 import MarketEntities.DepotCompany;
 import Model.Company;
 import Model.Stock;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Util.Container;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.AnyCoordinator;
-import org.mozartspaces.capi3.LabelCoordinator;
 import org.mozartspaces.core.*;
 
 import java.util.List;
@@ -20,7 +19,7 @@ public class XvsmDepotCompany extends DepotCompany {
     private ContainerReference companyDepot;
     private XvsmUtil.XvsmConnection xc;
 
-    public XvsmDepotCompany(Company comp, String transactionId) throws ConnectionError {
+    public XvsmDepotCompany(Company comp, String transactionId) throws ConnectionErrorException {
         super(comp, transactionId);
 
         //Setting Depot-name
@@ -31,42 +30,42 @@ public class XvsmDepotCompany extends DepotCompany {
             TransactionReference tx = XvsmUtil.getTransaction(transactionId);
             companyDepot = XvsmUtil.getDepot(comp,tx);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public List<Stock> takeStocks(int amount, String transactionId) throws ConnectionError {
+    public List<Stock> takeStocks(int amount, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         AnyCoordinator.AnySelector selector = AnyCoordinator.newSelector(amount);
         try {
             return xc.getCapi().take(companyDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public int getTotalAmountOfStocks(String transactionId) throws ConnectionError {
+    public int getTotalAmountOfStocks(String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         AnyCoordinator.AnySelector selector = AnyCoordinator.newSelector(MzsConstants.Selecting.COUNT_MAX);
         try {
             return xc.getCapi().read(companyDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx).size();
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public void addStocks(List<Stock> stocks, String transactionId) throws ConnectionError {
+    public void addStocks(List<Stock> stocks, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
         for (Stock s : stocks) {
             try {
                 xc.getCapi().write(new Entry(s), companyDepot, XvsmUtil.ACTION_TIMEOUT, tx);
             } catch (MzsCoreException e) {
-                throw new ConnectionError(e);
+                throw new ConnectionErrorException(e);
             }
         }
     }

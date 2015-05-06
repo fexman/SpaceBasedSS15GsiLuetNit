@@ -14,7 +14,7 @@ import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import MarketEntities.Subscribing.TransactionHistory.RmiTransactionHistorySubManager;
 import Model.Company;
 import Model.Investor;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
 import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
 import MarketEntities.Subscribing.MarketValues.AStockPricesSubManager;
@@ -33,7 +33,7 @@ public class RmiFactory implements IFactory {
 
     RmiUtil.RmiConnection rc;
 
-    public RmiFactory(String uri) throws ConnectionError {
+    public RmiFactory(String uri) throws ConnectionErrorException {
         rc = RmiUtil.initConnection(uri);
     }
 
@@ -113,27 +113,32 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
-    public DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionError {
+    public DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionErrorException {
         return new RmiDepotInvestor(investor, transactionId);
     }
 
     @Override
-    public DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionError {
+    public DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionErrorException {
         return new RmiDepotCompany(comp, transactionId);
     }
 
     @Override
-    public String createTransaction(TransactionTimeout timeout) throws ConnectionError {
+    public String createTransaction(TransactionTimeout timeout) throws ConnectionErrorException {
         return null;
     }
 
     @Override
-    public void commitTransaction(String transactionId) throws ConnectionError {
+    public void removeTransaction(String transactionId) {
 
     }
 
     @Override
-    public void rollbackTransaction(String transactionId) throws ConnectionError {
+    public void commitTransaction(String transactionId) throws ConnectionErrorException {
+
+    }
+
+    @Override
+    public void rollbackTransaction(String transactionId) throws ConnectionErrorException {
 
     }
 

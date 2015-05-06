@@ -4,7 +4,7 @@ import MarketEntities.DepotCompany;
 import Model.Company;
 import Model.Stock;
 import RMIServer.EntityProviders.IDepotCompanyProvider;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Util.Container;
 import Util.RmiUtil;
 
@@ -18,7 +18,7 @@ public class RmiDepotCompany extends DepotCompany {
 
     private IDepotCompanyProvider depotCompany;
 
-    public RmiDepotCompany(Company comp, String transactionId) throws ConnectionError {
+    public RmiDepotCompany(Company comp, String transactionId) throws ConnectionErrorException {
         super(comp, transactionId);
 
         //Setting Depot-name
@@ -29,29 +29,29 @@ public class RmiDepotCompany extends DepotCompany {
     }
 
     @Override
-    public List<Stock> takeStocks(int amount, String transactionId) throws ConnectionError {
+    public List<Stock> takeStocks(int amount, String transactionId) throws ConnectionErrorException {
         try {
             return depotCompany.takeStocks(amount,transactionId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public int getTotalAmountOfStocks(String transactionId) throws ConnectionError {
+    public int getTotalAmountOfStocks(String transactionId) throws ConnectionErrorException {
         try {
             return depotCompany.getTotalAmountOfStocks(transactionId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public void addStocks(List<Stock> stocks, String transactionId) throws ConnectionError {
+    public void addStocks(List<Stock> stocks, String transactionId) throws ConnectionErrorException {
         try {
             depotCompany.addStocks(stocks,transactionId);
         } catch (RemoteException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 }

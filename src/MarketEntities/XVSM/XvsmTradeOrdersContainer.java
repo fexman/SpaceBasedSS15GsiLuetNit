@@ -1,10 +1,9 @@
 package MarketEntities.XVSM;
 
-import MarketEntities.StockPricesContainer;
 import MarketEntities.Subscribing.ASubManager;
 import MarketEntities.TradeOrderContainer;
 import Model.TradeOrder;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Util.Container;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.*;
@@ -14,7 +13,6 @@ import org.mozartspaces.notifications.NotificationManager;
 import org.mozartspaces.notifications.Operation;
 import org.mozartspaces.util.parser.sql.javacc.ParseException;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +33,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
 
     @Override
-    public void addOrUpdateOrder(TradeOrder order, String transactionId) throws ConnectionError {
+    public void addOrUpdateOrder(TradeOrder order, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         //Filtering using orderId (should be unique)
@@ -55,7 +53,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
                 System.out.println("FATAL ERROR on SQL-query while adding/updating order: Got multiple TradeOrders when selecting with UUID.");
             }
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
 
 
@@ -63,13 +61,13 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
         try {
             xc.getCapi().write(new Entry(order), tradeOrdersContainer, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
 
     }
 
     @Override
-    public List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws ConnectionError {
+    public List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         //Query building
@@ -149,12 +147,12 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
         try {
             return xc.getCapi().read(tradeOrdersContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionError {
+    public TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
         Query query = new Query();
         try {
@@ -178,12 +176,12 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
     }
 
     @Override
-    public List<TradeOrder> getAllOrders(String transactionId) throws ConnectionError {
+    public List<TradeOrder> getAllOrders(String transactionId) throws ConnectionErrorException {
         return getOrders(new TradeOrder(),transactionId);
     }
 
     @Override
-    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
+    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionErrorException {
         NotificationManager notificationManager = new NotificationManager(xc.getCore());
         Set<Operation> operations = new HashSet<>();
         operations.add(Operation.WRITE);
@@ -191,7 +189,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
         try {
             notificationManager.createNotification(tradeOrdersContainer, (NotificationListener)subscriber, operations, null, null);
         } catch (Exception e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 }

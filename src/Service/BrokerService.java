@@ -4,7 +4,6 @@ import Factory.IFactory;
 import MarketEntities.*;
 import Model.*;
 import Util.TransactionTimeout;
-import Util.XvsmUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,7 +42,7 @@ public class BrokerService extends Service {
         this.spThread = new StockPricesThread();
     }
 
-    public void startBroking() throws ConnectionError {
+    public void startBroking() throws ConnectionErrorException {
         new Thread(isrThread).start();
         new Thread(toThread).start();
         new Thread(spThread).start();
@@ -99,11 +98,14 @@ public class BrokerService extends Service {
                     System.out.println("ISR: Commit.");
                     factory.commitTransaction(transactionId);
 
-                } catch (ConnectionError e) {
+                } catch (TransactionTimeoutException e) {
+                    System.out.println("ISR: timed out!");
+                    factory.removeTransaction(transactionId);
+                } catch (ConnectionErrorException e) {
                     try {
                         factory.rollbackTransaction(transactionId);
-                        throw new ConnectionError(e);
-                    } catch (ConnectionError ex) {
+                        throw new ConnectionErrorException(e);
+                    } catch (ConnectionErrorException ex) {
                         ex.printStackTrace();
                     }
                 }
@@ -149,11 +151,14 @@ public class BrokerService extends Service {
                             factory.commitTransaction(transactionId);
                         }
                     }
-                } catch (ConnectionError connectionError) {
+                }  catch (TransactionTimeoutException e) {
+                    System.out.println("TO: timed out!");
+                    factory.removeTransaction(transactionId);
+                }  catch (ConnectionErrorException connectionErrorException) {
                     try {
                         factory.rollbackTransaction(transactionId);
-                        throw new ConnectionError(connectionError);
-                    } catch (ConnectionError ex) {
+                        throw new ConnectionErrorException(connectionErrorException);
+                    } catch (ConnectionErrorException ex) {
                         ex.printStackTrace();
                     }
                 }
@@ -199,11 +204,14 @@ public class BrokerService extends Service {
                             factory.commitTransaction(transactionId);
                         }
                     }
-                } catch (ConnectionError connectionError) {
+                } catch (TransactionTimeoutException e) {
+                    System.out.println("SP: timed out!");
+                    factory.removeTransaction(transactionId);
+                } catch (ConnectionErrorException connectionErrorException) {
                     try {
                         factory.rollbackTransaction(transactionId);
-                        throw new ConnectionError(connectionError);
-                    } catch (ConnectionError ex) {
+                        throw new ConnectionErrorException(connectionErrorException);
+                    } catch (ConnectionErrorException ex) {
                         ex.printStackTrace();
                     }
                 }
@@ -217,7 +225,7 @@ public class BrokerService extends Service {
 
     }
 
-    private void solveOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionError {
+    private void solveOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException {
         TradeOrder matchingTradeOrder = findMatchingTradeOrder(tradeOrder, transactionId);
 
         if (matchingTradeOrder != null) {
@@ -240,7 +248,7 @@ public class BrokerService extends Service {
         }
     }
 
-    private void executeTransaction(TradeOrder buyOrder, TradeOrder sellOrder, String transactionId) throws ConnectionError {
+    private void executeTransaction(TradeOrder buyOrder, TradeOrder sellOrder, String transactionId) throws ConnectionErrorException {
         // buyer can only be an investor
         DepotInvestor depotBuyer = factory.newDepotInvestor(new Investor(buyOrder.getInvestorId()), transactionId);
 
@@ -333,7 +341,7 @@ public class BrokerService extends Service {
     }
 
 
-    private List<Stock> takeStocksFromSellerDepot(Depot depotSeller, TradeOrder sellOrder, int amount, String transactionId) throws ConnectionError {
+    private List<Stock> takeStocksFromSellerDepot(Depot depotSeller, TradeOrder sellOrder, int amount, String transactionId) throws ConnectionErrorException {
         if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
             return ((DepotCompany) depotSeller).takeStocks(amount, transactionId);
         } else{
@@ -342,7 +350,7 @@ public class BrokerService extends Service {
     }
 
 
-    private boolean validateTradeOrders(TradeOrder buyOrder, TradeOrder sellOrder, String transactionId) throws ConnectionError {
+    private boolean validateTradeOrders(TradeOrder buyOrder, TradeOrder sellOrder, String transactionId) throws ConnectionErrorException {
         DepotInvestor depotInvestor = factory.newDepotInvestor(new Investor(buyOrder.getInvestorId()), transactionId);
         if (buyerHasEnoughMoney(buyOrder, depotInvestor, transactionId)) {
             System.out.println("Buyer has enough money");
@@ -427,14 +435,14 @@ public class BrokerService extends Service {
                 System.out.println("No matching trade oder found :(");
             }
             return null;
-        } catch (ConnectionError connectionError) {
-            connectionError.printStackTrace();
+        } catch (ConnectionErrorException connectionErrorException) {
+            connectionErrorException.printStackTrace();
         }
         return null;
     }
 
 
-    private boolean checkCompatibilityWithMarketValue(TradeOrder buyOrder, TradeOrder sellOrder, double currentStockPrice, String transactionId) throws ConnectionError {
+    private boolean checkCompatibilityWithMarketValue(TradeOrder buyOrder, TradeOrder sellOrder, double currentStockPrice, String transactionId) throws ConnectionErrorException {
         // current stock price must higher or equal to the minimum selling price and lower than the maximum buying price
         if (currentStockPrice >= sellOrder.getPriceLimit() && currentStockPrice <= buyOrder.getPriceLimit()) {
             return true;
@@ -443,7 +451,7 @@ public class BrokerService extends Service {
     }
 
 
-    private boolean buyerHasEnoughMoney(TradeOrder tradeOrder, DepotInvestor depotInvestor, String transactionId) throws ConnectionError {
+    private boolean buyerHasEnoughMoney(TradeOrder tradeOrder, DepotInvestor depotInvestor, String transactionId) throws ConnectionErrorException {
         // check if investor has enough money to perform transaction
         StockPricesContainer stockPricesContainer = factory.newStockPricesContainer();
         double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
@@ -456,7 +464,7 @@ public class BrokerService extends Service {
 
 
     // bei buy order ist seller die matchingTradeOrder und vice versa
-    private boolean sellerHasEnoughStocks(TradeOrder tradeOrder, String transactionId) throws ConnectionError {
+    private boolean sellerHasEnoughStocks(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException {
         if (tradeOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
             DepotCompany depotCompany = factory.newDepotCompany(tradeOrder.getCompany(), transactionId);
             return depotCompany.getTotalAmountOfStocks(transactionId) >= (tradeOrder.getTotalAmount() - tradeOrder.getCompletedAmount());

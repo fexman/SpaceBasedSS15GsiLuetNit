@@ -15,7 +15,7 @@ public class CompanyService extends Service {
         super(factory);
     }
 
-    public void issueStocks(IssueStockRequest isr) throws ConnectionError {
+    public void issueStocks(IssueStockRequest isr) throws ConnectionErrorException {
 
         //create TransactionId
         String transactionId = null;
@@ -42,11 +42,11 @@ public class CompanyService extends Service {
             factory.commitTransaction(transactionId);
             System.out.println("Commited: " + isr);
 
-        } catch (ConnectionError e) {
+        } catch (ConnectionErrorException e) {
             try {
                 factory.rollbackTransaction(transactionId);
                 throw e;
-            } catch (ConnectionError ex) {
+            } catch (ConnectionErrorException ex) {
                 throw ex;
             }
         }

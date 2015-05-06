@@ -4,7 +4,7 @@ import MarketEntities.StockPricesContainer;
 import MarketEntities.Subscribing.ASubManager;
 import Model.Company;
 import Model.MarketValue;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import Util.Container;
 import Util.XvsmUtil;
 import org.mozartspaces.capi3.CoordinationData;
@@ -35,7 +35,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
 
 
     @Override
-    public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws ConnectionError {
+    public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         Selector selector = KeyCoordinator.newSelector(marketValue.getCompanyId(), Selector.COUNT_MAX);
@@ -46,12 +46,12 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
             xc.getCapi().delete(stockPricesContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
             xc.getCapi().write(new Entry(marketValue, coordData), stockPricesContainer, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public MarketValue getMarketValue(Company comp, String transactionId) throws ConnectionError {
+    public MarketValue getMarketValue(Company comp, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         Selector selector = KeyCoordinator.newSelector(comp.getId(), Selector.COUNT_MAX);
@@ -60,7 +60,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
         try {
             result = xc.getCapi().read(stockPricesContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
 
         if (result.size() == 1) {
@@ -71,7 +71,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
     }
 
     @Override
-    public List<MarketValue> getAll(String transactionId) throws ConnectionError {
+    public List<MarketValue> getAll(String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         Selector selector = FifoCoordinator.newSelector(Selector.COUNT_MAX);
@@ -79,12 +79,12 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
         try {
             return xc.getCapi().read(stockPricesContainer,selector,XvsmUtil.ACTION_TIMEOUT,tx);
         } catch (MzsCoreException e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionError {
+    public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionErrorException {
         NotificationManager notificationManager = new NotificationManager(xc.getCore());
         Set<Operation> operations = new HashSet<>();
         operations.add(Operation.WRITE);
@@ -92,7 +92,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
         try {
             notificationManager.createNotification(stockPricesContainer, (NotificationListener)subscriber, operations, null, null);
         } catch (Exception e) {
-            throw new ConnectionError(e);
+            throw new ConnectionErrorException(e);
         }
     }
 }

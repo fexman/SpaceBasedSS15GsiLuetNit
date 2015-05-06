@@ -1,13 +1,8 @@
 package Util;
 
-import Factory.IFactory;
-import MarketEntities.DepotInvestor;
-import MarketEntities.StockPricesContainer;
 import Model.Company;
-import Model.Investor;
 import Model.MarketValue;
 import Model.TradeOrder;
-import Service.ConnectionError;
 import org.mozartspaces.capi3.*;
 import org.mozartspaces.core.*;
 import org.mozartspaces.core.aspects.AbstractContainerAspect;
@@ -27,7 +22,8 @@ import java.util.UUID;
 
 public class XvsmUtil {
 
-    public static final long ACTION_TIMEOUT = 5000;
+    public static final long ACTION_TIMEOUT = 5000l;
+    public static final long INFINITE_TAKE = 10000l;
 
     private static HashMap<String, TransactionReference> transactions = new HashMap<>();
     private static HashMap<Container, ContainerReference> containers = new HashMap<>();
@@ -174,18 +170,23 @@ public class XvsmUtil {
 
     public static void commitTransaction(String transactionId) throws MzsCoreException {
         xc.getCapi().commitTransaction(getTransaction(transactionId));
-        transactions.remove(transactionId);
+        removeTransaction(transactionId);
     }
 
     public static void rollbackTransaction(String transactionId) throws MzsCoreException {
         xc.getCapi().rollbackTransaction(getTransaction(transactionId));
+        removeTransaction(transactionId);
+    }
+
+    public static void removeTransaction(String transactionId) {
         transactions.remove(transactionId);
     }
 
     private static long getTransactionTimeoutValue(TransactionTimeout timeout) {
         switch (timeout) {
             case INFINITE:
-                return MzsConstants.TransactionTimeout.INFINITE;
+                return MzsConstants.RequestTimeout.INFINITE;
+                //return MzsConstants.TransactionTimeout.INFINITE;
             case TRY_ONCE:
                 return MzsConstants.RequestTimeout.ZERO;
             default:

@@ -8,7 +8,7 @@ import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import MarketEntities.TradeOrderContainer;
 import MarketEntities.TransactionHistoryContainer;
 import Model.*;
-import Service.ConnectionError;
+import Service.ConnectionErrorException;
 import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import javafx.animation.FadeTransition;
@@ -195,7 +195,7 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
 
             System.out.println("Connected!");
 
-        } catch (ConnectionError e) {
+        } catch (ConnectionErrorException e) {
             statusLabel.textFillProperty().setValue(Color.RED);
             statusLabel.setText("Connection failed.");
             e.printStackTrace();
