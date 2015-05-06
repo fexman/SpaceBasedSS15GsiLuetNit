@@ -27,14 +27,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import org.mozartspaces.core.MzsConstants;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,6 +48,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
     private DepotInvestor depotInvestor;
     private ObservableList<StockStats> stockStats;
+    private List<Stock> allStocks;
 
     private StockPricesContainer stockPricesContainer;
 
@@ -134,7 +132,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             @Override
             public void changed(ObservableValue<? extends TradeOrder> observable, TradeOrder oldValue, TradeOrder newValue) {
                 selectedOrder = newValue;
-                if (btnDeleteOrder.isDisabled()) {
+                if (selectedOrder != null && btnDeleteOrder.isDisabled()) {
                     btnDeleteOrder.setDisable(false);
                 }
             }
@@ -238,7 +236,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
 
             // init owned stocks table
-            populateStockStatsTable(depotInvestor.readAllStocks(null));
+            allStocks = depotInvestor.readAllStocks(null);
+            populateStockStatsTable();
 
             // init open orders table
             activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
@@ -296,10 +295,13 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         if (selectedOrder != null) {
             System.out.println("To delete: " + selectedOrder);
             try {
+                //TODO transaction timeout SOGAR in XVSM (AUCH MIT INFINITE TIMEOUT!) -> addOrUpdateTradeOrder wirft Exception -> Transaction Timeout!
                 String transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
                 selectedOrder.setStatus(TradeOrder.Status.DELETED);
                 tradeOrderContainer.addOrUpdateOrder(selectedOrder, transactionId);
                 factory.commitTransaction(transactionId);
+
+                btnDeleteOrder.setDisable(true);
             } catch (ConnectionErrorException connectionError) {
                 System.out.print(connectionError);
             }
@@ -342,12 +344,22 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     }
 
     @Override
-    public void pushNewStocks(List<Stock> stocks) {
+    public void pushNewStocks(final List<Stock> newStocks) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
+                for (Stock newStock : newStocks) {
+                    if (allStocks.contains(newStock)) {
+                        System.out.println("Updated: " + allStocks.indexOf(newStock) + " with " + newStock);
+                        int index = activeOrders.indexOf(newStock);
+                        allStocks.set(index, newStock);
+                    } else {
+                        allStocks.add(newStock);
+                    }
+                }
+
                 try {
-                    populateStockStatsTable(depotInvestor.readAllStocks(null));
+                    populateStockStatsTable();
                 } catch (ConnectionErrorException connectionErrorException) {
                     connectionErrorException.printStackTrace();
                 }
@@ -370,7 +382,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         });
     }
 
-    private void populateStockStatsTable(List<Stock> allStocks) throws ConnectionErrorException {
+    private void populateStockStatsTable() throws ConnectionErrorException {
         // evaluate stock statistics
         HashMap<String, StockStats> statsMapping = new HashMap<>();
         for (Stock s : allStocks) {
@@ -396,8 +408,9 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             @Override
             public void run() {
                 try {
+                    allStocks = depotInvestor.readAllStocks(null);
                     txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
-                    populateStockStatsTable(depotInvestor.readAllStocks(null));
+                    populateStockStatsTable();
                 } catch (ConnectionErrorException connectionErrorException) {
                     connectionErrorException.printStackTrace();
                 }

@@ -49,6 +49,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
         //Removing order using take if already existent, doing nothing if not
         try {
+            ArrayList<TradeOrder> e = xc.getCapi().take(tradeOrdersContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx);
             if (xc.getCapi().take(tradeOrdersContainer, selector, XvsmUtil.ACTION_TIMEOUT, tx).size() > 1) { //Just in case UUID is not unique or query is fucked up! :D
                 System.out.println("FATAL ERROR on SQL-query while adding/updating order: Got multiple TradeOrders when selecting with UUID.");
             }
