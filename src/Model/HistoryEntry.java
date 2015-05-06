@@ -127,4 +127,20 @@ public class HistoryEntry implements Serializable {
     public void setProvision(Double provision) {
         this.provision = provision;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        HistoryEntry that = (HistoryEntry) o;
+
+        return !(transactionId != null ? !transactionId.equals(that.transactionId) : that.transactionId != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return transactionId != null ? transactionId.hashCode() : 0;
+    }
 }
