@@ -1,7 +1,5 @@
 package Model;
 
-import com.sleepycat.je.utilint.Stat;
-import org.mozartspaces.capi3.Index;
 import org.mozartspaces.capi3.Queryable;
 
 import java.io.Serializable;

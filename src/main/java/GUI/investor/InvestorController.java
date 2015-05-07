@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IStockPricesSub {
 
@@ -48,9 +49,13 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
     private DepotInvestor depotInvestor;
     private ObservableList<StockStats> stockStats;
-    private List<Stock> allStocks;
+
+    private List<Stock> allStocksInDepot;
+    private List<MarketValue> allMarketValues;
+    private HashMap<String, Integer> stockNamesAndCount;
 
     private StockPricesContainer stockPricesContainer;
+
 
     @FXML
     private Label txtStatus;
@@ -162,7 +167,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
     public void editBudgetButtonClicked() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("increase_budget.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("increase_budget.fxml"));
             fxmlLoader.setController(new BudgetController(factory, investor));
             Parent root1 = (Parent) fxmlLoader.load();
             Stage stage = new Stage();
@@ -233,10 +238,14 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 editBudgetButtonClicked();
             }
             txtBudget.setText("" + budget);
+
+            allStocksInDepot = depotInvestor.readAllStocks(null);
+            allMarketValues = stockPricesContainer.getAll(null);
+            stockNamesAndCount = new HashMap<>();
+            updateStockNamesAndCount(allStocksInDepot);
+
             txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
 
-            // init owned stocks table
-            allStocks = depotInvestor.readAllStocks(null);
             populateStockStatsTable();
 
             // init open orders table
@@ -251,35 +260,22 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         }
     }
 
-    private double calculateTotalValueOfStocks() throws ConnectionErrorException {
-        // get all stocks for investor
-        List<Stock> allStocksInDepot = depotInvestor.readAllStocks(null);
-
-        // get distinct stock names and count
-        HashMap<String, Integer> stockNamesAndCount = new HashMap<>();
-        for (Stock s : allStocksInDepot) {
-            if (stockNamesAndCount.get(s.getCompany().getId()) == null) {
-                stockNamesAndCount.put(s.getCompany().getId(), 1);
-            } else {
-                stockNamesAndCount.put(s.getCompany().getId(), stockNamesAndCount.get(s.getCompany().getId()) + 1);
-            }
-        }
-
+    private double calculateTotalValueOfStocks() {
+        // for every market value, multiply the number of stocks with the current stock price to get the total value
         double totalValue = 0;
-
-        for (String s : stockNamesAndCount.keySet()) {  // only <disctinct company stocks> space operations needed
-            Double price = stockPricesContainer.getMarketValue(new Company(s), null).getPrice();
-            if (price != null) {
-                totalValue += (price * stockNamesAndCount.get(s));
+        for (MarketValue marketValue : allMarketValues) {
+            Double price = marketValue.getPrice();
+            Integer numberOfStocks = stockNamesAndCount.get(marketValue.getCompanyId());
+            if (numberOfStocks != null) {
+                totalValue += (price * numberOfStocks);
             }
         }
-
         return totalValue;
     }
 
     public void addOrderButtonClicked() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("new_order.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("new_order.fxml"));
             fxmlLoader.setController(new NewOrderController(factory, investor));
             Parent root1 = (Parent) fxmlLoader.load();
             Stage stage = new Stage();
@@ -295,13 +291,17 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         if (selectedOrder != null) {
             System.out.println("To delete: " + selectedOrder);
             try {
-                //TODO transaction timeout SOGAR in XVSM (AUCH MIT INFINITE TIMEOUT!) -> addOrUpdateTradeOrder wirft Exception -> Transaction Timeout!
                 String transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
                 selectedOrder.setStatus(TradeOrder.Status.DELETED);
                 tradeOrderContainer.addOrUpdateOrder(selectedOrder, transactionId);
                 factory.commitTransaction(transactionId);
 
-                btnDeleteOrder.setDisable(true);
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        btnDeleteOrder.setDisable(true);
+                    }
+                });
             } catch (ConnectionErrorException connectionError) {
                 System.out.print(connectionError);
             }
@@ -321,50 +321,57 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
     @Override
     public void pushNewTradeOrders(final TradeOrder tradeOrder) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
-                    if (activeOrders.contains(tradeOrder)) {
-                        int index = activeOrders.indexOf(tradeOrder);
-                        activeOrders.set(index, tradeOrder);
-                    } else {
-                        activeOrders.add(tradeOrder);
-                    }
+        try {
+            if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
+                List<TradeOrder> allTradeOrders = tradeOrderContainer.getOrders(ORDER_FILTER, null);
+                activeOrders = FXCollections.observableList(allTradeOrders);
+                if (activeOrders.contains(tradeOrder)) {
+                    int index = activeOrders.indexOf(tradeOrder);
+                    activeOrders.set(index, tradeOrder);
                 } else {
-                    activeOrders.remove(tradeOrder);  // only removes if present
+                    activeOrders.add(tradeOrder);
                 }
-
-                tabOrders.setItems(activeOrders);
-
-                tabOrders.getColumns().get(4).setVisible(false);
-                tabOrders.getColumns().get(4).setVisible(true);
+            } else {
+                activeOrders.remove(tradeOrder);
             }
-        });
+
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    tabOrders.setItems(activeOrders);
+                }
+            });
+        } catch (ConnectionErrorException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void pushNewStocks(final List<Stock> newStocks) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                for (Stock newStock : newStocks) {
-                    if (allStocks.contains(newStock)) {
-                        System.out.println("Updated: " + allStocks.indexOf(newStock) + " with " + newStock);
-                        int index = activeOrders.indexOf(newStock);
-                        allStocks.set(index, newStock);
-                    } else {
-                        allStocks.add(newStock);
-                    }
-                }
-
-                try {
-                    populateStockStatsTable();
-                } catch (ConnectionErrorException connectionErrorException) {
-                    connectionErrorException.printStackTrace();
-                }
+        // assumption -> stocks are ALL from the same company
+        if (newStocks != null && newStocks.size() > 0) {
+            String companyId = newStocks.get(0).getCompany().getId();
+            if (stockNamesAndCount.containsKey(companyId)) {
+                // stock with company name <xy> already in map -> increase number
+                stockNamesAndCount.put(companyId, stockNamesAndCount.get(companyId) + newStocks.size());
+            } else {
+                // stocks of a new company acquired
+                stockNamesAndCount.put(companyId, newStocks.size());
             }
-        });
+        }
+        populateStockStatsTable();
+    }
+
+    private void updateStockNamesAndCount(List<Stock> newStocks) {
+        // stocks of more than one company can be in here
+        for (Stock stock : newStocks) {
+            String companyId = stock.getCompany().getId();
+            if (stockNamesAndCount.containsKey(companyId)) {
+                stockNamesAndCount.put(companyId, stockNamesAndCount.get(companyId) + 1);
+            } else {
+                stockNamesAndCount.put(companyId, 1);
+            }
+        }
     }
 
     @Override
@@ -373,49 +380,53 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             @Override
             public void run() {
                 txtBudget.setText("" + budget.doubleValue());
-                try {
-                    txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
-                } catch (ConnectionErrorException connectionErrorException) {
-                    connectionErrorException.printStackTrace();
-                }
+                txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
             }
         });
     }
 
-    private void populateStockStatsTable() throws ConnectionErrorException {
-        // evaluate stock statistics
+    private void populateStockStatsTable() {
         HashMap<String, StockStats> statsMapping = new HashMap<>();
-        for (Stock s : allStocks) {
-            StockStats currentStockStats = statsMapping.get(s.getCompany().getId());
-            if (currentStockStats == null) {
-                // no stock stats for this company evaluated yet (get current market value here)
-                Double marketValue = stockPricesContainer.getMarketValue(s.getCompany(), null).getPrice();
-                statsMapping.put(s.getCompany().getId(), new StockStats(s.getCompany().getId(), 1, marketValue, marketValue));
-            } else {
-                // update stock stats amount and totalValue accordingly
-                statsMapping.put(s.getCompany().getId(), new StockStats(s.getCompany().getId(), currentStockStats.getAmount() + 1,
-                        currentStockStats.getMarketValue(), currentStockStats.getMarketValue() * (currentStockStats.getAmount() + 1)));
+        for (Map.Entry<String, Integer> entry : stockNamesAndCount.entrySet()) {
+            for (MarketValue marketValue : allMarketValues) {
+                if (marketValue.getCompanyId().equals(entry.getKey())) {
+                    Double price = marketValue.getPrice();
+                    statsMapping.put(entry.getKey(), new StockStats(entry.getKey(), entry.getValue(), price, price * entry.getValue()));
+                }
             }
         }
         // populate table with results
         stockStats = FXCollections.observableList(new ArrayList<>(statsMapping.values()));
-        tabStocks.setItems(stockStats);
-    }
 
-    @Override
-    public void pushNewMarketValues(List<MarketValue> newMarketValues) {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                try {
-                    allStocks = depotInvestor.readAllStocks(null);
-                    txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
-                    populateStockStatsTable();
-                } catch (ConnectionErrorException connectionErrorException) {
-                    connectionErrorException.printStackTrace();
-                }
+                tabStocks.setItems(stockStats);
             }
         });
+    }
+
+
+    @Override
+    public void pushNewMarketValues(List<MarketValue> newMarketValues) {
+        // here we are only interested in adding/updating market values (not removing)
+        for (MarketValue newMarketValue : newMarketValues) {
+            if (allMarketValues.contains(newMarketValue)) {
+                int index = allMarketValues.indexOf(newMarketValue);
+                allMarketValues.set(index, newMarketValue);
+            } else {
+                allMarketValues.add(newMarketValue);
+            }
+        }
+
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
+            }
+        });
+
+        populateStockStatsTable();
     }
 
 }

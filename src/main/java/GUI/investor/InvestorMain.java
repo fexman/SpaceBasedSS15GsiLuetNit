@@ -10,7 +10,7 @@ public class InvestorMain extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("investor.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("investor.fxml"));
         Parent root = (Parent) fxmlLoader.load();
         InvestorController controller = fxmlLoader.getController();
         controller.addShutdownHook(primaryStage);

@@ -8,18 +8,18 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="535.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.investor.InvestorController">
    <children>
-      <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="800.0" prefWidth="535.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="800.0" prefWidth="525.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <HBox id="loginContainer" fx:id="loginContainer" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="525.0" VBox.vgrow="NEVER">
                <children>
-                  <Label id="txtStatus" fx:id="txtStatus" minWidth="-Infinity" prefHeight="31.0" prefWidth="114.0" text="Enter Username:" HBox.hgrow="NEVER" />
-                  <TextField id="txtUsername" fx:id="txtUsername" prefHeight="31.0" prefWidth="214.0" HBox.hgrow="ALWAYS" />
-                  <ComboBox id="protocolField" fx:id="protocolField" minWidth="-Infinity" onAction="#protocolFieldChanged" prefHeight="31.0" prefWidth="120.0" HBox.hgrow="NEVER">
+                  <Label id="txtStatus" fx:id="txtStatus" minWidth="-Infinity" prefHeight="31.0" prefWidth="114.0" text="Enter Username:" />
+                  <TextField id="txtUsername" fx:id="txtUsername" prefHeight="31.0" prefWidth="214.0" />
+                  <ComboBox id="protocolField" fx:id="protocolField" minWidth="-Infinity" onAction="#protocolFieldChanged" prefHeight="31.0" prefWidth="120.0">
                      <HBox.margin>
                         <Insets left="5.0" />
                      </HBox.margin>
                   </ComboBox>
-                  <Button id="btnLogin" fx:id="btnLogin" minWidth="-Infinity" mnemonicParsing="false" onAction="#loginButtonClicked" prefWidth="60.0" text="Login" HBox.hgrow="NEVER">
+                  <Button id="btnLogin" fx:id="btnLogin" minWidth="-Infinity" mnemonicParsing="false" onAction="#loginButtonClicked" prefWidth="60.0" text="Login">
                      <HBox.margin>
                         <Insets left="5.0" />
                      </HBox.margin>

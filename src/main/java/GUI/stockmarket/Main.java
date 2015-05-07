@@ -10,7 +10,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("marketInspector.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("marketInspector.fxml"));
         Parent root = (Parent)fxmlLoader.load();
         Controller controller = (Controller)fxmlLoader.getController();
         controller.addShutdownHook(primaryStage);
