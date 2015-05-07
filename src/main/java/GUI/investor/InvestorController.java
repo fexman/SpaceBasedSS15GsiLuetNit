@@ -333,16 +333,18 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        activeOrders.remove(tradeOrder);
+                        if (activeOrders.contains(tradeOrder)) {
+                            activeOrders.remove(tradeOrder);
+                        }
                     }
                 });
             }
 
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    tabOrders.setItems(activeOrders);
-                }
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                tabOrders.setItems(activeOrders);
+            }
             });
     }
 
