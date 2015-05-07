@@ -321,10 +321,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
     @Override
     public void pushNewTradeOrders(final TradeOrder tradeOrder) {
-        try {
-            if (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
-                List<TradeOrder> allTradeOrders = tradeOrderContainer.getOrders(ORDER_FILTER, null);
-                activeOrders = FXCollections.observableList(allTradeOrders);
+            if (tradeOrder.getInvestorId().equals(investor.getId()) &&
+                    (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED))) {
                 if (activeOrders.contains(tradeOrder)) {
                     int index = activeOrders.indexOf(tradeOrder);
                     activeOrders.set(index, tradeOrder);
@@ -332,7 +330,12 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                     activeOrders.add(tradeOrder);
                 }
             } else {
-                activeOrders.remove(tradeOrder);
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        activeOrders.remove(tradeOrder);
+                    }
+                });
             }
 
             Platform.runLater(new Runnable() {
@@ -341,9 +344,6 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                     tabOrders.setItems(activeOrders);
                 }
             });
-        } catch (ConnectionErrorException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
