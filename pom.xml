@@ -11,6 +11,13 @@
         </repository>
     </repositories>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>onejar-maven-plugin.googlecode.com</id>
+            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <dependencies>
         <dependency>
             <groupId>org.mozartspaces</groupId>
@@ -37,6 +44,97 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.dstovall</groupId>
+                <artifactId>onejar-maven-plugin</artifactId>
+                <version>1.4.4</version>
+                <executions>
+                    <execution>
+                        <id>InvestorGUI</id>
+                        <configuration>
+                            <mainClass>GUI.investor.InvestorMain</mainClass>
+                            <attachToBuild>true</attachToBuild>
+                            <classifier>onejar</classifier>
+                            <filename>InvestorGUI.jar</filename>
+                        </configuration>
+                        <goals>
+                            <goal>one-jar</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>MarketInspector</id>
+                        <configuration>
+                            <mainClass>GUI.stockmarket.Main</mainClass>
+                            <attachToBuild>true</attachToBuild>
+                            <classifier>onejar</classifier>
+                            <filename>MarketInspectorGUI.jar</filename>
+                        </configuration>
+                        <goals>
+                            <goal>one-jar</goal>
+                        </goals>
+                    </execution>
+                <execution>
+                    <id>TUICompany</id>
+                    <configuration>
+                        <mainClass>TUI.TUICompany</mainClass>
+                        <attachToBuild>true</attachToBuild>
+                        <classifier>onejar</classifier>
+                        <filename>TUICompany.jar</filename>
+                    </configuration>
+                    <goals>
+                        <goal>one-jar</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>TUIBroker</id>
+                    <configuration>
+                        <mainClass>TUI.TUIBroker</mainClass>
+                        <attachToBuild>true</attachToBuild>
+                        <classifier>onejar</classifier>
+                        <filename>TUIBroker.jar</filename>
+                    </configuration>
+                    <goals>
+                        <goal>one-jar</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>TUIMarketAgent</id>
+                    <configuration>
+                        <mainClass>TUI.TUIMarketAgent</mainClass>
+                        <attachToBuild>true</attachToBuild>
+                        <classifier>onejar</classifier>
+                        <filename>TUIMarketAgent.jar</filename>
+                    </configuration>
+                    <goals>
+                        <goal>one-jar</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>TUIXvsmServer</id>
+                    <configuration>
+                        <mainClass>TUI.TUIXvsmServer</mainClass>
+                        <attachToBuild>true</attachToBuild>
+                        <classifier>onejar</classifier>
+                        <filename>TUIXvsmServer.jar</filename>
+                    </configuration>
+                    <goals>
+                        <goal>one-jar</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>TUIRmiServer</id>
+                    <configuration>
+                        <mainClass>TUI.TUIRmiServer</mainClass>
+                        <attachToBuild>true</attachToBuild>
+                        <classifier>onejar</classifier>
+                        <filename>TUIRmiServer.jar</filename>
+                    </configuration>
+                    <goals>
+                        <goal>one-jar</goal>
+                    </goals>
+                </execution>
+            </executions>
             </plugin>
         </plugins>
     </build>
