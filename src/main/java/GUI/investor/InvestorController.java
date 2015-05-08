@@ -121,6 +121,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         protocols.add("RMI");
         protocolField.setItems(protocols);
         protocolField.setValue(protocols.get(0));
+        serverAdressAndPort = "xvsm://localhost:12345";
 
         colOrderId.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("id"));
         colOrderType.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("type"));

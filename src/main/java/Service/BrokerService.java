@@ -59,7 +59,7 @@ public class BrokerService extends Service {
         @Override
         public void run() {
             while (running) {
-                System.out.println("ISR: Looking for new ISRs ....");
+//                System.out.println("ISR: Looking for new ISRs ....");
                 String transactionId = null;
                 try {
 
@@ -130,7 +130,7 @@ public class BrokerService extends Service {
         @Override
         public void run() {
             while (running) {
-                System.out.println("TO: Looking for new TOs ....");
+//                System.out.println("TO: Looking for new TOs ....");
 
                 String transactionId = "";
                 try {
@@ -240,6 +240,20 @@ public class BrokerService extends Service {
                 }
             }
         } else {
+            if (tradeOrder.getInvestorType().equals(TradeOrder.InvestorType.INVESTOR)) {
+                DepotInvestor depotInvestor = factory.newDepotInvestor(new Investor(tradeOrder.getInvestorId()), transactionId);
+                if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
+                    if (!buyerHasEnoughMoney(tradeOrder, depotInvestor, transactionId)) {
+                        tradeOrder.setStatus(TradeOrder.Status.DELETED);
+                        System.out.println("Punishing investor for not having enough money for his own buy order.");
+                    }
+                } else {
+                    if (!sellerHasEnoughStocks(tradeOrder, transactionId)) {
+                        tradeOrder.setStatus(TradeOrder.Status.DELETED);
+                        System.out.println("Punishing investor for not having enough stocks for his own sell order.");
+                    }
+                }
+            }
 
             // no matching trade order found
             System.out.println("Solveorder: Match WAS null.");
@@ -388,7 +402,7 @@ public class BrokerService extends Service {
             List<TradeOrder> matchingOrders = tradeOrdersContainer.getOrders(filter, transactionId);
 
             if (matchingOrders.size() > 0) {
-                System.out.println("Matching trade order found!");
+                System.out.println(matchingOrders.size() + " matching trade orders found!");
 
                 // get current stock price
                 double currentStockPrice = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
@@ -404,11 +418,11 @@ public class BrokerService extends Service {
                         compatibleWithMarketValue = checkCompatibilityWithMarketValue(matchingOrders.get(i), tradeOrder, currentStockPrice, transactionId);
                     }
                     if (compatibleWithMarketValue) {
-                        System.out.println("Matching trade order, which is compatible with the current stock price, found!");
                         // trade order is compatible with current market value -> 3rd condition valid -> add them to the list
                         compatibleMatchingTradeOrders.add(matchingOrders.get(i));
                     }
                 }
+                System.out.println(compatibleMatchingTradeOrders.size() + "/" + matchingOrders.size() + " matching trade orders are compatible with the current stock price!");
 
                 // sorting from newest (index 0) to oldest (index size - 1) compatible matching trade order and try to take them in order
                 Collections.sort(compatibleMatchingTradeOrders, new Comparator<TradeOrder>() {
@@ -418,17 +432,21 @@ public class BrokerService extends Service {
                     }
                 });
 
+                for (int i = 0; i < compatibleMatchingTradeOrders.size(); i++) {
+                    System.out.println(compatibleMatchingTradeOrders.get(i).getCreated() + " < ");
+                }
+
                 if (compatibleMatchingTradeOrders.size() > 0) {
                     for (int i = compatibleMatchingTradeOrders.size() - 1; i >= 0; i--) {
-                        System.out.println("CompTos #" + i + ": " + compatibleMatchingTradeOrders.get(0));
                         TradeOrder finalMatch = tradeOrdersContainer.takeOrder(compatibleMatchingTradeOrders.get(i), transactionId);
-                        System.out.println("Final match #"+i+": "+finalMatch);
+                        System.out.println("Final match #"+i+": ");
                         if (finalMatch != null) {
-                            System.out.println("Found final match: "+finalMatch);
+                            System.out.println("Found final match: " + finalMatch);
                             return finalMatch;
                         }
                     }
                 } else {
+                    System.out.println("COULD NOT PROCESS FINAL MATCH BECAUSE TO WAS BLOCKED SOMEHOW!");
                     return null;
                 }
             } else {
@@ -453,7 +471,6 @@ public class BrokerService extends Service {
 
     private boolean buyerHasEnoughMoney(TradeOrder tradeOrder, DepotInvestor depotInvestor, String transactionId) throws ConnectionErrorException {
         // check if investor has enough money to perform transaction
-        StockPricesContainer stockPricesContainer = factory.newStockPricesContainer();
         double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
         double transactionCost = ((double) tradeOrder.getTotalAmount() * currentMarketValue) * (1.0 + PROVISION_PERCENTAGE);
 
