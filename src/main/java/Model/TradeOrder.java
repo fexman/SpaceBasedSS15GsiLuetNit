@@ -156,6 +156,7 @@ public class TradeOrder implements Serializable {
                 ", status=" + status +
                 ", type=" + type +
                 ", investorType=" + investorType +
+                ", created=" + created +
                 '}';
     }
 

@@ -326,7 +326,12 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                     (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED))) {
                 if (activeOrders.contains(tradeOrder)) {
                     int index = activeOrders.indexOf(tradeOrder);
-                    activeOrders.set(index, tradeOrder);
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            activeOrders.set(index, tradeOrder);
+                        }
+                    });
                 } else {
                     activeOrders.add(tradeOrder);
                 }
@@ -346,7 +351,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             public void run() {
                 tabOrders.setItems(activeOrders);
             }
-            });
+        });
     }
 
     @Override

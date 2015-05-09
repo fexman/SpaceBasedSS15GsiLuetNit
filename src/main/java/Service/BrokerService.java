@@ -91,6 +91,7 @@ public class BrokerService extends Service {
 
                             //Create Trade Order
                             TradeOrder order = new TradeOrder(isr.getCompany(), isr.getCompany(), isr.getAmount(), 0d);
+                            order.setJustChanged(true);
                             tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
                             System.out.println("ISR: New order: "+order);
                         }
@@ -130,27 +131,26 @@ public class BrokerService extends Service {
         @Override
         public void run() {
             while (running) {
-//                System.out.println("TO: Looking for new TOs ....");
+                System.out.println("TO: Looking for new TOs ....");
 
                 String transactionId = "";
                 try {
-                    //Blocking, as state above
-                    List<TradeOrder> newTradeOrders = brokerSupportContainer.takeNewTradeOrders(null);
+                    transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
+
+                    List<TradeOrder> newTradeOrders = brokerSupportContainer.takeNewTradeOrders(transactionId);
 
                     System.out.println("TO: Got TO " + newTradeOrders);
 
                     for (TradeOrder recentlyUpdatedTradeOrder : newTradeOrders) {
-                        //This is going to be blocking --> Transaction could take forever
-                        transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
-
-                        tradeOrdersContainer.takeOrder(recentlyUpdatedTradeOrder, transactionId); //Remove since Broker will be processing it
                         if (recentlyUpdatedTradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || recentlyUpdatedTradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
+                            System.out.println("CALLING SOLVEORDER FROM TO THREAD!");
+                            tradeOrdersContainer.takeOrder(recentlyUpdatedTradeOrder, transactionId); //Remove since Broker will be processing it
                             solveOrder(recentlyUpdatedTradeOrder, transactionId);
-
-                            System.out.println("TO: Commit.");
-                            factory.commitTransaction(transactionId);
                         }
                     }
+
+                    System.out.println("TO: Commit.");
+                    factory.commitTransaction(transactionId);
                 }  catch (TransactionTimeoutException e) {
                     System.out.println("TO: timed out!");
                     factory.removeTransaction(transactionId);
@@ -184,8 +184,9 @@ public class BrokerService extends Service {
 
                 String transactionId = "";
                 try {
-                    //Blocking, as state above
-                    List<MarketValue> newStockPrices = brokerSupportContainer.takeNewStockPrices(null);
+                    transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
+
+                    List<MarketValue> newStockPrices = brokerSupportContainer.takeNewStockPrices(transactionId);
 
                     System.out.println("SP: Got SP " + newStockPrices);
 
@@ -193,17 +194,24 @@ public class BrokerService extends Service {
                         TradeOrder filter = new TradeOrder();
                         filter.setCompany(recentlyUpdatedMarketValue.getCompany());
                         filter.setStatus(TradeOrder.Status.NOT_COMPLETED);
-                        for (TradeOrder to : tradeOrdersContainer.getOrders(filter,transactionId)) {
-                            //This is going to be blocking --> Transaction could take forever
-                            transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
-
-                            tradeOrdersContainer.takeOrder(to, transactionId);
-                            solveOrder(to, transactionId);
-
-                            System.out.println("SP: Commit.");
-                            factory.commitTransaction(transactionId);
+                        List<TradeOrder> tradeOrders = tradeOrdersContainer.getOrders(filter, transactionId);
+                        for (TradeOrder to : tradeOrders) {
+                            // check again, cause status could have changed during the transaction
+                            // tradeOrdersContainer.getOrders(filter, transactionId) in loop definition does not work correctly (tested multiple times)
+                            List<TradeOrder> updatedToList = tradeOrdersContainer.getOrders(to, transactionId);
+                            if (updatedToList != null && updatedToList.size() > 0) {
+                                TradeOrder updatedTo = updatedToList.get(0);
+                                if (updatedTo.getStatus().equals(TradeOrder.Status.OPEN) || updatedTo.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
+                                    System.out.println("CALLING SOLVEORDER FROM SP THREAD!");
+                                    tradeOrdersContainer.takeOrder(updatedTo, transactionId);
+                                    solveOrder(updatedTo, transactionId);
+                                }
+                            }
                         }
                     }
+
+                    System.out.println("SP: Commit.");
+                    factory.commitTransaction(transactionId);
                 } catch (TransactionTimeoutException e) {
                     System.out.println("SP: timed out!");
                     factory.removeTransaction(transactionId);
@@ -225,11 +233,11 @@ public class BrokerService extends Service {
 
     }
 
-    private void solveOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException {
+    private synchronized void solveOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException {
         TradeOrder matchingTradeOrder = findMatchingTradeOrder(tradeOrder, transactionId);
 
         if (matchingTradeOrder != null) {
-            System.out.println("Solveorder: Match was not null.");
+            System.out.println("solveOrder: FOUND A MATCH.");
             if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
                 if (validateTradeOrders(tradeOrder, matchingTradeOrder, transactionId)) {
                     executeTransaction(tradeOrder, matchingTradeOrder, transactionId);
@@ -254,7 +262,6 @@ public class BrokerService extends Service {
                     }
                 }
             }
-
             // no matching trade order found
             System.out.println("Solveorder: Match WAS null.");
             tradeOrder.setJustChanged(false);
@@ -281,21 +288,16 @@ public class BrokerService extends Service {
             // take ALL stocks from seller depot
             boughtStocks = takeStocksFromSellerDepot(depotSeller, sellOrder, sellOrder.getPendingAmount(), transactionId);
 
-            if (buyOrder.getPendingAmount() == sellOrder.getPendingAmount()) {
+            if (buyOrder.getPendingAmount().equals(sellOrder.getPendingAmount())) {
                 System.out.println("Buy order completed.");
-                buyOrder.setJustChanged(false);
                 buyOrder.setStatus(TradeOrder.Status.COMPLETED); // should be equal to totalAmount when completed
             } else {
                 System.out.println("Buy order partially completed.");
-                buyOrder.setJustChanged(true);
                 buyOrder.setStatus(TradeOrder.Status.PARTIALLY_COMPLETED);
             }
-            buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
 
             System.out.println("Sell order completed.");
             sellOrder.setStatus(TradeOrder.Status.COMPLETED);
-            sellOrder.setJustChanged(false);
-            sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
         }  else {
             // take the amount required in buy order from seller depot
             boughtStocks = takeStocksFromSellerDepot(depotSeller, sellOrder, buyOrder.getPendingAmount(), transactionId);
@@ -303,14 +305,12 @@ public class BrokerService extends Service {
             System.out.println("Taking " + boughtStocks.size() + " stocks from seller depot.");
 
             buyOrder.setStatus(TradeOrder.Status.COMPLETED);
-            buyOrder.setJustChanged(false);
-            buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
 
             System.out.println("Sell order partially completed.");
             sellOrder.setStatus(TradeOrder.Status.PARTIALLY_COMPLETED);
-            sellOrder.setJustChanged(true);
-            sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
         }
+        buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
+        sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
 
         // add stocks to buyer depot
         depotBuyer.addStocks(boughtStocks, transactionId);
@@ -373,11 +373,13 @@ public class BrokerService extends Service {
                 return true;
             } else {
                 sellOrder.setStatus(TradeOrder.Status.DELETED);
+                sellOrder.setJustChanged(false);
                 tradeOrdersContainer.addOrUpdateOrder(sellOrder, transactionId);
                 System.out.println("Punishing seller for not having enough stocks for his own trade order.");
             }
         } else {
             buyOrder.setStatus(TradeOrder.Status.DELETED);
+            buyOrder.setJustChanged(false);
             tradeOrdersContainer.addOrUpdateOrder(buyOrder, transactionId);
             System.out.println("Punishing buyer for not having enough money for his own trade order.");
         }
@@ -432,21 +434,25 @@ public class BrokerService extends Service {
                     }
                 });
 
+                if (compatibleMatchingTradeOrders.size() > 0) {
+                    System.out.println("COMPATIBLE MATCHING TOs SORTED BY CREATED: (DESC)");
+                }
                 for (int i = 0; i < compatibleMatchingTradeOrders.size(); i++) {
-                    System.out.println(compatibleMatchingTradeOrders.get(i).getCreated() + " < ");
+                    System.out.println(compatibleMatchingTradeOrders.get(i));
                 }
 
                 if (compatibleMatchingTradeOrders.size() > 0) {
-                    for (int i = compatibleMatchingTradeOrders.size() - 1; i >= 0; i--) {
+                    for (int i = 0; i < compatibleMatchingTradeOrders.size(); i++) {
                         TradeOrder finalMatch = tradeOrdersContainer.takeOrder(compatibleMatchingTradeOrders.get(i), transactionId);
                         System.out.println("Final match #"+i+": ");
                         if (finalMatch != null) {
                             System.out.println("Found final match: " + finalMatch);
                             return finalMatch;
+                        } else {
+                            System.out.println("FINAL MATCH #" + i + " IS NOT IN TO CONTAINER ANYMORE!");
                         }
                     }
                 } else {
-                    System.out.println("COULD NOT PROCESS FINAL MATCH BECAUSE TO WAS BLOCKED SOMEHOW!");
                     return null;
                 }
             } else {
@@ -484,6 +490,7 @@ public class BrokerService extends Service {
     private boolean sellerHasEnoughStocks(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException {
         if (tradeOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
             DepotCompany depotCompany = factory.newDepotCompany(tradeOrder.getCompany(), transactionId);
+            System.out.println("TOTAL AMOUNT OF STOCKS FROM SELLER: " + depotCompany.getTotalAmountOfStocks(transactionId));
             return depotCompany.getTotalAmountOfStocks(transactionId) >= (tradeOrder.getTotalAmount() - tradeOrder.getCompletedAmount());
         } else {
             DepotInvestor depotInvestor = factory.newDepotInvestor(new Investor(tradeOrder.getInvestorId()), transactionId);
