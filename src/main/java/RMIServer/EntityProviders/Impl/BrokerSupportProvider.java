@@ -81,14 +81,16 @@ public class BrokerSupportProvider implements IBrokerSupportProvider {
     @Override
     public List<MarketValue> takeNewStockPrices(String transactionId, ICallbackDummy caller) throws RemoteException {
         repeat: while (true) {
-            synchronized (stockPrices) { //Only one at a time
+
                 while (stockPrices.isEmpty()) {
                     try {
-                        stockPrices.wait(); //Wait for change in Resources
+                        synchronized (stockPrices) { //Only one at a time
+                            stockPrices.wait(); //Wait for change in Resources
+                        }
                     } catch (InterruptedException e) {
                     }
                 }
-            }
+
             synchronized (lock) {
                 try {
 
