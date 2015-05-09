@@ -34,6 +34,11 @@ public class TradeOrderProvider implements ITradeOrderProvider {
     @Override
     public void addOrUpdateOrder(TradeOrder order, String transactionId) throws RemoteException {
         synchronized (lock) {
+            // updating order (Sets use equals() on the objects - if only add() is used, equal objects (objects with same id) won't be updated
+            // so if a order is updated -> remove and add it instead of just adding (e.g. for TO deletion)
+            if (tradeOrders.contains(order)) {
+                tradeOrders.remove(order);
+            }
             tradeOrders.add(order);
             synchronized (order) {
                 if (order.getJustChanged()) {

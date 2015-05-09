@@ -294,6 +294,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             try {
                 String transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
                 selectedOrder.setStatus(TradeOrder.Status.DELETED);
+                selectedOrder.setJustChanged(false);
                 tradeOrderContainer.addOrUpdateOrder(selectedOrder, transactionId);
                 factory.commitTransaction(transactionId);
 
