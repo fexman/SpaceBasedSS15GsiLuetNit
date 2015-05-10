@@ -187,6 +187,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
         investor = new Investor(txtUsername.getText());
 
+        ((Stage) txtUsername.getScene().getWindow()).setTitle(investor.getId() + "'s Overview");
+
         ORDER_FILTER = new TradeOrder();
         ORDER_FILTER.setInvestor(investor);
         ORDER_FILTER.setStatus(TradeOrder.Status.NOT_COMPLETED);
@@ -323,8 +325,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
     @Override
     public void pushNewTradeOrders(final TradeOrder tradeOrder) {
-            if (tradeOrder.getInvestorId().equals(investor.getId()) &&
-                    (tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED))) {
+        if (tradeOrder.getInvestorId().equals(investor.getId())) {
+            if ((tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED))) {
                 if (activeOrders.contains(tradeOrder)) {
                     int index = activeOrders.indexOf(tradeOrder);
                     Platform.runLater(new Runnable() {
@@ -347,12 +349,28 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 });
             }
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                tabOrders.setItems(activeOrders);
+            if (tradeOrder.getType().equals(TradeOrder.Type.SELL_ORDER)) {
+                try {
+                    // update stock amount when selling stocks from own depot
+                    int updatedAmountOfStock = depotInvestor.getStockAmount(tradeOrder.getCompanyId(), null);
+                    if (updatedAmountOfStock > 0) {
+                        stockNamesAndCount.put(tradeOrder.getCompanyId(), updatedAmountOfStock);
+                    } else {
+                        stockNamesAndCount.remove(tradeOrder.getCompanyId());
+                    }
+                    populateStockStatsTable();
+                } catch (ConnectionErrorException e) {
+                    e.printStackTrace();
+                }
             }
-        });
+
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    tabOrders.setItems(activeOrders);
+                }
+            });
+        }
     }
 
     @Override

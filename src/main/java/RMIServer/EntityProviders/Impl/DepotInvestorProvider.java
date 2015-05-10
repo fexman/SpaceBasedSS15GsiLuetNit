@@ -17,7 +17,7 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
 
     private Investor investor;
     private Double budget;
-    private HashMap<String, List<Stock>> stocks;
+    private HashMap<String, Integer> stocks;
     private Set<IRmiCallback<Serializable>> callbacks;
     private Object lock;
 
@@ -56,21 +56,17 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
     @Override
     public List<Stock> takeStocks(Company comp, int amount, String transactionId) throws RemoteException {
         synchronized (lock) {
-            List<Stock> stocksOfCompany = stocks.get(comp.getId());    // get stocks of company
-            List<Stock> tempStocks = new ArrayList<>();
+            List<Stock> removedStocks = new ArrayList<>();
 
-            for (int i = 0; i < (stocksOfCompany.size()-amount);i++) {
-                tempStocks.add(new Stock(comp));
-            }
+            // remove <amount> stocks from company <comp> from depot
+            stocks.put(comp.getId(), stocks.get(comp.getId()) - amount);
 
-            stocksOfCompany = tempStocks;
-            tempStocks = new ArrayList<>();
-
+            // create stocks to return
             for (int i = 0; i < amount; i++) {
-                tempStocks.add(new Stock(comp));
+                removedStocks.add(new Stock(comp));
             }
 
-            return tempStocks;
+            return removedStocks;
         }
     }
 
@@ -78,7 +74,7 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
     public int getStockAmount(String stockName, String transactionId) throws RemoteException {
         synchronized (lock) {
             if (stocks.get(stockName) != null) {
-                return stocks.get(stockName).size();
+                return stocks.get(stockName);
             }
             return 0;
         }
@@ -89,7 +85,11 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
         synchronized (lock) {
             ArrayList<Stock> allStocks = new ArrayList<>();
             for (String key : stocks.keySet()) {
-                allStocks.addAll(stocks.get(key));
+                ArrayList<Stock> tempList = new ArrayList<>();
+                for (int i = 0; i < stocks.get(key); i++) {
+                    tempList.add(new Stock(new Company(key)));
+                }
+                allStocks.addAll(tempList);
             }
             return allStocks;
         }
@@ -105,7 +105,7 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
         synchronized (lock) {
             int totalAmount = 0;
             for (String key : stocks.keySet()) {
-                totalAmount += stocks.get(key).size();
+                totalAmount += stocks.get(key);
             }
             return totalAmount;
         }
@@ -118,16 +118,16 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
             if (newStocks.size() > 0) {
                 String stockId = newStocks.get(0).getCompany().getId();
                 if (stocks.containsKey(stockId)) {
-                    stocks.get(stockId).addAll(newStocks);
+                    stocks.put(stockId, stocks.get(stockId) + newStocks.size());
                 } else {
-                    stocks.put(stockId,newStocks);
+                    stocks.put(stockId, newStocks.size());
                 }
             }
         }
 
         List<Serializable> sNewStocks = new ArrayList<>();
         for (Stock s: newStocks) {
-            sNewStocks.add((Serializable)s);
+            sNewStocks.add((Serializable) s);
         }
 
         for (IRmiCallback<Serializable> callback: callbacks) {

@@ -5,22 +5,19 @@ import Model.HistoryEntry;
 import RMIServer.EntityProviders.ITransactionHistoryProvider;
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by j0h1 on 02.05.2015.
  */
 public class TransactionHistoryProvider implements ITransactionHistoryProvider {
 
-    private Set<HistoryEntry> historyEntries;
+    private List<HistoryEntry> historyEntries;
     private Object lock;
     private Set<IRmiCallback<HistoryEntry>> callbacks;
 
     public TransactionHistoryProvider() {
-        historyEntries = new HashSet<>();
+        historyEntries = new ArrayList<>();
         callbacks = new HashSet<>();
         lock = new Object();
     }
@@ -28,6 +25,7 @@ public class TransactionHistoryProvider implements ITransactionHistoryProvider {
     @Override
     public void addHistoryEntry(HistoryEntry historyEntry, String transactionId) throws RemoteException {
         synchronized (lock) {
+            historyEntry.setTransactionId(UUID.randomUUID().toString());
             historyEntries.add(historyEntry);
         }
         List<HistoryEntry> newHistoryEntries = new ArrayList<>();
@@ -39,7 +37,7 @@ public class TransactionHistoryProvider implements ITransactionHistoryProvider {
 
     @Override
     public List<HistoryEntry> getTransactionHistory(String transactionId) throws RemoteException {
-        return new ArrayList<>(historyEntries);
+        return historyEntries;
     }
 
     @Override
