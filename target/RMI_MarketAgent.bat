@@ -1,0 +1,1 @@
+java -jar TUIMarketAgent.jar 1 localhost:12345 marketAgent 2000 0.03

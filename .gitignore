@@ -1,5 +1,8 @@
 /out
-/target
+/target/classes
+/target/generated-sources
+/target/maven-archiver
+/target/MANIFEST.MF
 /.idea
 SpaceBasedSS15.iml
 /src/main/java/logback.xml
