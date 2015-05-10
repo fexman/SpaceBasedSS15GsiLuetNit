@@ -49,14 +49,16 @@ public class BrokerSupportProvider implements IBrokerSupportProvider {
     @Override
     public List<TradeOrder> takeNewTradeOrders(String transactionId, ICallbackDummy caller) throws RemoteException {
         repeat: while (true) {
-            synchronized (orders) { //Only one at a time
-                while (orders.isEmpty()) {
-                    try {
+
+
+            while (orders.isEmpty()) {
+                try {
+                    synchronized (orders) { //Only one at a time
                         orders.wait(); //Wait for change in Resources
-                    } catch (InterruptedException e) {
                     }
-                }
+                } catch (InterruptedException e) { }
             }
+
             synchronized (lock) {
                 try {
 

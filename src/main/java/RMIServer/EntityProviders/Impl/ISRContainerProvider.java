@@ -49,14 +49,15 @@ public class ISRContainerProvider implements IISRContainerProvider {
     public List<IssueStockRequest> takeIssueStockRequests(String transactionId, ICallbackDummy callerDummy) throws RemoteException {
 
         repeat: while (true) {
-            synchronized (isrs) { //Only one at a time
-                while (isrs.isEmpty()) {
-                    try {
+
+            while (isrs.isEmpty()) {
+                try {
+                    synchronized (isrs) { //Only one at a time
                         isrs.wait(); //Wait for change in Resources
-                    } catch (InterruptedException e) {
                     }
-                }
+                } catch (InterruptedException e) { }
             }
+
             synchronized (lock) {
                 try {
 
