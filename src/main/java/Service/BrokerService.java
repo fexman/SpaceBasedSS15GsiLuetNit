@@ -315,17 +315,22 @@ public class BrokerService extends Service {
         // add stocks to buyer depot
         depotBuyer.addStocks(boughtStocks, transactionId);
 
-        // decrease budget of buyer
+        // caluclate budget increases/decreases of seller/buyer
         double currentMarketValue = stockPricesContainer.getMarketValue(buyOrder.getCompany(), transactionId).getPrice();
         double totalValue = boughtStocks.size() * currentMarketValue;
-        double provision = totalValue * PROVISION_PERCENTAGE;
+        double provisionAmountBuyer = (buyOrder.isPrioritized()) ? 2d : 1d;
+        System.out.println("BuyOrder isPrioritized? : "+buyOrder.isPrioritized()+" -> pab: "+provisionAmountBuyer);
+        double provisionAmountSeller = (sellOrder.isPrioritized()) ? 2d : 1d;
+        System.out.println("SellOrder isPrioritized? : "+sellOrder.isPrioritized()+" -> pab: "+provisionAmountSeller);
+        double provisionBuyer = totalValue * (PROVISION_PERCENTAGE * provisionAmountBuyer);
+        double provisionSeller = totalValue * (PROVISION_PERCENTAGE * provisionAmountSeller);
 
-        System.out.println("Removing " + (totalValue + provision) + " from " + depotBuyer.getDepotName());
-        depotBuyer.addToBudget(-(totalValue + provision), transactionId);
+        System.out.println("Removing " + (totalValue + provisionBuyer) + " from " + depotBuyer.getDepotName());
+        depotBuyer.addToBudget(-(totalValue + provisionBuyer), transactionId);
 
         if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.INVESTOR)) {
             System.out.println("Increasing sellers budget by " + totalValue);
-            ((DepotInvestor) depotSeller).addToBudget(totalValue, transactionId);
+            ((DepotInvestor) depotSeller).addToBudget(totalValue - provisionSeller, transactionId);
         }
 
         // write transaction to transaction history container
@@ -338,7 +343,7 @@ public class BrokerService extends Service {
         }
 
         transactionHistoryContainer.addHistoryEntry(new HistoryEntry(transactionId, id, new Investor(buyOrder.getInvestorId()), seller, buyOrder.getCompanyId(),
-                buyOrder.getId(), sellOrder.getId(), currentMarketValue, boughtStocks.size(), totalValue + provision, provision), transactionId);
+                buyOrder.getId(), sellOrder.getId(), currentMarketValue, boughtStocks.size(), totalValue + provisionBuyer, provisionBuyer), transactionId);
 
         // update trade orders (update completed trade order first to avoid inconsistencies)
         if (buyOrder.getStatus().equals(TradeOrder.Status.COMPLETED)) {
@@ -400,8 +405,26 @@ public class BrokerService extends Service {
         }
         filter.setPriceLimit(tradeOrder.getPriceLimit());
         filter.setStatus(TradeOrder.Status.NOT_COMPLETED);
+
         try {
+
+            filter.setPrioritized(true); //First get prioritized matching criteria ...
             List<TradeOrder> matchingOrders = tradeOrdersContainer.getOrders(filter, transactionId);
+            Collections.sort(matchingOrders, new Comparator<TradeOrder>() { //Sort by creation date
+                @Override
+                public int compare(TradeOrder tradeOrder1, TradeOrder tradeOrder2) {
+                    return tradeOrder1.getCreated().compareTo(tradeOrder2.getCreated());
+                }
+            });
+            filter.setPrioritized(false); //... then not prioritized ...
+            List<TradeOrder> matchingOrders2 = tradeOrdersContainer.getOrders(filter, transactionId);
+            Collections.sort(matchingOrders2, new Comparator<TradeOrder>() { //Sort by creation date
+                @Override
+                public int compare(TradeOrder tradeOrder1, TradeOrder tradeOrder2) {
+                    return tradeOrder1.getCreated().compareTo(tradeOrder2.getCreated());
+                }
+            });
+            matchingOrders.addAll(matchingOrders2); //... and combine both lists.
 
             if (matchingOrders.size() > 0) {
                 System.out.println(matchingOrders.size() + " matching trade orders found!");
@@ -411,7 +434,7 @@ public class BrokerService extends Service {
 
                 List<TradeOrder> compatibleMatchingTradeOrders = new ArrayList<>();
 
-                // find oldest matching order that is compatible to the current stock price
+                // filter for price compatibility
                 for (int i = 0; i < matchingOrders.size(); i++) {
                     boolean compatibleWithMarketValue;
                     if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
@@ -424,21 +447,12 @@ public class BrokerService extends Service {
                         compatibleMatchingTradeOrders.add(matchingOrders.get(i));
                     }
                 }
-                System.out.println(compatibleMatchingTradeOrders.size() + "/" + matchingOrders.size() + " matching trade orders are compatible with the current stock price!");
+                System.out.println(compatibleMatchingTradeOrders.size() + "/" + matchingOrders.size() + " matching trade orders are compatible with the current stock price:");
 
-                // sorting from newest (index 0) to oldest (index size - 1) compatible matching trade order and try to take them in order
-                Collections.sort(compatibleMatchingTradeOrders, new Comparator<TradeOrder>() {
-                    @Override
-                    public int compare(TradeOrder tradeOrder1, TradeOrder tradeOrder2) {
-                        return tradeOrder1.getCreated().compareTo(tradeOrder2.getCreated());
-                    }
-                });
 
-                if (compatibleMatchingTradeOrders.size() > 0) {
-                    System.out.println("COMPATIBLE MATCHING TOs SORTED BY CREATED: (DESC)");
-                }
                 for (int i = 0; i < compatibleMatchingTradeOrders.size(); i++) {
-                    System.out.println(compatibleMatchingTradeOrders.get(i));
+                    System.out.println("\t"+compatibleMatchingTradeOrders.get(i));
+                    System.out.println();
                 }
 
                 if (compatibleMatchingTradeOrders.size() > 0) {
@@ -478,7 +492,9 @@ public class BrokerService extends Service {
     private boolean buyerHasEnoughMoney(TradeOrder tradeOrder, DepotInvestor depotInvestor, String transactionId) throws ConnectionErrorException {
         // check if investor has enough money to perform transaction
         double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
-        double transactionCost = ((double) tradeOrder.getTotalAmount() * currentMarketValue) * (1.0 + PROVISION_PERCENTAGE);
+        double provisonAmount = (tradeOrder.isPrioritized()) ? 2d : 1d;
+
+        double transactionCost = ((double) tradeOrder.getTotalAmount() * currentMarketValue) * (1.0 + (PROVISION_PERCENTAGE * provisonAmount));
 
         double investorBudget = depotInvestor.getBudget(transactionId);
 

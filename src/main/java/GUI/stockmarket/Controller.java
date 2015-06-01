@@ -78,11 +78,11 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
 
     private void initTableOrders() {
         TableColumn orders_idCol = new TableColumn("ID");
-        orders_idCol.setPrefWidth(125d);
+        orders_idCol.setPrefWidth(100d);
         orders_idCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("id"));
         TableColumn orders_typeCol = new TableColumn("Type");
         orders_typeCol.setPrefWidth(40d);
-        orders_typeCol.setCellValueFactory( new PropertyValueFactory<TradeOrder, TradeOrder.Type>("type"));
+        orders_typeCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("type"));
         TableColumn orders_investorIdCol = new TableColumn("Investor ID");
         orders_investorIdCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("investorId"));
         TableColumn orders_companyIdCol = new TableColumn("Company ID");
@@ -91,7 +91,7 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
         orders_totalAmountCol.setPrefWidth(40d);
         orders_totalAmountCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, Integer>("totalAmount"));
         TableColumn orders_completedAmountCol = new TableColumn("Completed");
-        orders_completedAmountCol.setPrefWidth(80d);
+        orders_completedAmountCol.setPrefWidth(40d);
         orders_completedAmountCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, Integer>("completedAmount"));
         TableColumn orders_priceLimitCol = new TableColumn("Price");
         orders_priceLimitCol.setPrefWidth(50d);
@@ -99,7 +99,10 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
         TableColumn orders_statusCol = new TableColumn("Status");
         orders_statusCol.setPrefWidth(50d);
         orders_statusCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Status>("status"));
-        tableOrders.getColumns().setAll(orders_idCol, orders_typeCol, orders_investorIdCol, orders_companyIdCol, orders_totalAmountCol, orders_completedAmountCol, orders_priceLimitCol, orders_statusCol);
+        TableColumn orders_prioritizedCol = new TableColumn("Prioritized");
+        orders_prioritizedCol.setPrefWidth(70d);
+        orders_prioritizedCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, Boolean>("prioritized"));
+        tableOrders.getColumns().setAll(orders_idCol, orders_typeCol, orders_investorIdCol, orders_companyIdCol, orders_totalAmountCol, orders_completedAmountCol, orders_priceLimitCol, orders_statusCol,orders_prioritizedCol);
     }
 
     private void initTableStocks() {

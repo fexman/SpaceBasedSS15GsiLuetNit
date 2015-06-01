@@ -1,1 +1,0 @@
-java -jar TUIRmiServer.jar 12345

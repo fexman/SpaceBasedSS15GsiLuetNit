@@ -25,6 +25,7 @@ public class TradeOrder implements Serializable {
     private InvestorType investorType;
     private Boolean justChanged;
     private Long created;
+    private Boolean prioritized;
 
     private TradeOrder(String investorId, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
         this.investorId = investorId;
@@ -34,6 +35,7 @@ public class TradeOrder implements Serializable {
         setType(type);
 
         this.id = UUID.randomUUID().toString();
+        this.prioritized = false;
         this.completedAmount = 0;
         this.openAmount = totalAmount;
         this.justChanged = true;
@@ -157,6 +159,7 @@ public class TradeOrder implements Serializable {
                 ", type=" + type +
                 ", investorType=" + investorType +
                 ", created=" + created +
+                ", prioritized=" + prioritized +
                 '}';
     }
 
@@ -182,6 +185,14 @@ public class TradeOrder implements Serializable {
 
     public void setJustChanged(Boolean justChanged) {
         this.justChanged = justChanged;
+    }
+
+    public Boolean isPrioritized() {
+        return prioritized;
+    }
+
+    public void setPrioritized(Boolean prioritized) {
+        this.prioritized = prioritized;
     }
 
     public enum Status {

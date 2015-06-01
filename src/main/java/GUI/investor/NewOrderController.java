@@ -9,6 +9,7 @@ import Service.ConnectionErrorException;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -43,6 +44,8 @@ public class NewOrderController {
     private Label txtPriceLimit;
     @FXML
     private Label statusLabel;
+    @FXML
+    private CheckBox isPrioritized;
 
     private Integer stockAmount;
     private Double orderLimit;
@@ -113,6 +116,7 @@ public class NewOrderController {
             tradeOrder.setPriceLimit(orderLimit);
             tradeOrder.setType(orderType.getValue());
             tradeOrder.setStatus(TradeOrder.Status.OPEN);
+            tradeOrder.setPrioritized(isPrioritized.isSelected());
             tradeOrder.setJustChanged(true);
 
             try {

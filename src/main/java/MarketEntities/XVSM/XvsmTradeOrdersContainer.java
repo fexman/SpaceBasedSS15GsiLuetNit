@@ -107,6 +107,12 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
                 System.out.print(" TYPE=" + order.getType());
             }
 
+            if (order.isPrioritized() != null) {
+                Property prioritized = Property.forName("prioritized");
+                query.filter(prioritized.equalTo(order.isPrioritized()));
+                System.out.print(" PRIORITIZED");
+            }
+
             Property status = Property.forName("status");
             switch (order.getStatus()) { //LOOKING FOR ORDERS WITH STATUS ...
                 case OPEN: // OPEN
