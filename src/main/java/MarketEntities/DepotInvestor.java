@@ -4,6 +4,7 @@ import MarketEntities.XVSM.ISubscribeable;
 import Model.Company;
 import Model.Investor;
 import Model.Stock;
+import Model.TradeObject;
 import Service.ConnectionErrorException;
 
 import java.util.List;
@@ -31,10 +32,10 @@ public abstract class DepotInvestor extends Depot implements ISubscribeable {
         setBudget(getBudget(transactionId) + amount, transactionId);
     }
 
-    public abstract List<Stock> takeStocks(Company comp, int amount, String transactionId) throws ConnectionErrorException;
+    public abstract List<TradeObject> takeTradeObjects(String toId, int amount, String transactionId) throws ConnectionErrorException;
 
-    public abstract int getStockAmount(String stockName, String transactionId) throws ConnectionErrorException;
+    public abstract int getTradeObjectAmount(String toId, String transactionId) throws ConnectionErrorException;
 
-    public abstract List<Stock> readAllStocks(String transactionId) throws ConnectionErrorException;
+    public abstract List<TradeObject> readAllTradeObjects(String transactionId) throws ConnectionErrorException;
 
 }

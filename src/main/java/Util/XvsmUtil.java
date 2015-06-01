@@ -23,7 +23,7 @@ import java.util.UUID;
 public class XvsmUtil {
 
     public static final long ACTION_TIMEOUT = 5000l;
-    public static final long INFINITE_TAKE = 10000l;
+    public static final long INFINITE_TAKE = MzsConstants.RequestTimeout.INFINITE;
 
     private static HashMap<String, TransactionReference> transactions = new HashMap<>();
     private static HashMap<Container, ContainerReference> containers = new HashMap<>();
@@ -161,6 +161,8 @@ public class XvsmUtil {
         TransactionReference tx = xc.getCapi().createTransaction(timeoutValue, xc.getSpace());
         UUID transactionId = UUID.randomUUID();
         transactions.put(transactionId.toString(), tx);
+
+        System.out.println("CREATED TRANSACTION: "+transactionId.toString()+" / "+tx);
         return transactionId.toString();
     }
 
@@ -169,11 +171,13 @@ public class XvsmUtil {
     }
 
     public static void commitTransaction(String transactionId) throws MzsCoreException {
+        System.out.println("COMMITING TRANSACTION: "+transactionId+" / "+transactions.get(transactionId));
         xc.getCapi().commitTransaction(getTransaction(transactionId));
         removeTransaction(transactionId);
     }
 
     public static void rollbackTransaction(String transactionId) throws MzsCoreException {
+        System.out.println("ROLLBACKING TRANSACTION: "+transactionId+" / "+transactions.get(transactionId));
         xc.getCapi().rollbackTransaction(getTransaction(transactionId));
         removeTransaction(transactionId);
     }

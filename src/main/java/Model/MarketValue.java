@@ -9,28 +9,41 @@ public class MarketValue implements Serializable {
 
     private static final long serialVersionUID = 6475447917214042055L;
 
-    private String companyId;
+    private String id;
     private Double price;
     private Integer tradeVolume;
     private boolean priceChanged;
 
     public MarketValue(Company company, Double price, Integer tradeVolume) {
-        this.companyId = company.getId();
+        this.id = company.getId();
         this.price = price;
         this.tradeVolume = tradeVolume;
         this.priceChanged = true;
     }
 
-    public Company getCompany() {
-        return new Company(companyId);
+    public MarketValue(Investor investor, Double price, Integer tradeVolume) {
+        if (!investor.isFonds()) {
+            //TODO: Investor is not fonds?
+        }
+        this.id = investor.getId();
+        this.price = price;
+        this.tradeVolume = tradeVolume;
+        this.priceChanged = true;
     }
 
-    public String getCompanyId() {
-        return companyId;
+    public String getId() {
+        return id;
     }
 
     public void setCompany(Company comp) {
-        this.companyId = comp.getId();
+        this.id = comp.getId();
+    }
+
+    public void setInvestor(Investor inv) {
+        if (!inv.isFonds()) {
+            //TODO: Investor is not fonds?
+        }
+        this.id = inv.getId();
     }
 
     public Double getPrice() {
@@ -59,7 +72,7 @@ public class MarketValue implements Serializable {
     }
 
     public String toString() {
-        return "MarketValue of "+companyId+" ("+tradeVolume+"): $"+price;
+        return "MarketValue of "+id+" ("+tradeVolume+"): $"+price;
     }
 
     @Override
@@ -69,12 +82,12 @@ public class MarketValue implements Serializable {
 
         MarketValue that = (MarketValue) o;
 
-        return !(companyId != null ? !companyId.equals(that.companyId) : that.companyId != null);
+        return !(id != null ? !id.equals(that.id) : that.id != null);
 
     }
 
     @Override
     public int hashCode() {
-        return companyId != null ? companyId.hashCode() : 0;
+        return id != null ? id.hashCode() : 0;
     }
 }

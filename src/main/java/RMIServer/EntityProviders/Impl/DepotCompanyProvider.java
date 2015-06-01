@@ -2,6 +2,7 @@ package RMIServer.EntityProviders.Impl;
 
 import Model.Company;
 import Model.Stock;
+import Model.TradeObject;
 import RMIServer.EntityProviders.IDepotCompanyProvider;
 
 import java.rmi.RemoteException;
@@ -55,16 +56,20 @@ public class DepotCompanyProvider implements IDepotCompanyProvider {
     }
 
     @Override
-    public int getTotalAmountOfStocks(String transactionId) throws RemoteException {
+    public int getTotalAmountOfTradeObjects(String transactionId) throws RemoteException {
         synchronized (lock) {
             return stocks.size();
         }
     }
 
     @Override
-    public void addStocks(List<Stock> stocks, String transactionId) throws RemoteException {
+    public void addTradeObjects(List<TradeObject> tradeObjects, String transactionId) throws RemoteException {
         synchronized (lock) {
-            this.stocks.addAll(stocks);
+            for (TradeObject tradeObject : tradeObjects) {
+                if (tradeObject instanceof Stock) {
+                    stocks.add((Stock)tradeObject);
+                }
+            }
         }
     }
 

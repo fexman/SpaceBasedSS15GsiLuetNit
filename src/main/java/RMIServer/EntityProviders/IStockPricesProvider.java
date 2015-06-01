@@ -14,7 +14,7 @@ public interface IStockPricesProvider extends IProvider {
 
     void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws RemoteException;
 
-    MarketValue getMarketValue(Company comp, String transactionId) throws RemoteException;
+    MarketValue getMarketValue(String id, String transactionId) throws RemoteException;
 
     List<MarketValue> getAll(String transactionId) throws RemoteException;
 

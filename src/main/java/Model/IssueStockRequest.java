@@ -46,6 +46,14 @@ public class IssueStockRequest implements Serializable {
         return stocks;
     }
 
+    public List<TradeObject> toTradeObjects() {
+        List<TradeObject> tradeObjects = new ArrayList<>();
+        for (int i = 1; i <= amount; i++) {
+            tradeObjects.add(new Stock(new Company(companyId)));
+        }
+        return tradeObjects;
+    }
+
     public String toString() {
         return companyId+"-Stocks: #"+amount+" for "+price+",-";
     }

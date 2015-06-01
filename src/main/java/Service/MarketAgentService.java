@@ -35,7 +35,7 @@ public class MarketAgentService extends Service {
             for (MarketValue marketValue : marketValues) {
                 // get all open/partially completed buy orders of current market value
                 TradeOrder buyOrdersFilter = new TradeOrder();
-                buyOrdersFilter.setCompany(marketValue.getCompany());
+                buyOrdersFilter.setTradeObjectId(marketValue.getId());
                 buyOrdersFilter.setType(TradeOrder.Type.BUY_ORDER);
                 buyOrdersFilter.setStatus(TradeOrder.Status.NOT_COMPLETED);
 
@@ -49,7 +49,7 @@ public class MarketAgentService extends Service {
 
                 // get all open/partially completed sell orders of current market value
                 TradeOrder sellOrdersFilter = new TradeOrder();
-                sellOrdersFilter.setCompany(marketValue.getCompany());
+                sellOrdersFilter.setTradeObjectId(marketValue.getId());
                 sellOrdersFilter.setType(TradeOrder.Type.SELL_ORDER);
                 sellOrdersFilter.setStatus(TradeOrder.Status.NOT_COMPLETED);
 
@@ -71,7 +71,7 @@ public class MarketAgentService extends Service {
                 marketValue.setPrice(newStockPrice);
                 stockPricesContainer.addOrUpdateMarketValue(marketValue, transactionId);
 
-                System.out.println("Updated " + marketValue.getCompanyId() + "'s market value from " + currentStockPrice + " to " + newStockPrice);
+                System.out.println("Updated " + marketValue.getId() + "'s market value from " + currentStockPrice + " to " + newStockPrice);
             }
             factory.commitTransaction(transactionId);
         } catch (ConnectionErrorException e) {

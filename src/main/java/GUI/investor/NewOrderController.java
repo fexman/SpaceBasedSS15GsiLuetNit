@@ -83,7 +83,7 @@ public class NewOrderController {
             List<TradeOrder> availableTradeOrders = tradeOrderContainer.getAllOrders(null);
             HashMap<String, Company> availableCompanies = new HashMap<>();
             for (TradeOrder tradeOrder : availableTradeOrders) {
-                availableCompanies.put(tradeOrder.getCompanyId(), tradeOrder.getCompany());
+                availableCompanies.put(tradeOrder.getTradeObjectId(), new Company(tradeOrder.getTradeObjectId()));
             }
 
             // extract stock names (company id)
@@ -109,7 +109,7 @@ public class NewOrderController {
             TradeOrder tradeOrder = new TradeOrder();
             tradeOrder.setId(UUID.randomUUID().toString());
             tradeOrder.setInvestor(investor);
-            tradeOrder.setCompany(new Company(stockName.getValue()));
+            tradeOrder.setTradeObjectId(stockName.getValue());
             tradeOrder.setTotalAmount(stockAmount);
             tradeOrder.setCompletedAmount(0);
             tradeOrder.setInvestorType(TradeOrder.InvestorType.INVESTOR);

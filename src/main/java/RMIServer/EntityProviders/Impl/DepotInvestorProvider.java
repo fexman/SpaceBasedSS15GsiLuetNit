@@ -1,9 +1,7 @@
 package RMIServer.EntityProviders.Impl;
 
 import MarketEntities.Subscribing.IRmiCallback;
-import Model.Company;
-import Model.Investor;
-import Model.Stock;
+import Model.*;
 import RMIServer.EntityProviders.IDepotInvestorProvider;
 
 import java.io.Serializable;
@@ -17,13 +15,15 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
 
     private Investor investor;
     private Double budget;
-    private HashMap<String, Integer> stocks;
+    private HashMap<String, Integer> tradeObjects;
+    private Set<String> knownCompanies;
     private Set<IRmiCallback<Serializable>> callbacks;
     private Object lock;
 
     public DepotInvestorProvider(Investor investor) {
         this.investor = investor;
-        this.stocks = new HashMap<>();
+        this.tradeObjects = new HashMap<>();
+        this.knownCompanies = new HashSet<>();
         this.budget = 0.0;
         this.lock = new Object();
         this.callbacks = new HashSet<>();
@@ -54,44 +54,54 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
     }
 
     @Override
-    public List<Stock> takeStocks(Company comp, int amount, String transactionId) throws RemoteException {
+    public List<TradeObject> takeTradeObjects(String toId, int amount, String transactionId) throws RemoteException {
         synchronized (lock) {
-            List<Stock> removedStocks = new ArrayList<>();
+            List<TradeObject> removedTradeObjects = new ArrayList<>();
 
             // remove <amount> stocks from company <comp> from depot
-            stocks.put(comp.getId(), stocks.get(comp.getId()) - amount);
+            tradeObjects.put(toId, tradeObjects.get(toId) - amount);
 
             // create stocks to return
             for (int i = 0; i < amount; i++) {
-                removedStocks.add(new Stock(comp));
+                if (knownCompanies.contains(toId)) {
+                    removedTradeObjects.add(new Stock(new Company(toId)));
+                } else {
+                    removedTradeObjects.add(new Fond(new Investor(toId)));
+                }
+
             }
 
-            return removedStocks;
+            return removedTradeObjects;
         }
     }
 
     @Override
-    public int getStockAmount(String stockName, String transactionId) throws RemoteException {
+    public int getTradeObjectAmount(String toId, String transactionId) throws RemoteException {
         synchronized (lock) {
-            if (stocks.get(stockName) != null) {
-                return stocks.get(stockName);
+            if (tradeObjects.get(toId) != null) {
+                return tradeObjects.get(toId);
             }
             return 0;
         }
     }
 
     @Override
-    public List<Stock> readAllStocks(String transactionId) throws RemoteException {
+    public List<TradeObject> readAllTradeObjects(String transactionId) throws RemoteException {
         synchronized (lock) {
-            ArrayList<Stock> allStocks = new ArrayList<>();
-            for (String key : stocks.keySet()) {
-                ArrayList<Stock> tempList = new ArrayList<>();
-                for (int i = 0; i < stocks.get(key); i++) {
-                    tempList.add(new Stock(new Company(key)));
+            ArrayList<TradeObject> allTradeObjects = new ArrayList<>();
+            for (String key : tradeObjects.keySet()) {
+                ArrayList<TradeObject> tempList = new ArrayList<>();
+                for (int i = 0; i < tradeObjects.get(key); i++) {
+                    if (knownCompanies.contains(key)) {
+                        tempList.add(new Stock(new Company(key)));
+                    } else {
+                        tempList.add(new Fond(new Investor(key)));
+                    }
+
                 }
-                allStocks.addAll(tempList);
+                allTradeObjects.addAll(tempList);
             }
-            return allStocks;
+            return allTradeObjects;
         }
     }
 
@@ -101,33 +111,33 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
     }
 
     @Override
-    public int getTotalAmountOfStocks(String transactionId) throws RemoteException {
+    public int getTotalAmountOfTradeObjects(String transactionId) throws RemoteException {
         synchronized (lock) {
             int totalAmount = 0;
-            for (String key : stocks.keySet()) {
-                totalAmount += stocks.get(key);
+            for (String key : tradeObjects.keySet()) {
+                totalAmount += tradeObjects.get(key);
             }
             return totalAmount;
         }
     }
 
     @Override
-    public void addStocks(List<Stock> newStocks, String transactionId) throws RemoteException {
+    public void addTradeObjects(List<TradeObject> newTradeObjects, String transactionId) throws RemoteException {
 
         synchronized (lock) {
-            if (newStocks.size() > 0) {
-                String stockId = newStocks.get(0).getCompany().getId();
-                if (stocks.containsKey(stockId)) {
-                    stocks.put(stockId, stocks.get(stockId) + newStocks.size());
+            if (newTradeObjects.size() > 0) {
+                String stockId = newTradeObjects.get(0).getId();
+                if (tradeObjects.containsKey(stockId)) {
+                    tradeObjects.put(stockId, tradeObjects.get(stockId) + newTradeObjects.size());
                 } else {
-                    stocks.put(stockId, newStocks.size());
+                    tradeObjects.put(stockId, newTradeObjects.size());
                 }
             }
         }
 
         List<Serializable> sNewStocks = new ArrayList<>();
-        for (Stock s: newStocks) {
-            sNewStocks.add((Serializable) s);
+        for (TradeObject tradeObject: newTradeObjects) {
+            sNewStocks.add((Serializable) tradeObject);
         }
 
         for (IRmiCallback<Serializable> callback: callbacks) {

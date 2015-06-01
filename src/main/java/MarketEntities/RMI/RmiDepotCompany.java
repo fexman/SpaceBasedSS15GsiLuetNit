@@ -3,6 +3,7 @@ package MarketEntities.RMI;
 import MarketEntities.DepotCompany;
 import Model.Company;
 import Model.Stock;
+import Model.TradeObject;
 import RMIServer.EntityProviders.IDepotCompanyProvider;
 import Service.ConnectionErrorException;
 import Util.Container;
@@ -38,18 +39,18 @@ public class RmiDepotCompany extends DepotCompany {
     }
 
     @Override
-    public int getTotalAmountOfStocks(String transactionId) throws ConnectionErrorException {
+    public int getTotalAmountOfTradeObjects(String transactionId) throws ConnectionErrorException {
         try {
-            return depotCompany.getTotalAmountOfStocks(transactionId);
+            return depotCompany.getTotalAmountOfTradeObjects(transactionId);
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public void addStocks(List<Stock> stocks, String transactionId) throws ConnectionErrorException {
+    public void addTradeObjects(List<TradeObject> TradeObjects, String transactionId) throws ConnectionErrorException {
         try {
-            depotCompany.addStocks(stocks,transactionId);
+            depotCompany.addTradeObjects(TradeObjects, transactionId);
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }

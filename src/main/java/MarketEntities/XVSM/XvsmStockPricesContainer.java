@@ -38,8 +38,8 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
     public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
-        Selector selector = KeyCoordinator.newSelector(marketValue.getCompanyId(), Selector.COUNT_MAX);
-        CoordinationData coordData = KeyCoordinator.newCoordinationData(marketValue.getCompanyId());
+        Selector selector = KeyCoordinator.newSelector(marketValue.getId(), Selector.COUNT_MAX);
+        CoordinationData coordData = KeyCoordinator.newCoordinationData(marketValue.getId());
 
         //Write to traderOrdersContainer
         try {
@@ -51,10 +51,10 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
     }
 
     @Override
-    public MarketValue getMarketValue(Company comp, String transactionId) throws ConnectionErrorException {
+    public MarketValue getMarketValue(String id, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
-        Selector selector = KeyCoordinator.newSelector(comp.getId(), Selector.COUNT_MAX);
+        Selector selector = KeyCoordinator.newSelector(id, Selector.COUNT_MAX);
         List<MarketValue> result;
 
         try {

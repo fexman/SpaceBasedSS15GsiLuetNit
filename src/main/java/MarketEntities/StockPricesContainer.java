@@ -14,7 +14,7 @@ public abstract class StockPricesContainer implements ISubscribeable {
 
     public abstract void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws ConnectionErrorException;
 
-    public abstract MarketValue getMarketValue(Company comp, String transactionId) throws ConnectionErrorException;
+    public abstract MarketValue getMarketValue(String id, String transactionId) throws ConnectionErrorException;
 
     public abstract List<MarketValue> getAll(String transactionId) throws ConnectionErrorException;
 

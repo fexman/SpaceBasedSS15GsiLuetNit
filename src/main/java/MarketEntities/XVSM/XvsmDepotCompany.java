@@ -3,6 +3,7 @@ package MarketEntities.XVSM;
 import MarketEntities.DepotCompany;
 import Model.Company;
 import Model.Stock;
+import Model.TradeObject;
 import Service.ConnectionErrorException;
 import Util.Container;
 import Util.XvsmUtil;
@@ -47,7 +48,7 @@ public class XvsmDepotCompany extends DepotCompany {
     }
 
     @Override
-    public int getTotalAmountOfStocks(String transactionId) throws ConnectionErrorException {
+    public int getTotalAmountOfTradeObjects(String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         AnyCoordinator.AnySelector selector = AnyCoordinator.newSelector(MzsConstants.Selecting.COUNT_MAX);
@@ -59,11 +60,11 @@ public class XvsmDepotCompany extends DepotCompany {
     }
 
     @Override
-    public void addStocks(List<Stock> stocks, String transactionId) throws ConnectionErrorException {
+    public void addTradeObjects(List<TradeObject> tradeObjects, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
-        for (Stock s : stocks) {
+        for (TradeObject tradeObject : tradeObjects) {
             try {
-                xc.getCapi().write(new Entry(s), companyDepot, XvsmUtil.ACTION_TIMEOUT, tx);
+                xc.getCapi().write(new Entry(tradeObject), companyDepot, XvsmUtil.ACTION_TIMEOUT, tx);
             } catch (MzsCoreException e) {
                 throw new ConnectionErrorException(e);
             }

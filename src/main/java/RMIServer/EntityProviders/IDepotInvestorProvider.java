@@ -4,6 +4,7 @@ import MarketEntities.Subscribing.IRmiCallback;
 import Model.Company;
 import Model.Investor;
 import Model.Stock;
+import Model.TradeObject;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -20,11 +21,11 @@ public interface IDepotInvestorProvider extends IDepotProvider {
 
     void setBudget(double amount, String transactionId) throws RemoteException;
 
-    List<Stock> takeStocks(Company comp, int amount, String transactionId) throws RemoteException;
+    List<TradeObject> takeTradeObjects(String toId, int amount, String transactionId) throws RemoteException;
 
-    int getStockAmount(String stockName, String transactionId) throws RemoteException;
+    int getTradeObjectAmount(String toId, String transactionId) throws RemoteException;
 
-    List<Stock> readAllStocks(String transactionId) throws RemoteException;
+    List<TradeObject> readAllTradeObjects(String transactionId) throws RemoteException;
 
     void subscribe(IRmiCallback<Serializable> callback) throws RemoteException;
 

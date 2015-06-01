@@ -74,8 +74,8 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                         continue toLoop;
                     }
                 }
-                if (order.getCompanyId() != null) { //LOOKING FOR STOCKS OF COMPANY XYZ
-                    if (!order.getCompanyId().equals(to.getCompanyId())) {
+                if (order.getTradeObjectId() != null) { //LOOKING FOR STOCKS OF COMPANY XYZ
+                    if (!order.getTradeObjectId().equals(to.getTradeObjectId())) {
                         continue toLoop;
                     }
                 }
@@ -113,6 +113,21 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                     if (to.isPrioritized() != order.isPrioritized()) {
                         continue toLoop;
                     }
+                }
+
+                switch (order.getTradeObjectType()) { //LOOKING FOR ORDERS WITH TRADEOBJECTTYPE ...
+                    case FOND: // FOND
+                        if (to.getTradeObjectType() != TradeOrder.TradeObjectType.FOND) {
+                            continue toLoop;
+                        }
+                        break;
+                    case STOCK: // STOCK
+                        if (to.getTradeObjectType() != TradeOrder.TradeObjectType.STOCK) {
+                            continue toLoop;
+                        }
+                        break;
+                    case ANY: // I DONT CARE
+                        break;
                 }
 
                 switch (order.getStatus()) { //LOOKING FOR ORDERS WITH STATUS ...

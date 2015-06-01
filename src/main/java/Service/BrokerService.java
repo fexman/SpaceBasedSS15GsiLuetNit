@@ -26,7 +26,6 @@ public class BrokerService extends Service {
     private TradeOrderThread toThread;
     private StockPricesThread spThread;
 
-
     private final double PROVISION_PERCENTAGE = 0.03;
 
     public BrokerService(String id, IFactory factory) {
@@ -45,7 +44,7 @@ public class BrokerService extends Service {
     public void startBroking() throws ConnectionErrorException {
         new Thread(isrThread).start();
         new Thread(toThread).start();
-        new Thread(spThread).start();
+        //new Thread(spThread).start();
     }
 
     private class ISRThread extends Thread {
@@ -59,7 +58,7 @@ public class BrokerService extends Service {
         @Override
         public void run() {
             while (running) {
-//                System.out.println("ISR: Looking for new ISRs ....");
+                System.out.println("ISR: Looking for new ISRs ....");
                 String transactionId = null;
                 try {
 
@@ -77,7 +76,7 @@ public class BrokerService extends Service {
                         for (IssueStockRequest isr : isrs) {
 
                             //Set market Value of new stocks
-                            MarketValue mw = stockPricesContainer.getMarketValue(isr.getCompany(), transactionId);
+                            MarketValue mw = stockPricesContainer.getMarketValue(isr.getCompany().getId(), transactionId);
                             if (mw == null) {
                                 System.out.println("Setting new marketValue for " + isr.getCompany() + " on ISR-price: "+isr.getPrice());
                                 mw = new MarketValue(isr.getCompany(), isr.getPrice(),isr.getAmount());
@@ -90,7 +89,7 @@ public class BrokerService extends Service {
                             }
 
                             //Create Trade Order
-                            TradeOrder order = new TradeOrder(isr.getCompany(), isr.getCompany(), isr.getAmount(), 0d);
+                            TradeOrder order = new TradeOrder(isr.getCompany(), isr.getCompany().getId(), isr.getAmount(), 0d);
                             order.setJustChanged(true);
                             tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
                             System.out.println("ISR: New order: "+order);
@@ -143,7 +142,6 @@ public class BrokerService extends Service {
 
                     for (TradeOrder recentlyUpdatedTradeOrder : newTradeOrders) {
                         if (recentlyUpdatedTradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || recentlyUpdatedTradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED)) {
-                            System.out.println("CALLING SOLVEORDER FROM TO THREAD!");
                             tradeOrdersContainer.takeOrder(recentlyUpdatedTradeOrder, transactionId); //Remove since Broker will be processing it
                             solveOrder(recentlyUpdatedTradeOrder, transactionId);
                         }
@@ -192,7 +190,7 @@ public class BrokerService extends Service {
 
                     for (MarketValue recentlyUpdatedMarketValue : newStockPrices) {
                         TradeOrder filter = new TradeOrder();
-                        filter.setCompany(recentlyUpdatedMarketValue.getCompany());
+                        filter.setTradeObjectId(recentlyUpdatedMarketValue.getId());
                         filter.setStatus(TradeOrder.Status.NOT_COMPLETED);
                         List<TradeOrder> tradeOrders = tradeOrdersContainer.getOrders(filter, transactionId);
                         for (TradeOrder to : tradeOrders) {
@@ -256,7 +254,7 @@ public class BrokerService extends Service {
                         System.out.println("Punishing investor for not having enough money for his own buy order.");
                     }
                 } else {
-                    if (!sellerHasEnoughStocks(tradeOrder, transactionId)) {
+                    if (!sellerHasEnoughTradeObjects(tradeOrder, transactionId)) {
                         tradeOrder.setStatus(TradeOrder.Status.DELETED);
                         System.out.println("Punishing investor for not having enough stocks for his own sell order.");
                     }
@@ -275,18 +273,18 @@ public class BrokerService extends Service {
 
         Depot depotSeller;
         if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
-            depotSeller = factory.newDepotCompany(sellOrder.getCompany(), transactionId);
+            depotSeller = factory.newDepotCompany(new Company(sellOrder.getInvestorId()), transactionId);
         } else {
             depotSeller = factory.newDepotInvestor(new Investor(sellOrder.getInvestorId()), transactionId);
         }
 
         // list of stocks to transfer from seller to buyer depot
-        List<Stock> boughtStocks;
+        List<TradeObject> boughtTradeObjects;
 
         if (buyOrder.getPendingAmount() >= sellOrder.getPendingAmount()) {
             System.out.println("Taking all stocks (" + sellOrder.getPendingAmount() + ") from seller depot.");
             // take ALL stocks from seller depot
-            boughtStocks = takeStocksFromSellerDepot(depotSeller, sellOrder, sellOrder.getPendingAmount(), transactionId);
+            boughtTradeObjects = takeStocksFromSellerDepot(depotSeller, sellOrder, sellOrder.getPendingAmount(), transactionId);
 
             if (buyOrder.getPendingAmount().equals(sellOrder.getPendingAmount())) {
                 System.out.println("Buy order completed.");
@@ -300,24 +298,24 @@ public class BrokerService extends Service {
             sellOrder.setStatus(TradeOrder.Status.COMPLETED);
         }  else {
             // take the amount required in buy order from seller depot
-            boughtStocks = takeStocksFromSellerDepot(depotSeller, sellOrder, buyOrder.getPendingAmount(), transactionId);
+            boughtTradeObjects = takeStocksFromSellerDepot(depotSeller, sellOrder, buyOrder.getPendingAmount(), transactionId);
 
-            System.out.println("Taking " + boughtStocks.size() + " stocks from seller depot.");
+            System.out.println("Taking " + boughtTradeObjects.size() + " stocks from seller depot.");
 
             buyOrder.setStatus(TradeOrder.Status.COMPLETED);
 
             System.out.println("Sell order partially completed.");
             sellOrder.setStatus(TradeOrder.Status.PARTIALLY_COMPLETED);
         }
-        buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtStocks.size());
-        sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtStocks.size());
+        buyOrder.setCompletedAmount(buyOrder.getCompletedAmount() + boughtTradeObjects.size());
+        sellOrder.setCompletedAmount(sellOrder.getCompletedAmount() + boughtTradeObjects.size());
 
         // add stocks to buyer depot
-        depotBuyer.addStocks(boughtStocks, transactionId);
+        depotBuyer.addTradeObjects(boughtTradeObjects, transactionId);
 
         // caluclate budget increases/decreases of seller/buyer
-        double currentMarketValue = stockPricesContainer.getMarketValue(buyOrder.getCompany(), transactionId).getPrice();
-        double totalValue = boughtStocks.size() * currentMarketValue;
+        double currentMarketValue = stockPricesContainer.getMarketValue(buyOrder.getTradeObjectId(), transactionId).getPrice();
+        double totalValue = boughtTradeObjects.size() * currentMarketValue;
         double provisionAmountBuyer = (buyOrder.isPrioritized()) ? 2d : 1d;
         System.out.println("BuyOrder isPrioritized? : "+buyOrder.isPrioritized()+" -> pab: "+provisionAmountBuyer);
         double provisionAmountSeller = (sellOrder.isPrioritized()) ? 2d : 1d;
@@ -337,13 +335,13 @@ public class BrokerService extends Service {
         System.out.println("Writing transaction " + transactionId + " to transaction history.");
         StockOwner seller;
         if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
-            seller = sellOrder.getCompany();
+            seller = new Company(sellOrder.getInvestorId());
         } else {
             seller = new Investor(sellOrder.getInvestorId());
         }
 
-        transactionHistoryContainer.addHistoryEntry(new HistoryEntry(transactionId, id, new Investor(buyOrder.getInvestorId()), seller, buyOrder.getCompanyId(),
-                buyOrder.getId(), sellOrder.getId(), currentMarketValue, boughtStocks.size(), totalValue + provisionBuyer, provisionBuyer), transactionId);
+        transactionHistoryContainer.addHistoryEntry(new HistoryEntry(transactionId, id, new Investor(buyOrder.getInvestorId()), seller, buyOrder.getTradeObjectId(),
+                buyOrder.getId(), sellOrder.getId(), currentMarketValue, boughtTradeObjects.size(), totalValue + provisionBuyer, provisionBuyer), transactionId);
 
         // update trade orders (update completed trade order first to avoid inconsistencies)
         if (buyOrder.getStatus().equals(TradeOrder.Status.COMPLETED)) {
@@ -360,11 +358,15 @@ public class BrokerService extends Service {
     }
 
 
-    private List<Stock> takeStocksFromSellerDepot(Depot depotSeller, TradeOrder sellOrder, int amount, String transactionId) throws ConnectionErrorException {
+    private List<TradeObject> takeStocksFromSellerDepot(Depot depotSeller, TradeOrder sellOrder, int amount, String transactionId) throws ConnectionErrorException {
         if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
-            return ((DepotCompany) depotSeller).takeStocks(amount, transactionId);
+            List<TradeObject> result = new ArrayList<>();
+            for (Stock s : ((DepotCompany) depotSeller).takeStocks(amount, transactionId)) {
+                result.add(s);
+            }
+            return result;
         } else{
-            return ((DepotInvestor) depotSeller).takeStocks(sellOrder.getCompany(), amount, transactionId);
+            return ((DepotInvestor) depotSeller).takeTradeObjects(sellOrder.getTradeObjectId(), amount, transactionId);
         }
     }
 
@@ -373,7 +375,7 @@ public class BrokerService extends Service {
         DepotInvestor depotInvestor = factory.newDepotInvestor(new Investor(buyOrder.getInvestorId()), transactionId);
         if (buyerHasEnoughMoney(buyOrder, depotInvestor, transactionId)) {
             System.out.println("Buyer has enough money");
-            if (sellerHasEnoughStocks(sellOrder, transactionId)) {
+            if (sellerHasEnoughTradeObjects(sellOrder, transactionId)) {
                 System.out.println("Seller has enough stocks");
                 return true;
             } else {
@@ -393,11 +395,11 @@ public class BrokerService extends Service {
 
 
     private TradeOrder findMatchingTradeOrder(TradeOrder tradeOrder, String transactionId) {
-        System.out.println("Searching for matching order.");
+
 
         TradeOrder filter = new TradeOrder();
         // we are looking for a opposing order type from the same stocks (company) within the price limit
-        filter.setCompany(tradeOrder.getCompany());
+        filter.setTradeObjectId(tradeOrder.getTradeObjectId());
         if (tradeOrder.getType().equals(TradeOrder.Type.BUY_ORDER)) {
             filter.setType(TradeOrder.Type.SELL_ORDER);
         } else {
@@ -405,6 +407,8 @@ public class BrokerService extends Service {
         }
         filter.setPriceLimit(tradeOrder.getPriceLimit());
         filter.setStatus(TradeOrder.Status.NOT_COMPLETED);
+
+        System.out.println("Searching for matching order, using filter: " + filter);
 
         try {
 
@@ -430,7 +434,7 @@ public class BrokerService extends Service {
                 System.out.println(matchingOrders.size() + " matching trade orders found!");
 
                 // get current stock price
-                double currentStockPrice = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
+                double currentStockPrice = stockPricesContainer.getMarketValue(tradeOrder.getTradeObjectId(), transactionId).getPrice();
 
                 List<TradeOrder> compatibleMatchingTradeOrders = new ArrayList<>();
 
@@ -491,7 +495,7 @@ public class BrokerService extends Service {
 
     private boolean buyerHasEnoughMoney(TradeOrder tradeOrder, DepotInvestor depotInvestor, String transactionId) throws ConnectionErrorException {
         // check if investor has enough money to perform transaction
-        double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getCompany(), transactionId).getPrice();
+        double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getTradeObjectId(), transactionId).getPrice();
         double provisonAmount = (tradeOrder.isPrioritized()) ? 2d : 1d;
 
         double transactionCost = ((double) tradeOrder.getTotalAmount() * currentMarketValue) * (1.0 + (PROVISION_PERCENTAGE * provisonAmount));
@@ -503,14 +507,14 @@ public class BrokerService extends Service {
 
 
     // bei buy order ist seller die matchingTradeOrder und vice versa
-    private boolean sellerHasEnoughStocks(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException {
+    private boolean sellerHasEnoughTradeObjects(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException {
         if (tradeOrder.getInvestorType().equals(TradeOrder.InvestorType.COMPANY)) {
-            DepotCompany depotCompany = factory.newDepotCompany(tradeOrder.getCompany(), transactionId);
-            System.out.println("TOTAL AMOUNT OF STOCKS FROM SELLER: " + depotCompany.getTotalAmountOfStocks(transactionId));
-            return depotCompany.getTotalAmountOfStocks(transactionId) >= (tradeOrder.getTotalAmount() - tradeOrder.getCompletedAmount());
+            DepotCompany depotCompany = factory.newDepotCompany(new Company(tradeOrder.getInvestorId()), transactionId);
+            System.out.println("TOTAL AMOUNT OF STOCKS FROM SELLER: " + depotCompany.getTotalAmountOfTradeObjects(transactionId));
+            return depotCompany.getTotalAmountOfTradeObjects(transactionId) >= (tradeOrder.getTotalAmount() - tradeOrder.getCompletedAmount());
         } else {
             DepotInvestor depotInvestor = factory.newDepotInvestor(new Investor(tradeOrder.getInvestorId()), transactionId);
-            return depotInvestor.getStockAmount(tradeOrder.getCompanyId(), transactionId) >= (tradeOrder.getTotalAmount() - tradeOrder.getCompletedAmount());
+            return depotInvestor.getTradeObjectAmount(tradeOrder.getTradeObjectId(), transactionId) >= (tradeOrder.getTotalAmount() - tradeOrder.getCompletedAmount());
         }
     }
 

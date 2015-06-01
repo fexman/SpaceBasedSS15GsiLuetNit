@@ -51,10 +51,10 @@ public class StockPricesProvider implements IStockPricesProvider {
     }
 
     @Override
-    public MarketValue getMarketValue(Company comp, String transactionId) throws RemoteException {
+    public MarketValue getMarketValue(String id, String transactionId) throws RemoteException {
         synchronized (lock) {
             for (MarketValue mw : stockPrices) {
-                if (mw.getCompany().equals(comp)) {
+                if (mw.getId().equals(id)) {
                     System.out.println(getClass().getSimpleName()+": getMarketValue "+mw);
                     return mw;
                 }

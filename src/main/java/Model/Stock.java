@@ -8,7 +8,7 @@ import java.io.Serializable;
  * Created by Felix on 06.04.2015.
  */
 @Queryable(autoindex = true)
-public class Stock implements Serializable {
+public class Stock implements Serializable, TradeObject {
 
     private static final long serialVersionUID = 7338860624387847800L;
     private String companyId;
@@ -39,5 +39,10 @@ public class Stock implements Serializable {
     @Override
     public int hashCode() {
         return companyId != null ? companyId.hashCode() : 0;
+    }
+
+    @Override
+    public String getId() {
+        return companyId;
     }
 }

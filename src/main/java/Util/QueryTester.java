@@ -21,7 +21,9 @@ public class QueryTester {
         factory = QueryTesterFactory.getFactory();
 
         TradeOrder to = new TradeOrder();
-        to.setPrioritized(null);
+        to.setTradeObjectId("NETF");
+
+        System.out.print("Filter: "+to);
 
         TradeOrderContainer toc = factory.newTradeOrdersContainer();
         List<TradeOrder> results = toc.getOrders(to, null);

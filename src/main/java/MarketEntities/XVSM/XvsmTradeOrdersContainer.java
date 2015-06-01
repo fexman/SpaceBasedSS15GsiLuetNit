@@ -83,8 +83,8 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
                 query.sql("investorId = '"+order.getInvestorId()+"'");
                 System.out.print(" INVESTORID");
             }
-            if (order.getCompanyId() != null) { //LOOKING FOR STOCKS OF COMPANY XYZ
-                query.sql("companyId = '"+order.getCompanyId()+"'");
+            if (order.getTradeObjectId() != null) { //LOOKING FOR STOCKS OF COMPANY XYZ
+                query.sql("tradeObjectId = '"+order.getTradeObjectId()+"'");
                 System.out.print(" COMPANYID");
             }
             if (order.getPriceLimit() != null) {
@@ -111,6 +111,20 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
                 Property prioritized = Property.forName("prioritized");
                 query.filter(prioritized.equalTo(order.isPrioritized()));
                 System.out.print(" PRIORITIZED");
+            }
+
+            Property tradeObjectType = Property.forName("tradeObjectType");
+            switch (order.getTradeObjectType()) { //LOOKING FOR ORDERS WITH TRADEOBJECTTYPE ...
+                case FOND: // FOND
+                    query.filter(tradeObjectType.equalTo(TradeOrder.TradeObjectType.FOND));
+                    System.out.print(" TRADEOBJECTTYPE=FOND");
+                    break;
+                case STOCK: // STOCK
+                    query.filter(tradeObjectType.equalTo(TradeOrder.TradeObjectType.STOCK));
+                    System.out.print(" TRADEOBJECTTYPE=STOCK");
+                    break;
+                case ANY: // I DONT CARE, GIVE ME ALL OF THEM
+                    break;
             }
 
             Property status = Property.forName("status");

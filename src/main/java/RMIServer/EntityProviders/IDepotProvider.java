@@ -1,6 +1,7 @@
 package RMIServer.EntityProviders;
 
 import Model.Stock;
+import Model.TradeObject;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -12,7 +13,7 @@ public interface IDepotProvider extends IProvider {
 
     String getDepotName() throws RemoteException;
 
-    int getTotalAmountOfStocks(String transactionId) throws RemoteException;
+    int getTotalAmountOfTradeObjects(String transactionId) throws RemoteException;
 
-    void addStocks(List<Stock> stocks, String transactionId) throws RemoteException;
+    void addTradeObjects(List<TradeObject> tradeObjects, String transactionId) throws RemoteException;
 }

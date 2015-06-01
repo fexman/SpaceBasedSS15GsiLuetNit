@@ -5,7 +5,7 @@ import MarketEntities.Subscribing.ASubManager;
 import MarketEntities.Subscribing.IRmiCallback;
 import Model.Company;
 import Model.Investor;
-import Model.Stock;
+import Model.TradeObject;
 import RMIServer.EntityProviders.IDepotInvestorProvider;
 import Service.ConnectionErrorException;
 import Util.Container;
@@ -50,45 +50,45 @@ public class RmiDepotInvestor extends DepotInvestor {
     }
 
     @Override
-    public List<Stock> takeStocks(Company comp, int amount, String transactionId) throws ConnectionErrorException {
+    public List<TradeObject> takeTradeObjects(String toId, int amount, String transactionId) throws ConnectionErrorException {
         try {
-            return depotInvestor.takeStocks(comp, amount, transactionId);
+            return depotInvestor.takeTradeObjects(toId, amount, transactionId);
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public int getStockAmount(String stockName, String transactionId) throws ConnectionErrorException {
+    public int getTradeObjectAmount(String toId, String transactionId) throws ConnectionErrorException {
         try {
-            return depotInvestor.getStockAmount(stockName, transactionId);
+            return depotInvestor.getTradeObjectAmount(toId, transactionId);
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public List<Stock> readAllStocks(String transactionId) throws ConnectionErrorException {
+    public List<TradeObject> readAllTradeObjects(String transactionId) throws ConnectionErrorException {
         try {
-            return depotInvestor.readAllStocks(transactionId);
+            return depotInvestor.readAllTradeObjects(transactionId);
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public int getTotalAmountOfStocks(String transactionId) throws ConnectionErrorException {
+    public int getTotalAmountOfTradeObjects(String transactionId) throws ConnectionErrorException {
         try {
-            return depotInvestor.getTotalAmountOfStocks(transactionId);
+            return depotInvestor.getTotalAmountOfTradeObjects(transactionId);
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public void addStocks(List<Stock> stocks, String transactionId) throws ConnectionErrorException {
+    public void addTradeObjects(List<TradeObject> stocks, String transactionId) throws ConnectionErrorException {
         try {
-            depotInvestor.addStocks(stocks, transactionId);
+            depotInvestor.addTradeObjects(stocks, transactionId);
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }

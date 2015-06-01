@@ -31,7 +31,7 @@ public class CompanyService extends Service {
 
             //Write to company-depot
             System.out.print("Writing new stocks to depot ... ");
-            depotCompany.addStocks(isr.toStocks(),transactionId);
+            depotCompany.addTradeObjects(isr.toTradeObjects(),transactionId);
             System.out.println("done.");
 
             //Issue Stocks

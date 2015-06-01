@@ -15,7 +15,7 @@ public class TradeOrder implements Serializable {
     private static final long serialVersionUID = 545149335657778572L;
     private String id;          // orderId
     private String investorId;  // investorId
-    private String companyId;   // companyId of the wanted stocks company
+    private String tradeObjectId;   // companyId of the wanted stocks company
     private Integer totalAmount; // total amount of stocks wanted
     private Integer openAmount;
     private Integer completedAmount; // amount of stocks already "processed"
@@ -23,16 +23,19 @@ public class TradeOrder implements Serializable {
     private Status status;
     private Type type;
     private InvestorType investorType;
+    private TradeObjectType tradeObjectType;
     private Boolean justChanged;
     private Long created;
     private Boolean prioritized;
 
-    private TradeOrder(String investorId, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
+    private TradeOrder(String investorId, String tradeObjectId, Type type, TradeObjectType tradeObjectType, Integer totalAmount, Double priceLimit) {
         this.investorId = investorId;
-        this.companyId = companyOfStocksToBuyOrSell.getId();
+        this.tradeObjectId = tradeObjectId;
         this.totalAmount = totalAmount;
         this.priceLimit = priceLimit;
         setType(type);
+        setStatus(Status.OPEN);
+        setTradeObjectType(tradeObjectType);
 
         this.id = UUID.randomUUID().toString();
         this.prioritized = false;
@@ -40,25 +43,24 @@ public class TradeOrder implements Serializable {
         this.openAmount = totalAmount;
         this.justChanged = true;
         this.created = new Date().getTime();
-        setStatus(Status.OPEN);
     }
 
     public TradeOrder() {
         setType(Type.ANY);
         setStatus(Status.ANY);
+        setTradeObjectType(TradeObjectType.ANY);
         this.created = new Date().getTime();
     }
 
-    public TradeOrder(Investor investor, Company companyOfStocksToBuyOrSell, Type type, Integer totalAmount, Double priceLimit) {
-        this(investor.getId(), companyOfStocksToBuyOrSell, type, totalAmount, priceLimit);
+    public TradeOrder(Investor investor, String tradeObjectId, Type type, TradeObjectType tradeObjectType, Integer totalAmount, Double priceLimit) {
+        this(investor.getId(), tradeObjectId, type, tradeObjectType, totalAmount, priceLimit);
+
         this.investorType = InvestorType.INVESTOR;
-        this.created = new Date().getTime();
     }
 
-    public TradeOrder(Company investor, Company companyOfStocksToBuyOrSell, Integer totalAmount, Double priceLimit) {
-        this(investor.getId(), companyOfStocksToBuyOrSell, Type.SELL_ORDER, totalAmount, priceLimit);
+    public TradeOrder(Company investor, String tradeObjectId, Integer totalAmount, Double priceLimit) {
+        this(investor.getId(), tradeObjectId, Type.SELL_ORDER, TradeObjectType.STOCK, totalAmount, priceLimit);
         this.investorType = InvestorType.COMPANY;
-        this.created = new Date().getTime();
     }
 
     public void setId(String id) {
@@ -73,10 +75,6 @@ public class TradeOrder implements Serializable {
     public void setInvestor(Investor investor) {
         this.investorId = investor.getId();
         this.investorType = InvestorType.INVESTOR;
-    }
-
-    public void setCompany(Company company) {
-        this.companyId = company.getId();
     }
 
     public void setTotalAmount(Integer totalAmount) {
@@ -112,12 +110,6 @@ public class TradeOrder implements Serializable {
         return investorId;
     }
 
-    public String getCompanyId() { return companyId; }
-
-    public Company getCompany() {
-        return new Company(companyId);
-    }
-
     public Integer getTotalAmount() {
         return totalAmount;
     }
@@ -146,12 +138,28 @@ public class TradeOrder implements Serializable {
         this.status = status;
     }
 
+    public TradeObjectType getTradeObjectType() {
+        return tradeObjectType;
+    }
+
+    public void setTradeObjectType(TradeObjectType tradeObjectType) {
+        this.tradeObjectType = tradeObjectType;
+    }
+
+    public String getTradeObjectId() {
+        return tradeObjectId;
+    }
+
+    public void setTradeObjectId(String tradeObjectId) {
+        this.tradeObjectId = tradeObjectId;
+    }
+
     @Override
     public String toString() {
         return "TradeOrder{" +
                 "id='" + id + '\'' +
                 ", investorId='" + investorId + '\'' +
-                ", companyId='" + companyId + '\'' +
+                ", tradeObjectId='" + tradeObjectId + '\'' +
                 ", totalAmount=" + totalAmount +
                 ", completedAmount=" + completedAmount +
                 ", priceLimit=" + priceLimit +
@@ -248,6 +256,29 @@ public class TradeOrder implements Serializable {
             return text;
         }
 
+    }
+
+    public enum TradeObjectType {
+        STOCK("stock"),
+        FOND("fond"),
+        ANY("any");
+
+        private final String text;
+
+        /**
+         * @param text
+         */
+        TradeObjectType(final String text) {
+            this.text = text;
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Enum#toString()
+         */
+        @Override
+        public String toString() {
+            return text;
+        }
     }
 
     public enum InvestorType {

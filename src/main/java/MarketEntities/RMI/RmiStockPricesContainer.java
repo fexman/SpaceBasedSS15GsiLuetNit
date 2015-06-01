@@ -39,9 +39,9 @@ public class RmiStockPricesContainer extends StockPricesContainer{
     }
 
     @Override
-    public MarketValue getMarketValue(Company comp, String transactionId) throws ConnectionErrorException {
+    public MarketValue getMarketValue(String id, String transactionId) throws ConnectionErrorException {
         try {
-            return spContainer.getMarketValue(comp, transactionId);
+            return spContainer.getMarketValue(id, transactionId);
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }

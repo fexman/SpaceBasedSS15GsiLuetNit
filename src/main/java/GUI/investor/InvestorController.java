@@ -50,7 +50,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     private DepotInvestor depotInvestor;
     private ObservableList<StockStats> stockStats;
 
-    private List<Stock> allStocksInDepot;
+    private List<TradeObject> allTradeObjectsInDepot;
     private List<MarketValue> allMarketValues;
     private HashMap<String, Integer> stockNamesAndCount;
 
@@ -242,10 +242,10 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             }
             txtBudget.setText("" + budget);
 
-            allStocksInDepot = depotInvestor.readAllStocks(null);
+            allTradeObjectsInDepot = depotInvestor.readAllTradeObjects(null);
             allMarketValues = stockPricesContainer.getAll(null);
             stockNamesAndCount = new HashMap<>();
-            updateStockNamesAndCount(allStocksInDepot);
+            updateStockNamesAndCount(allTradeObjectsInDepot);
 
             txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
 
@@ -268,7 +268,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         double totalValue = 0;
         for (MarketValue marketValue : allMarketValues) {
             Double price = marketValue.getPrice();
-            Integer numberOfStocks = stockNamesAndCount.get(marketValue.getCompanyId());
+            Integer numberOfStocks = stockNamesAndCount.get(marketValue.getId());
             if (numberOfStocks != null) {
                 totalValue += (price * numberOfStocks);
             }
@@ -352,11 +352,11 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             if (tradeOrder.getType().equals(TradeOrder.Type.SELL_ORDER)) {
                 try {
                     // update stock amount when selling stocks from own depot
-                    int updatedAmountOfStock = depotInvestor.getStockAmount(tradeOrder.getCompanyId(), null);
+                    int updatedAmountOfStock = depotInvestor.getTradeObjectAmount(tradeOrder.getTradeObjectId(), null);
                     if (updatedAmountOfStock > 0) {
-                        stockNamesAndCount.put(tradeOrder.getCompanyId(), updatedAmountOfStock);
+                        stockNamesAndCount.put(tradeOrder.getTradeObjectId(), updatedAmountOfStock);
                     } else {
-                        stockNamesAndCount.remove(tradeOrder.getCompanyId());
+                        stockNamesAndCount.remove(tradeOrder.getTradeObjectId());
                     }
                     populateStockStatsTable();
                 } catch (ConnectionErrorException e) {
@@ -389,14 +389,14 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         populateStockStatsTable();
     }
 
-    private void updateStockNamesAndCount(List<Stock> newStocks) {
+    private void updateStockNamesAndCount(List<TradeObject> newTradeObjects) {
         // stocks of more than one company can be in here
-        for (Stock stock : newStocks) {
-            String companyId = stock.getCompany().getId();
-            if (stockNamesAndCount.containsKey(companyId)) {
-                stockNamesAndCount.put(companyId, stockNamesAndCount.get(companyId) + 1);
+        for (TradeObject tradeObject : newTradeObjects) {
+            String tradeObjectId = tradeObject.getId();
+            if (stockNamesAndCount.containsKey(tradeObjectId)) {
+                stockNamesAndCount.put(tradeObjectId, stockNamesAndCount.get(tradeObjectId) + 1);
             } else {
-                stockNamesAndCount.put(companyId, 1);
+                stockNamesAndCount.put(tradeObjectId, 1);
             }
         }
     }
@@ -416,7 +416,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         HashMap<String, StockStats> statsMapping = new HashMap<>();
         for (Map.Entry<String, Integer> entry : stockNamesAndCount.entrySet()) {
             for (MarketValue marketValue : allMarketValues) {
-                if (marketValue.getCompanyId().equals(entry.getKey())) {
+                if (marketValue.getId().equals(entry.getKey())) {
                     Double price = marketValue.getPrice();
                     statsMapping.put(entry.getKey(), new StockStats(entry.getKey(), entry.getValue(), price, price * entry.getValue()));
                 }

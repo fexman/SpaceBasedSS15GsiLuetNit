@@ -85,8 +85,8 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
         orders_typeCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("type"));
         TableColumn orders_investorIdCol = new TableColumn("Investor ID");
         orders_investorIdCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("investorId"));
-        TableColumn orders_companyIdCol = new TableColumn("Company ID");
-        orders_companyIdCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("companyId"));
+        TableColumn orders_tradeObjectIdCol = new TableColumn("TO-ID");
+        orders_tradeObjectIdCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("tradeObjectId"));
         TableColumn orders_totalAmountCol = new TableColumn("Total");
         orders_totalAmountCol.setPrefWidth(40d);
         orders_totalAmountCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, Integer>("totalAmount"));
@@ -102,13 +102,13 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
         TableColumn orders_prioritizedCol = new TableColumn("Prioritized");
         orders_prioritizedCol.setPrefWidth(70d);
         orders_prioritizedCol.setCellValueFactory(new PropertyValueFactory<TradeOrder, Boolean>("prioritized"));
-        tableOrders.getColumns().setAll(orders_idCol, orders_typeCol, orders_investorIdCol, orders_companyIdCol, orders_totalAmountCol, orders_completedAmountCol, orders_priceLimitCol, orders_statusCol,orders_prioritizedCol);
+        tableOrders.getColumns().setAll(orders_idCol, orders_typeCol, orders_investorIdCol, orders_tradeObjectIdCol, orders_totalAmountCol, orders_completedAmountCol, orders_priceLimitCol, orders_statusCol,orders_prioritizedCol);
     }
 
     private void initTableStocks() {
-        TableColumn stockprices_idCol = new TableColumn("Company");
+        TableColumn stockprices_idCol = new TableColumn("ID");
         stockprices_idCol.setPrefWidth(75d);
-        stockprices_idCol.setCellValueFactory(new PropertyValueFactory<MarketValue, String>("companyId"));
+        stockprices_idCol.setCellValueFactory(new PropertyValueFactory<MarketValue, String>("id"));
         TableColumn stockprices_priceCol = new TableColumn("Price");
         stockprices_priceCol.setPrefWidth(75d);
         stockprices_priceCol.setCellValueFactory(new PropertyValueFactory<MarketValue, Double>("price"));
