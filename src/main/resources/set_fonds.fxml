@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="207.0" prefWidth="278.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <VBox prefHeight="222.0" prefWidth="278.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <Label text="Fondsmenge festlegen:" />
+            <TextField fx:id="txtFonds" alignment="CENTER" promptText="Fondsmenge" />
+            <Label text="Budget festlegen:" />
+            <TextField fx:id="txtBudget" alignment="CENTER" promptText="Budget">
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </TextField>
+            <Button fx:id="okBtn" mnemonicParsing="false" onAction="#okBtnClicked" prefHeight="34.0" prefWidth="132.0" text="OK" translateX="60.0">
+               <VBox.margin>
+                  <Insets top="5.0" />
+               </VBox.margin>
+            </Button>
+            <Label fx:id="statusLabel" textFill="RED" />
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </VBox>
+   </children>
+</AnchorPane>

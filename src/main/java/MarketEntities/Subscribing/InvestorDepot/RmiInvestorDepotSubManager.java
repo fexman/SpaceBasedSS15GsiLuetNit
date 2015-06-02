@@ -2,7 +2,7 @@ package MarketEntities.Subscribing.InvestorDepot;
 
 import MarketEntities.Subscribing.IRmiCallback;
 import Model.Stock;
-import org.mozartspaces.core.Entry;
+import Model.TradeObject;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Created by j0h1 on 29.04.2015.
  */
-public class RmiInvestorDepotSubManager extends AInvestorDepotSubManager implements IRmiCallback<Stock> {
+public class RmiInvestorDepotSubManager extends AInvestorDepotSubManager implements IRmiCallback<TradeObject> {
 
     public RmiInvestorDepotSubManager(IInvestorDepotSub subscription) throws RemoteException {
         super(subscription);
@@ -21,12 +21,12 @@ public class RmiInvestorDepotSubManager extends AInvestorDepotSubManager impleme
     }
 
     @Override
-    public void newData(List<Stock> newData) throws RemoteException {
-        List<Stock> newStocks = new ArrayList<>();
+    public void newData(List<TradeObject> newData) throws RemoteException {
+        List<TradeObject> newTradeObjects = new ArrayList<>();
         for (Serializable s : newData) {
             try {
-                Stock stock = (Stock) s;
-                newStocks.add(stock);
+                TradeObject tradeObject = (TradeObject) s;
+                newTradeObjects.add(tradeObject);
             } catch (ClassCastException e) {
                 // new budget was pushed
                 Double newBudget = (Double) s;
@@ -34,7 +34,7 @@ public class RmiInvestorDepotSubManager extends AInvestorDepotSubManager impleme
                 return;
             }
         }
-        subscription.pushNewStocks(newStocks);
+        subscription.pushNewTradeObjects(newTradeObjects);
     }
 
 }

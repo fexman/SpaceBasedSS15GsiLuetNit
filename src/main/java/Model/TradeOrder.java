@@ -168,6 +168,7 @@ public class TradeOrder implements Serializable {
                 ", investorType=" + investorType +
                 ", created=" + created +
                 ", prioritized=" + prioritized +
+                ", tradeObjectType=" + tradeObjectType +
                 '}';
     }
 

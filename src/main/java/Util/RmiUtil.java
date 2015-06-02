@@ -38,11 +38,11 @@ public class RmiUtil {
 
         //Adding providers
         try {
-            providers.put(Container.ISSUED_STOCK_REQUESTS, rc.getRmiServer().getIssueStockRequestContainer());
+            providers.put(Container.ISSUED_REQUESTS, rc.getRmiServer().getIssueRequestsContainer());
             providers.put(Container.TRADE_ORDERS, rc.getRmiServer().getTradeOrderContainer());
             providers.put(Container.STOCK_PRICES, rc.getRmiServer().getStockPricesContainer());
             providers.put(Container.TRANSACTION_HISTORY, rc.getRmiServer().getTransactionHistoryContainer());
-            providers.put(Container.BROKER_TOSUPPORT, rc.getRmiServer().getBrokerSupportProvider());
+            providers.put(Container.BROKER_TOSUPPORT, rc.getRmiServer().getBrokerSupportContainer());
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }

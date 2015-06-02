@@ -1,8 +1,6 @@
 package MarketEntities.Subscribing.InvestorDepot;
 
-import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
-import Model.IssueStockRequest;
-import Model.Stock;
+import Model.TradeObject;
 import org.mozartspaces.core.Entry;
 import org.mozartspaces.notifications.Notification;
 import org.mozartspaces.notifications.NotificationListener;
@@ -22,12 +20,12 @@ public class XvsmInvestorDepotSubManager extends AInvestorDepotSubManager implem
     }
 
     @Override
-    public void entryOperationFinished(Notification notification, Operation operation, List<? extends Serializable> stocks) {
-        List<Stock> newStocks = new ArrayList<>();
-        for (Serializable s : stocks) {
+    public void entryOperationFinished(Notification notification, Operation operation, List<? extends Serializable> tradeObjects) {
+        List<TradeObject> newTradeObjects = new ArrayList<>();
+        for (Serializable s : tradeObjects) {
             try {
-                Stock stock = (Stock) ((Entry) s).getValue();
-                newStocks.add(stock);
+                TradeObject tradeObject = (TradeObject) ((Entry) s).getValue();
+                newTradeObjects.add(tradeObject);
             } catch (ClassCastException e) {
                 // new budget was pushed
                 Double newBudget = (Double) ((Entry) s).getValue();
@@ -35,7 +33,7 @@ public class XvsmInvestorDepotSubManager extends AInvestorDepotSubManager implem
                 return;
             }
         }
-        subscription.pushNewStocks(newStocks);
+        subscription.pushNewTradeObjects(newTradeObjects);
     }
 
 }

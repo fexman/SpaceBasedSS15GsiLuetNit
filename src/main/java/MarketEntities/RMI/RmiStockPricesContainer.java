@@ -57,6 +57,24 @@ public class RmiStockPricesContainer extends StockPricesContainer{
     }
 
     @Override
+    public List<MarketValue> getFonds(String transactionId) throws ConnectionErrorException {
+        try {
+            return spContainer.getFonds(transactionId);
+        } catch (RemoteException e) {
+            throw new ConnectionErrorException(e);
+        }
+    }
+
+    @Override
+    public List<MarketValue> getCompanies(String transactionId) throws ConnectionErrorException {
+        try {
+            return spContainer.getCompanies(transactionId);
+        } catch (RemoteException e) {
+            throw new ConnectionErrorException(e);
+        }
+    }
+
+    @Override
     public void subscribe(ASubManager subscriber, String transactionId) throws ConnectionErrorException {
         IRmiCallback<MarketValue> rmiSub = (IRmiCallback<MarketValue>)subscriber;
         try {

@@ -103,7 +103,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
     public List<TradeObject> readAllTradeObjects(String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
-        TypeCoordinator.TypeSelector selector = TypeCoordinator.newSelector(Stock.class, MzsConstants.Selecting.COUNT_MAX);
+        TypeCoordinator.TypeSelector selector = TypeCoordinator.newSelector(TradeObject.class, MzsConstants.Selecting.COUNT_MAX);
         try {
             return xc.getCapi().read(investorDepot, selector, XvsmUtil.ACTION_TIMEOUT, tx);
         } catch (MzsCoreException e) {

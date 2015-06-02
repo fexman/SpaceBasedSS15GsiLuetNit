@@ -6,7 +6,7 @@ import MarketEntities.RMI.*;
 import MarketEntities.Subscribing.InvestorDepot.AInvestorDepotSubManager;
 import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
 import MarketEntities.Subscribing.InvestorDepot.RmiInvestorDepotSubManager;
-import MarketEntities.Subscribing.IssueStockRequests.RmiISRSubManager;
+import MarketEntities.Subscribing.IssueRequests.RmiIssueRequestSubManager;
 import MarketEntities.Subscribing.MarketValues.RmiStockPricesSubManager;
 import MarketEntities.Subscribing.TradeOrders.RmiTradeOrderSubManager;
 import MarketEntities.Subscribing.TransactionHistory.ATransactionHistorySubManager;
@@ -15,8 +15,8 @@ import MarketEntities.Subscribing.TransactionHistory.RmiTransactionHistorySubMan
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionErrorException;
-import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
-import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
+import MarketEntities.Subscribing.IssueRequests.AIssueRequestSubManager;
+import MarketEntities.Subscribing.IssueRequests.IIssueRequestSub;
 import MarketEntities.Subscribing.MarketValues.AStockPricesSubManager;
 import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
@@ -38,8 +38,8 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
-    public ISRContainer newISRContainer() {
-        return new RmiISRContainer();
+    public IssueRequestContainer newIssueRequestContainer() {
+        return new RmiIssueRequestContainer();
     }
 
     @Override
@@ -63,9 +63,9 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
-    public AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription) {
+    public AIssueRequestSubManager newIssueRequestSubManager(IIssueRequestSub subscription) {
         try {
-            return new RmiISRSubManager(subscription);
+            return new RmiIssueRequestSubManager(subscription);
         } catch (RemoteException e) {
             e.printStackTrace();
         }

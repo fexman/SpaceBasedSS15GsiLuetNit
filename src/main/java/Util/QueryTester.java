@@ -3,7 +3,12 @@ package Util;
 import Factory.IFactory;
 import Factory.RmiFactory;
 import Factory.XvsmFactory;
+import MarketEntities.DepotInvestor;
+import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
+import Model.Investor;
+import Model.MarketValue;
+import Model.TradeObject;
 import Model.TradeOrder;
 import Service.ConnectionErrorException;
 
@@ -20,8 +25,10 @@ public class QueryTester {
     public static void main(String args[]) throws Exception {
         factory = QueryTesterFactory.getFactory();
 
-        TradeOrder to = new TradeOrder();
-        to.setTradeObjectId("NETF");
+        // +++ +++ +++ +++ +++ +++ +++ TRADEORDER TESTS  +++ +++ +++ +++ +++ +++ +++
+        /*TradeOrder to = new TradeOrder();
+        Investor investor = new Investor("bob");
+        to.setInvestor(investor);
 
         System.out.print("Filter: "+to);
 
@@ -32,7 +39,32 @@ public class QueryTester {
         for (TradeOrder toResult: results) {
             System.out.println("\t"+toResult);
         }
+        System.out.println(" ++++ Results End +++ ");*/
+
+        // +++ +++ +++ +++ +++ +++ +++ INVESTOR TESTS  +++ +++ +++ +++ +++ +++ +++
+        Investor inv = new Investor("dudette");
+        inv.setFonds(true);
+
+        DepotInvestor di = factory.newDepotInvestor(inv,null);
+
+        List<TradeObject> results = di.readAllTradeObjects(null);
+        System.out.println();
+        System.out.println(" ++++ Query Results +++ ");
+        for (TradeObject to : results) {
+            System.out.println("\t"+to);
+        }
         System.out.println(" ++++ Results End +++ ");
+
+        // +++ +++ +++ +++ +++ +++ +++ MARKETVALUE TESTS  +++ +++ +++ +++ +++ +++ +++
+        /*StockPricesContainer sps = factory.newStockPricesContainer();
+
+        List<MarketValue> results = sps.getCompanies(null);
+        System.out.println();
+        System.out.println(" ++++ Query Results +++ ");
+        for (MarketValue mw : results) {
+            System.out.println("\t"+mw);
+        }
+        System.out.println(" ++++ Results End +++ ");*/
 
         System.exit(0);
     }

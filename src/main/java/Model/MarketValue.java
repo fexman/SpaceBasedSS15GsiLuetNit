@@ -13,12 +13,14 @@ public class MarketValue implements Serializable {
     private Double price;
     private Integer tradeVolume;
     private boolean priceChanged;
+    private boolean isCompany;
 
     public MarketValue(Company company, Double price, Integer tradeVolume) {
         this.id = company.getId();
         this.price = price;
         this.tradeVolume = tradeVolume;
         this.priceChanged = true;
+        this.isCompany = true;
     }
 
     public MarketValue(Investor investor, Double price, Integer tradeVolume) {
@@ -29,6 +31,15 @@ public class MarketValue implements Serializable {
         this.price = price;
         this.tradeVolume = tradeVolume;
         this.priceChanged = true;
+        this.isCompany = false;
+    }
+
+    public boolean isCompany() {
+        return isCompany;
+    }
+
+    public void setIsCompany(boolean isCompany) {
+        this.isCompany = isCompany;
     }
 
     public String getId() {

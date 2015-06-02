@@ -1,12 +1,14 @@
 package Service;
 
 import Factory.IFactory;
+import MarketEntities.DepotInvestor;
 import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
-import Model.MarketValue;
-import Model.TradeOrder;
+import Model.*;
 import Util.TransactionTimeout;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -31,8 +33,10 @@ public class MarketAgentService extends Service {
         try {
             transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
 
-            List<MarketValue> marketValues = stockPricesContainer.getAll(transactionId);
-            for (MarketValue marketValue : marketValues) {
+            List<MarketValue> companies = stockPricesContainer.getCompanies(transactionId);
+            List<MarketValue> fonds = stockPricesContainer.getFonds(transactionId); //To seperate fonds. Their prices are calculated after companies.
+            HashMap<String,Double> currentPrices = new HashMap<>(); //To save bandwith when calculating fond price
+            for (MarketValue marketValue : companies) {
                 // get all open/partially completed buy orders of current market value
                 TradeOrder buyOrdersFilter = new TradeOrder();
                 buyOrdersFilter.setTradeObjectId(marketValue.getId());
@@ -71,9 +75,34 @@ public class MarketAgentService extends Service {
                 marketValue.setPrice(newStockPrice);
                 stockPricesContainer.addOrUpdateMarketValue(marketValue, transactionId);
 
+                //For fonds (see below)
+                currentPrices.put(marketValue.getId(),newStockPrice);
+
                 System.out.println("Updated " + marketValue.getId() + "'s market value from " + currentStockPrice + " to " + newStockPrice);
             }
+
+            for (MarketValue mw : fonds) {
+
+                Investor investor = new Investor(mw.getId());
+                investor.setFonds(true);
+                DepotInvestor depotInvestor = factory.newDepotInvestor(investor,transactionId);
+
+                //Calculate fond price from fond-investor (fondmanager) budget and his current stocks
+                double newFondPrice = depotInvestor.getBudget(transactionId);
+                for (TradeObject to: depotInvestor.readAllTradeObjects(transactionId)) {
+                    if (to instanceof Stock) {
+                        newFondPrice += currentPrices.get(to.getId());
+                    }
+                }
+
+                //write results
+                newFondPrice = newFondPrice/mw.getTradeVolume();
+                mw.setPrice(newFondPrice);
+                stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
+
+            }
             factory.commitTransaction(transactionId);
+
         } catch (ConnectionErrorException e) {
             try {
                 factory.rollbackTransaction(transactionId);
@@ -89,17 +118,17 @@ public class MarketAgentService extends Service {
         try {
             transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
 
-            List<MarketValue> marketValues = stockPricesContainer.getAll(transactionId);
-            if (marketValues.size() > 0) {
+            List<MarketValue> companies = stockPricesContainer.getCompanies(transactionId);
+            if (companies.size() > 0) {
                 Random rand = new Random();
 
                 int randomMarketValueIndex = 0;
-                if (marketValues.size() > 1) {
+                if (companies.size() > 1) {
                     // calculate random number between 0 and marketValues.size() - 1
-                    randomMarketValueIndex = rand.nextInt(marketValues.size());
+                    randomMarketValueIndex = rand.nextInt(companies.size());
                 }
 
-                MarketValue randomMarketValue = marketValues.get(randomMarketValueIndex);
+                MarketValue randomMarketValue = companies.get(randomMarketValueIndex);
 
                 // this calculates a random number between -maxFluctuation and +maxFluctuation
                 double randomFluctuation = -maxFluctuation + (2 * maxFluctuation) * rand.nextDouble();
@@ -107,9 +136,26 @@ public class MarketAgentService extends Service {
                 // calculating the new market value price, considering a random fluctuation within a specified range
                 double newMarketValuePrice = randomMarketValue.getPrice() + (randomMarketValue.getPrice() * randomFluctuation);
 
+                double oldMarketValuePrice = randomMarketValue.getPrice();
                 randomMarketValue.setPrice(newMarketValuePrice);
 
                 stockPricesContainer.addOrUpdateMarketValue(randomMarketValue, transactionId);
+
+                //Update corresponding fonds
+                for (MarketValue mw: stockPricesContainer.getFonds(transactionId)) {
+                    Investor investor = new Investor(mw.getId());
+                    investor.setFonds(true);
+                    DepotInvestor depotInvestor = factory.newDepotInvestor(investor,transactionId);
+
+                    int randomCompanyStockAmount = depotInvestor.getTradeObjectAmount(randomMarketValue.getId(),transactionId);
+                    if (randomCompanyStockAmount > 0) {
+                        double newPrice = mw.getPrice() - randomCompanyStockAmount*oldMarketValuePrice + randomCompanyStockAmount*newMarketValuePrice;
+                        newPrice = newPrice/mw.getTradeVolume();
+                        mw.setPrice(newPrice);
+                        stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
+                    }
+                }
+
                 factory.commitTransaction(transactionId);
             }
         } catch (ConnectionErrorException e) {

@@ -4,7 +4,7 @@ package Util;
  * Created by Felix on 23.04.2015.
  */
 public enum Container {
-    ISSUED_STOCK_REQUESTS("issuedStockRequests"),
+    ISSUED_REQUESTS("issuedRequests"),
     TRANSACTION_HISTORY("transactionHistory"),
     STOCK_PRICES("stockPrices"),
     TRADE_ORDERS("tradeOrders"),

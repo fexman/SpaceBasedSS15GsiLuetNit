@@ -11,9 +11,9 @@ import MarketEntities.XVSM.*;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionErrorException;
-import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
-import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
-import MarketEntities.Subscribing.IssueStockRequests.XvsmISRSubManager;
+import MarketEntities.Subscribing.IssueRequests.AIssueRequestSubManager;
+import MarketEntities.Subscribing.IssueRequests.IIssueRequestSub;
+import MarketEntities.Subscribing.IssueRequests.XvsmIssueRequestSubManager;
 import MarketEntities.Subscribing.MarketValues.AStockPricesSubManager;
 import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.MarketValues.XvsmStockPricesSubManager;
@@ -43,8 +43,8 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public ISRContainer newISRContainer() {
-        return new XvsmISRContainer();
+    public IssueRequestContainer newIssueRequestContainer() {
+        return new XvsmIssueRequestContainer();
     }
 
     @Override
@@ -68,8 +68,8 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription) {
-        return new XvsmISRSubManager(subscription);
+    public AIssueRequestSubManager newIssueRequestSubManager(IIssueRequestSub subscription) {
+        return new XvsmIssueRequestSubManager(subscription);
     }
 
     @Override

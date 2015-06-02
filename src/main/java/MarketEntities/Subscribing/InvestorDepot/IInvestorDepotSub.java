@@ -1,7 +1,7 @@
 package MarketEntities.Subscribing.InvestorDepot;
 
 import MarketEntities.Subscribing.Subscription;
-import Model.Stock;
+import Model.TradeObject;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface IInvestorDepotSub extends Subscription {
 
-    void pushNewStocks(List<Stock> stocks);
+    void pushNewTradeObjects(List<TradeObject> tradeObjects);
 
     void pushNewBudget(Double budget);
 

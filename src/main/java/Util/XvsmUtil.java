@@ -82,7 +82,7 @@ public class XvsmUtil {
 
         //Crea
         // te "hardcoded" containers
-        containers.put(Container.ISSUED_STOCK_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_STOCK_REQUESTS.toString(), xc.getSpace(), xc.getCapi(), null,
+        containers.put(Container.ISSUED_REQUESTS, lookUpOrCreateContainer(Container.ISSUED_REQUESTS.toString(), xc.getSpace(), xc.getCapi(), null,
                 new ArrayList<CoordinatorType>() {{
                     add(CoordinatorType.FIFO_COORDINATOR);
                 }}));
@@ -98,6 +98,7 @@ public class XvsmUtil {
                 new ArrayList<CoordinatorType>() {{
                     add(CoordinatorType.KEY_COORDINATOR);
                     add(CoordinatorType.FIFO_COORDINATOR);
+                    add(CoordinatorType.QUERY_COORDINATOR);
                 }}));
 
         containers.put(Container.BROKER_SPSUPPORT, lookUpOrCreateContainer(Container.BROKER_SPSUPPORT.toString(), xc.getSpace(), xc.getCapi(), null,

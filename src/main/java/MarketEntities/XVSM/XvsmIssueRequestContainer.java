@@ -1,7 +1,8 @@
 package MarketEntities.XVSM;
 
 import MarketEntities.Subscribing.ASubManager;
-import MarketEntities.ISRContainer;
+import MarketEntities.IssueRequestContainer;
+import Model.IssueRequest;
 import Model.IssueStockRequest;
 import Service.ConnectionErrorException;
 import Service.TransactionTimeoutException;
@@ -22,36 +23,36 @@ import java.util.Set;
 /**
  * Created by Felix on 14.04.2015.
  */
-public class XvsmISRContainer extends ISRContainer {
+public class XvsmIssueRequestContainer extends IssueRequestContainer {
 
-    private ContainerReference isrContainer;
+    private ContainerReference irContainer;
     private XvsmUtil.XvsmConnection xc;
 
-    public XvsmISRContainer() {
-        isrContainer = XvsmUtil.getContainer(Container.ISSUED_STOCK_REQUESTS);
+    public XvsmIssueRequestContainer() {
+        irContainer = XvsmUtil.getContainer(Container.ISSUED_REQUESTS);
         xc = XvsmUtil.getXvsmConnection();
     }
 
     @Override
-    public void addIssueStocksRequest(IssueStockRequest isr, String transactionId) throws ConnectionErrorException {
+    public void addIssueRequest(IssueRequest ir, String transactionId) throws ConnectionErrorException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         try {
-            xc.getCapi().write(isrContainer, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(isr));
+            xc.getCapi().write(irContainer, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(ir));
         } catch (MzsCoreException e) {
             throw new ConnectionErrorException(e);
         }
     }
 
     @Override
-    public List<IssueStockRequest> takeIssueStockRequests(String transactionId) throws ConnectionErrorException, TransactionTimeoutException {
+    public List<IssueRequest> takeIssueRequests(String transactionId) throws ConnectionErrorException, TransactionTimeoutException {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         ArrayList<Selector> selectors = new ArrayList<>();
         selectors.add(FifoCoordinator.newSelector());
 
         try {
-            return xc.getCapi().take(isrContainer, selectors, XvsmUtil.INFINITE_TAKE, tx);
+            return xc.getCapi().take(irContainer, selectors, XvsmUtil.INFINITE_TAKE, tx);
         } catch (MzsTimeoutException e) {
             throw new TransactionTimeoutException(e);
         } catch (MzsCoreException e) {
@@ -66,7 +67,7 @@ public class XvsmISRContainer extends ISRContainer {
         operations.add(Operation.WRITE);
 
         try {
-            notificationManager.createNotification(isrContainer, (NotificationListener)subscriber, operations, null, null);
+            notificationManager.createNotification(irContainer, (NotificationListener)subscriber, operations, null, null);
         } catch (Exception e) {
             throw new ConnectionErrorException(e);
         }

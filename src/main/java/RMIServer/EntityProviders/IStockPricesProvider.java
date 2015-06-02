@@ -18,6 +18,10 @@ public interface IStockPricesProvider extends IProvider {
 
     List<MarketValue> getAll(String transactionId) throws RemoteException;
 
+    List<MarketValue> getFonds(String transactionId) throws RemoteException;
+
+    List<MarketValue> getCompanies(String transactionId) throws RemoteException;
+
     void subscribe(IRmiCallback<MarketValue> callback) throws RemoteException;
 
     void unsubscribe(IRmiCallback<MarketValue> callback) throws RemoteException;

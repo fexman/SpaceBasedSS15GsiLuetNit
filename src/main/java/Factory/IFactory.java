@@ -8,8 +8,8 @@ import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionErrorException;
-import MarketEntities.Subscribing.IssueStockRequests.AISRSubManager;
-import MarketEntities.Subscribing.IssueStockRequests.IISRRequestSub;
+import MarketEntities.Subscribing.IssueRequests.AIssueRequestSubManager;
+import MarketEntities.Subscribing.IssueRequests.IIssueRequestSub;
 import MarketEntities.Subscribing.MarketValues.AStockPricesSubManager;
 import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ATradeOrderSubManager;
@@ -23,7 +23,7 @@ public interface IFactory {
 
     //Static containers
 
-    ISRContainer newISRContainer();
+    IssueRequestContainer newIssueRequestContainer();
 
     TradeOrderContainer newTradeOrdersContainer();
 
@@ -35,7 +35,7 @@ public interface IFactory {
 
     //Subscription-manager
 
-    AISRSubManager newIssueStockRequestSubManager(IISRRequestSub subscription);
+    AIssueRequestSubManager newIssueRequestSubManager(IIssueRequestSub subscription);
 
     ATradeOrderSubManager newTradeOrderSubManager(ITradeOrderSub subscription);
 

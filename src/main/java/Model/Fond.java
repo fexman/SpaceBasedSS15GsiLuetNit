@@ -43,6 +43,10 @@ public class Fond implements Serializable, TradeObject {
 
     }
 
+    public String toString() {
+        return investorId+"-Fond";
+    }
+
     @Override
     public int hashCode() {
         return investorId.hashCode();

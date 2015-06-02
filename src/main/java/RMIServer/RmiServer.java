@@ -23,7 +23,7 @@ public class RmiServer extends Thread implements IRmiServer {
     private Registry registry;
     private HashMap<Company,IDepotCompanyProvider> companyDepots;
     private HashMap<String, IDepotInvestorProvider> investorDepots;
-    private IISRContainerProvider isrContainerProvider;
+    private IIssueRequestsProvider irContainerProvider;
     private ITradeOrderProvider tradeOrderContainerProvider;
     private IStockPricesProvider stockPricesProvider;
     private ITransactionHistoryProvider transactionHistoryProvider;
@@ -33,7 +33,7 @@ public class RmiServer extends Thread implements IRmiServer {
     public RmiServer(int port) {
         this.port = port;
 
-        isrContainerProvider = new ISRContainerProvider();
+        irContainerProvider = new IssueRequestsProvider();
         brokerSupportProvider = new BrokerSupportProvider();
         tradeOrderContainerProvider = new TradeOrderProvider(brokerSupportProvider);
         stockPricesProvider = new StockPricesProvider(brokerSupportProvider);
@@ -53,7 +53,7 @@ public class RmiServer extends Thread implements IRmiServer {
 
             //Export providers
             UnicastRemoteObject.exportObject(brokerSupportProvider,0);
-            UnicastRemoteObject.exportObject(isrContainerProvider, 0);
+            UnicastRemoteObject.exportObject(irContainerProvider, 0);
             UnicastRemoteObject.exportObject(tradeOrderContainerProvider, 0);
             UnicastRemoteObject.exportObject(stockPricesProvider, 0);
             UnicastRemoteObject.exportObject(transactionHistoryProvider, 0);
@@ -74,8 +74,8 @@ public class RmiServer extends Thread implements IRmiServer {
                 case "!toinfo":
                     System.out.println(tradeOrderContainerProvider.toString());
                     break;
-                case "!isrinfo":
-                    System.out.println(isrContainerProvider.toString());
+                case "!irinfo":
+                    System.out.println(irContainerProvider.toString());
                     break;
                 case "!thinfo":
                     System.out.println(transactionHistoryProvider.toString());
@@ -111,7 +111,7 @@ public class RmiServer extends Thread implements IRmiServer {
     private void shutDown() {
         try {
             //Unexport providers
-            UnicastRemoteObject.unexportObject(isrContainerProvider, true);
+            UnicastRemoteObject.unexportObject(irContainerProvider, true);
             UnicastRemoteObject.unexportObject(brokerSupportProvider, true);
             UnicastRemoteObject.unexportObject(tradeOrderContainerProvider, true);
             UnicastRemoteObject.unexportObject(stockPricesProvider, true);
@@ -142,14 +142,14 @@ public class RmiServer extends Thread implements IRmiServer {
     }
 
     @Override
-    public IBrokerSupportProvider getBrokerSupportProvider() throws RemoteException {
+    public IBrokerSupportProvider getBrokerSupportContainer() throws RemoteException {
         return brokerSupportProvider;
     }
 
 
     @Override
-    public IISRContainerProvider getIssueStockRequestContainer() throws RemoteException {
-        return isrContainerProvider;
+    public IIssueRequestsProvider getIssueRequestsContainer() throws RemoteException {
+        return irContainerProvider;
     }
 
     @Override

@@ -62,6 +62,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     @FXML
     private TextField txtUsername;
     @FXML
+    private CheckBox isFondsmanager;
+    @FXML
     private ComboBox<String> protocolField;
     @FXML
     private Button btnLogin;
@@ -98,6 +100,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     @FXML
     private Label statusLabel;
     @FXML
+    private Label modeLabel;
+    @FXML
     private VBox dataContainer;
     @FXML
     private HBox loginContainer;
@@ -125,7 +129,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
         colOrderId.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("id"));
         colOrderType.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("type"));
-        colOrderStockId.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("companyId"));
+        colOrderStockId.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("tradeObjectId"));
         colOrderLimit.setCellValueFactory(new PropertyValueFactory<TradeOrder, Double>("priceLimit"));
         colOrderOpenAmount.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("openAmount"));
 
@@ -186,6 +190,10 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         }
 
         investor = new Investor(txtUsername.getText());
+        if (isFondsmanager.isSelected()) {
+            investor.setFonds(true);
+        }
+
 
         ((Stage) txtUsername.getScene().getWindow()).setTitle(investor.getId() + "'s Overview");
 
@@ -234,12 +242,46 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             loginContainer.setMinHeight(0);
             loginContainer.setPrefHeight(0);
 
+            //Check for existing investor type and adjust mode if necessary
+            boolean investorExists = (depotInvestor.getBudget(null) != 0.0) ? true : false;
+            boolean marketValueExists = (stockPricesContainer.getMarketValue(investor.getId(),null) != null) ? true : false;
+
             // load initial data
             double budget = depotInvestor.getBudget(null);
-            if (budget == 0.0) {
-                // show budget prompt
-                editBudgetButtonClicked();
+            if (!investorExists) {
+                if (!investor.isFonds()) {
+                    // show budget prompt
+                    editBudgetButtonClicked();
+                } else {
+                    // show fonds prompt
+                    try {
+                        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("set_fonds.fxml"));
+                        fxmlLoader.setController(new FondsController(factory, investor));
+                        Parent root1 = (Parent) fxmlLoader.load();
+                        Stage stage = new Stage();
+                        stage.setTitle("Init Fonds");
+                        stage.setScene(new Scene(root1));
+                        stage.show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                if (marketValueExists) {
+                    investor.setFonds(true);
+                } else {
+                    investor.setFonds(false);
+                }
             }
+
+            if (investor.isFonds()) {
+                modeLabel.setText("FONDSMANAGER MODE");
+                btnEditBudget.setVisible(false); //Fondsmanager may not change its budget
+                ORDER_FILTER.setTradeObjectType(TradeOrder.TradeObjectType.STOCK); //Fondsmanager may only buy/sell stocks
+            } else {
+                modeLabel.setText("INVESTOR MODE");
+            }
+
             txtBudget.setText("" + budget);
 
             allTradeObjectsInDepot = depotInvestor.readAllTradeObjects(null);
@@ -325,65 +367,70 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
     @Override
     public void pushNewTradeOrders(final TradeOrder tradeOrder) {
-        if (tradeOrder.getInvestorId().equals(investor.getId())) {
-            if ((tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED))) {
-                if (activeOrders.contains(tradeOrder)) {
-                    int index = activeOrders.indexOf(tradeOrder);
+        if (!(tradeOrder.getTradeObjectType() == TradeOrder.TradeObjectType.FOND && investor.isFonds())) { //To prevent fondmanager from trading with fonds
+            if (tradeOrder.getInvestorId().equals(investor.getId())) {
+                if ((tradeOrder.getStatus().equals(TradeOrder.Status.OPEN) || tradeOrder.getStatus().equals(TradeOrder.Status.PARTIALLY_COMPLETED))) {
+                    if (activeOrders.contains(tradeOrder)) {
+                        int index = activeOrders.indexOf(tradeOrder);
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                activeOrders.set(index, tradeOrder);
+                            }
+                        });
+                    } else {
+                        activeOrders.add(tradeOrder);
+                    }
+                } else {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            activeOrders.set(index, tradeOrder);
+                            if (activeOrders.contains(tradeOrder)) {
+                                activeOrders.remove(tradeOrder);
+                            }
                         }
                     });
-                } else {
-                    activeOrders.add(tradeOrder);
                 }
-            } else {
+
+
+                if (tradeOrder.getType().equals(TradeOrder.Type.SELL_ORDER)) {
+                    try {
+                        // update stock amount when selling stocks from own depot
+                        int updatedAmountOfStock = depotInvestor.getTradeObjectAmount(tradeOrder.getTradeObjectId(), null);
+                        if (updatedAmountOfStock > 0) {
+                            stockNamesAndCount.put(tradeOrder.getTradeObjectId(), updatedAmountOfStock);
+                        } else {
+                            stockNamesAndCount.remove(tradeOrder.getTradeObjectId());
+                        }
+                        populateStockStatsTable();
+                    } catch (ConnectionErrorException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        if (activeOrders.contains(tradeOrder)) {
-                            activeOrders.remove(tradeOrder);
-                        }
+                        tabOrders.setItems(activeOrders);
                     }
                 });
             }
-
-            if (tradeOrder.getType().equals(TradeOrder.Type.SELL_ORDER)) {
-                try {
-                    // update stock amount when selling stocks from own depot
-                    int updatedAmountOfStock = depotInvestor.getTradeObjectAmount(tradeOrder.getTradeObjectId(), null);
-                    if (updatedAmountOfStock > 0) {
-                        stockNamesAndCount.put(tradeOrder.getTradeObjectId(), updatedAmountOfStock);
-                    } else {
-                        stockNamesAndCount.remove(tradeOrder.getTradeObjectId());
-                    }
-                    populateStockStatsTable();
-                } catch (ConnectionErrorException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    tabOrders.setItems(activeOrders);
-                }
-            });
         }
     }
 
     @Override
-    public void pushNewStocks(final List<Stock> newStocks) {
+    public void pushNewTradeObjects(final List<TradeObject> newTradeObjects) {
         // assumption -> stocks are ALL from the same company
-        if (newStocks != null && newStocks.size() > 0) {
-            String companyId = newStocks.get(0).getCompany().getId();
-            if (stockNamesAndCount.containsKey(companyId)) {
-                // stock with company name <xy> already in map -> increase number
-                stockNamesAndCount.put(companyId, stockNamesAndCount.get(companyId) + newStocks.size());
-            } else {
-                // stocks of a new company acquired
-                stockNamesAndCount.put(companyId, newStocks.size());
+        if (newTradeObjects != null && newTradeObjects.size() > 0) {
+            String tradeObjectId = newTradeObjects.get(0).getId();
+            if (tradeObjectId != investor.getId()) {
+                if (stockNamesAndCount.containsKey(tradeObjectId)) {
+                    // stock with company name <xy> already in map -> increase number
+                    stockNamesAndCount.put(tradeObjectId, stockNamesAndCount.get(tradeObjectId) + newTradeObjects.size());
+                } else {
+                    // stocks of a new company acquired
+                    stockNamesAndCount.put(tradeObjectId, newTradeObjects.size());
+                }
             }
         }
         populateStockStatsTable();
@@ -392,11 +439,15 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     private void updateStockNamesAndCount(List<TradeObject> newTradeObjects) {
         // stocks of more than one company can be in here
         for (TradeObject tradeObject : newTradeObjects) {
-            String tradeObjectId = tradeObject.getId();
-            if (stockNamesAndCount.containsKey(tradeObjectId)) {
-                stockNamesAndCount.put(tradeObjectId, stockNamesAndCount.get(tradeObjectId) + 1);
+            if (!(tradeObject instanceof Fond && investor.isFonds())) { //Fonds not considered when fondmanager
+                String tradeObjectId = tradeObject.getId();
+                if (stockNamesAndCount.containsKey(tradeObjectId)) {
+                    stockNamesAndCount.put(tradeObjectId, stockNamesAndCount.get(tradeObjectId) + 1);
+                } else {
+                    stockNamesAndCount.put(tradeObjectId, 1);
+                }
             } else {
-                stockNamesAndCount.put(tradeObjectId, 1);
+                //Ignore Fonds if investor isFondManager
             }
         }
     }

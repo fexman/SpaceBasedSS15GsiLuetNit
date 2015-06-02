@@ -2,7 +2,7 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.DepotCompany;
-import MarketEntities.ISRContainer;
+import MarketEntities.IssueRequestContainer;
 import Model.IssueStockRequest;
 import Util.TransactionTimeout;
 
@@ -27,7 +27,7 @@ public class CompanyService extends Service {
 
             //Create containers
             DepotCompany depotCompany = factory.newDepotCompany(isr.getCompany(), transactionId);
-            ISRContainer isrContainer = factory.newISRContainer();
+            IssueRequestContainer issueRequestContainer = factory.newIssueRequestContainer();
 
             //Write to company-depot
             System.out.print("Writing new stocks to depot ... ");
@@ -36,7 +36,7 @@ public class CompanyService extends Service {
 
             //Issue Stocks
             System.out.print("Writing IS-request to container ... ");
-            isrContainer.addIssueStocksRequest(isr, transactionId);
+            issueRequestContainer.addIssueRequest(isr, transactionId);
             System.out.println("done.");
 
             factory.commitTransaction(transactionId);

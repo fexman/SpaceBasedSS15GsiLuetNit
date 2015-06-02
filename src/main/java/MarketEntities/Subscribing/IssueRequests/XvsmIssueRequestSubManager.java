@@ -1,5 +1,6 @@
-package MarketEntities.Subscribing.IssueStockRequests;
+package MarketEntities.Subscribing.IssueRequests;
 
+import Model.IssueRequest;
 import Model.IssueStockRequest;
 import org.mozartspaces.core.Entry;
 import org.mozartspaces.notifications.Notification;
@@ -13,19 +14,19 @@ import java.util.List;
 /**
  * Created by Felix on 16.04.2015.
  */
-public class XvsmISRSubManager extends AISRSubManager implements NotificationListener {
+public class XvsmIssueRequestSubManager extends AIssueRequestSubManager implements NotificationListener {
 
-    public XvsmISRSubManager(IISRRequestSub subscription) {
+    public XvsmIssueRequestSubManager(IIssueRequestSub subscription) {
         super(subscription);
     }
 
     @Override
     public void entryOperationFinished(Notification source, Operation operation, List<? extends Serializable> entries) {
-        List<IssueStockRequest> newISRs = new ArrayList<>();
+        List<IssueRequest> newIRs = new ArrayList<>();
         for (Serializable e: entries) {
-            IssueStockRequest isr = (IssueStockRequest)((Entry) e).getValue();
-            newISRs.add(isr);
+            IssueRequest ir = (IssueRequest)((Entry) e).getValue();
+            newIRs.add(ir);
         }
-        subscription.pushNewISRs(newISRs);
+        subscription.pushNewIRs(newIRs);
     }
 }

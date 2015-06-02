@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.paint.*?>
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="535.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.investor.InvestorController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="813.0" prefWidth="677.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.investor.InvestorController">
    <children>
-      <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="800.0" prefWidth="525.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="812.0" prefWidth="792.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <HBox id="loginContainer" fx:id="loginContainer" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="525.0" VBox.vgrow="NEVER">
+            <HBox id="loginContainer" fx:id="loginContainer" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="785.0" spacing="5.0" VBox.vgrow="NEVER">
                <children>
                   <Label id="txtStatus" fx:id="txtStatus" minWidth="-Infinity" prefHeight="31.0" prefWidth="114.0" text="Enter Username:" />
                   <TextField id="txtUsername" fx:id="txtUsername" prefHeight="31.0" prefWidth="214.0" />
@@ -19,6 +20,7 @@
                         <Insets left="5.0" />
                      </HBox.margin>
                   </ComboBox>
+                  <CheckBox fx:id="isFondsmanager" mnemonicParsing="false" prefHeight="31.0" prefWidth="128.0" text="Fondsmanager" />
                   <Button id="btnLogin" fx:id="btnLogin" minWidth="-Infinity" mnemonicParsing="false" onAction="#loginButtonClicked" prefWidth="60.0" text="Login">
                      <HBox.margin>
                         <Insets left="5.0" />
@@ -28,7 +30,7 @@
             </HBox>
             <VBox id="dataContainer" fx:id="dataContainer">
                <children>
-                  <HBox minWidth="-Infinity" prefWidth="525.0">
+                  <HBox minWidth="-Infinity" prefWidth="525.0" spacing="5.0">
                      <children>
                         <Label minWidth="-Infinity" prefHeight="30.0" prefWidth="150.0" text="Budget:" HBox.hgrow="NEVER" />
                         <TextField id="txtBudget" fx:id="txtBudget" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="31.0" prefWidth="100.0" />
@@ -42,6 +44,14 @@
                               <Insets left="10.0" />
                            </HBox.margin>
                         </Button>
+                        <HBox alignment="CENTER_RIGHT" prefHeight="31.0" prefWidth="292.0">
+                           <children>
+                              <Label fx:id="modeLabel" text="INVESTOR MODE" />
+                           </children>
+                           <padding>
+                              <Insets right="20.0" />
+                           </padding>
+                        </HBox>
                      </children>
                   </HBox>
                   <Separator prefHeight="10.0" prefWidth="510.0">
@@ -62,8 +72,8 @@
                   </HBox>
                   <TableView id="tabStocks" fx:id="tabStocks" minWidth="-Infinity" prefHeight="309.0" prefWidth="524.0">
                     <columns>
-                      <TableColumn id="colStockId" fx:id="colStockId" prefWidth="106.0" text="Stock ID" />
-                      <TableColumn id="colStockCount" fx:id="colStockAmount" prefWidth="124.0" text="Amount" />
+                      <TableColumn id="colStockId" fx:id="colStockId" prefWidth="117.0" text="TradeObject ID" />
+                      <TableColumn id="colStockCount" fx:id="colStockAmount" prefWidth="113.0" text="Amount" />
                         <TableColumn id="colStockMarketValue" fx:id="colStockMarketValue" prefWidth="144.0" text="Market Value" />
                         <TableColumn id="colStockValue" fx:id="colTotalValue" prefWidth="150.0" text="Total Value" />
                     </columns>
@@ -86,7 +96,7 @@
                     <columns>
                       <TableColumn id="colOrderId" fx:id="colOrderId" prefWidth="90.0" text="Order ID" />
                       <TableColumn id="colOrderType" fx:id="colOrderType" prefWidth="77.0" text="Type" />
-                        <TableColumn id="colOrderStockId" fx:id="colOrderStockId" prefWidth="122.0" text="Stock ID" />
+                        <TableColumn id="colOrderStockId" fx:id="colOrderStockId" prefWidth="122.0" text="TradeObject ID" />
                         <TableColumn id="colOrderLimit" fx:id="colOrderLimit" prefWidth="95.0" text="Limit" />
                         <TableColumn id="colOrderOpenAmount" fx:id="colOrderOpenAmount" prefWidth="140.0" text="Amount (pending)" />
                     </columns>

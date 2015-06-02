@@ -72,6 +72,32 @@ public class StockPricesProvider implements IStockPricesProvider {
     }
 
     @Override
+    public List<MarketValue> getFonds(String transactionId) throws RemoteException {
+        synchronized (lock) {
+            List<MarketValue> result = new ArrayList<>();
+            for (MarketValue mw: stockPrices) {
+                if (!mw.isCompany()) {
+                    result.add(mw);
+                }
+            }
+            return result;
+        }
+    }
+
+    @Override
+    public List<MarketValue> getCompanies(String transactionId) throws RemoteException {
+        synchronized (lock) {
+            List<MarketValue> result = new ArrayList<>();
+            for (MarketValue mw: stockPrices) {
+                if (mw.isCompany()) {
+                    result.add(mw);
+                }
+            }
+            return result;
+        }
+    }
+
+    @Override
     public void subscribe(IRmiCallback<MarketValue> callback) throws RemoteException {
         callbacks.add(callback);
     }

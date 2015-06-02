@@ -1,6 +1,7 @@
 package GUI.investor;
 
 import Factory.IFactory;
+import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
 import Model.Company;
 import Model.Investor;
@@ -29,6 +30,7 @@ public class NewOrderController {
     private IFactory factory;
 
     private TradeOrderContainer tradeOrderContainer;
+    private StockPricesContainer stockpricesContainer;
 
     private Investor investor;
 
@@ -59,6 +61,7 @@ public class NewOrderController {
         this.investor = investor;
 
         tradeOrderContainer = factory.newTradeOrdersContainer();
+        stockpricesContainer = factory.newStockPricesContainer();
     }
 
     public void setFactory(IFactory factory) {
@@ -83,7 +86,9 @@ public class NewOrderController {
             List<TradeOrder> availableTradeOrders = tradeOrderContainer.getAllOrders(null);
             HashMap<String, Company> availableCompanies = new HashMap<>();
             for (TradeOrder tradeOrder : availableTradeOrders) {
-                availableCompanies.put(tradeOrder.getTradeObjectId(), new Company(tradeOrder.getTradeObjectId()));
+                if (!(tradeOrder.getTradeObjectType() == TradeOrder.TradeObjectType.FOND && investor.isFonds())) { //Fonds guys are not allowed to trade with em
+                    availableCompanies.put(tradeOrder.getTradeObjectId(), new Company(tradeOrder.getTradeObjectId()));
+                }
             }
 
             // extract stock names (company id)
@@ -120,6 +125,13 @@ public class NewOrderController {
             tradeOrder.setJustChanged(true);
 
             try {
+
+                if (stockpricesContainer.getMarketValue(stockName.getValue(),null).isCompany()) {
+                    tradeOrder.setTradeObjectType(TradeOrder.TradeObjectType.STOCK);
+                } else {
+                    tradeOrder.setTradeObjectType(TradeOrder.TradeObjectType.FOND);
+                }
+
                 tradeOrderContainer.addOrUpdateOrder(tradeOrder, null);
 
                 statusLabel.textFillProperty().setValue(Color.GREEN);

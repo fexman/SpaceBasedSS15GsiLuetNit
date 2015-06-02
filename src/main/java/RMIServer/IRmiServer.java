@@ -14,9 +14,9 @@ public interface IRmiServer extends Remote {
 
     IStockPricesProvider getStockPricesContainer() throws RemoteException;
 
-    IBrokerSupportProvider getBrokerSupportProvider() throws RemoteException;
+    IBrokerSupportProvider getBrokerSupportContainer() throws RemoteException;
 
-    IISRContainerProvider getIssueStockRequestContainer() throws RemoteException;
+    IIssueRequestsProvider getIssueRequestsContainer() throws RemoteException;
 
     ITradeOrderProvider getTradeOrderContainer() throws RemoteException;
 

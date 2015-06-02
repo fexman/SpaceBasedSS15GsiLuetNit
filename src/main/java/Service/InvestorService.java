@@ -2,9 +2,11 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.DepotInvestor;
+import MarketEntities.IssueRequestContainer;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
 import MarketEntities.TradeOrderContainer;
 import Model.Investor;
+import Model.IssueFondsRequest;
 import Model.TradeOrder;
 import Util.TransactionTimeout;
 
@@ -14,6 +16,9 @@ import Util.TransactionTimeout;
 public class InvestorService extends Service implements ITradeOrderSub {
 
     private Investor investor;
+    private DepotInvestor depotInvestor;
+    private TradeOrderContainer tradeOrderContainer;
+    private IssueRequestContainer irContainer;
 
     public InvestorService(IFactory factory) {
         super(factory);
@@ -22,6 +27,14 @@ public class InvestorService extends Service implements ITradeOrderSub {
     public InvestorService(IFactory factory, Investor investor) {
         super(factory);
         this.investor = investor;
+        this.tradeOrderContainer = factory.newTradeOrdersContainer();
+        this.irContainer = factory.newIssueRequestContainer();
+        try {
+            this.depotInvestor = factory.newDepotInvestor(investor,null);
+        } catch (ConnectionErrorException e)  {
+            throw new RuntimeException("COULD NOT CREATE DEPOT FOR INVESTOR SERVICE");
+        }
+
     }
 
     @Override
@@ -30,9 +43,6 @@ public class InvestorService extends Service implements ITradeOrderSub {
 
         try {
             transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
-
-            // get trade order container instance
-            TradeOrderContainer tradeOrderContainer = factory.newTradeOrdersContainer();
 
             tradeOrderContainer.addOrUpdateOrder(tradeOrder, transactionId);
 
@@ -55,8 +65,6 @@ public class InvestorService extends Service implements ITradeOrderSub {
         try {
             transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
 
-            DepotInvestor depotInvestor = factory.newDepotInvestor(investor, transactionId);
-
             depotInvestor.addToBudget(amountToBeAdded, transactionId);
 
             factory.commitTransaction(transactionId);
@@ -65,6 +73,35 @@ public class InvestorService extends Service implements ITradeOrderSub {
         } catch (ConnectionErrorException e) {
             factory.rollbackTransaction(transactionId);
             throw e;
+        }
+    }
+
+    public void issueFonds(int amount) throws ConnectionErrorException {
+        if (investor.isFonds()) {
+            String transactionId = "";
+
+            try {
+                transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
+
+                IssueFondsRequest ifr = new IssueFondsRequest(investor,amount);
+
+                //Write to investor-depot
+                System.out.print("Writing new fonds to depot ... ");
+                depotInvestor.addTradeObjects(ifr.toTradeObjects(), transactionId);
+                System.out.println("done.");
+
+                //Issue Stocks
+                System.out.print("Writing IF-request to container ... ");
+                irContainer.addIssueRequest(ifr, transactionId);
+                System.out.println("done.");
+
+                factory.commitTransaction(transactionId);
+            } catch (ConnectionErrorException e) {
+                factory.rollbackTransaction(transactionId);
+                throw e;
+            }
+        } else {
+            System.out.println("Investor is no fondmanager, cannot issue Fonds.");
         }
     }
 

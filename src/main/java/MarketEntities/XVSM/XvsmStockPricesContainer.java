@@ -7,10 +7,7 @@ import Model.MarketValue;
 import Service.ConnectionErrorException;
 import Util.Container;
 import Util.XvsmUtil;
-import org.mozartspaces.capi3.CoordinationData;
-import org.mozartspaces.capi3.FifoCoordinator;
-import org.mozartspaces.capi3.KeyCoordinator;
-import org.mozartspaces.capi3.Selector;
+import org.mozartspaces.capi3.*;
 import org.mozartspaces.core.*;
 import org.mozartspaces.notifications.NotificationListener;
 import org.mozartspaces.notifications.NotificationManager;
@@ -75,6 +72,43 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
         TransactionReference tx = XvsmUtil.getTransaction(transactionId);
 
         Selector selector = FifoCoordinator.newSelector(Selector.COUNT_MAX);
+
+        try {
+            return xc.getCapi().read(stockPricesContainer,selector,XvsmUtil.ACTION_TIMEOUT,tx);
+        } catch (MzsCoreException e) {
+            throw new ConnectionErrorException(e);
+        }
+    }
+
+    @Override
+    public List<MarketValue> getFonds(String transactionId) throws ConnectionErrorException {
+
+        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+
+        Query query = new Query();
+
+        Property isCompany = Property.forName("isCompany");
+        query.filter(isCompany.equalTo(false));
+
+        Selector selector = QueryCoordinator.newSelector(query, Selector.COUNT_MAX);
+
+        try {
+            return xc.getCapi().read(stockPricesContainer,selector,XvsmUtil.ACTION_TIMEOUT,tx);
+        } catch (MzsCoreException e) {
+            throw new ConnectionErrorException(e);
+        }
+    }
+
+    @Override
+    public List<MarketValue> getCompanies(String transactionId) throws ConnectionErrorException {
+        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+
+        Query query = new Query();
+
+        Property isCompany = Property.forName("isCompany");
+        query.filter(isCompany.equalTo(true));
+
+        Selector selector = QueryCoordinator.newSelector(query, Selector.COUNT_MAX);
 
         try {
             return xc.getCapi().read(stockPricesContainer,selector,XvsmUtil.ACTION_TIMEOUT,tx);

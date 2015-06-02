@@ -16,7 +16,7 @@ import java.util.List;
 public class BrokerService extends Service {
 
     private String id;
-    private ISRContainer isrContainer;
+    private IssueRequestContainer issueRequestContainer;
     private TradeOrderContainer tradeOrdersContainer;
     private StockPricesContainer stockPricesContainer;
     private TransactionHistoryContainer transactionHistoryContainer;
@@ -31,7 +31,7 @@ public class BrokerService extends Service {
     public BrokerService(String id, IFactory factory) {
         super(factory);
         this.id = id;
-        isrContainer = factory.newISRContainer();
+        issueRequestContainer = factory.newIssueRequestContainer();
         tradeOrdersContainer = factory.newTradeOrdersContainer();
         stockPricesContainer = factory.newStockPricesContainer();
         transactionHistoryContainer = factory.newTransactionHistoryContainer();
@@ -44,7 +44,7 @@ public class BrokerService extends Service {
     public void startBroking() throws ConnectionErrorException {
         new Thread(isrThread).start();
         new Thread(toThread).start();
-        //new Thread(spThread).start();
+        new Thread(spThread).start();
     }
 
     private class ISRThread extends Thread {
@@ -65,34 +65,58 @@ public class BrokerService extends Service {
                     transactionId = factory.createTransaction(TransactionTimeout.INFINITE);
 
                     //Blocking
-                    List<IssueStockRequest> isrs = isrContainer.takeIssueStockRequests(transactionId);
-                    if (isrs == null) {
+                    List<IssueRequest> irs = issueRequestContainer.takeIssueRequests(transactionId);
+                    if (irs == null) {
                         running = false;
                         continue;
                     }
 
-                    if (isrs.size() > 0) {
-                        System.out.println("ISR: Got " + isrs.size() + " new ISRs!");
-                        for (IssueStockRequest isr : isrs) {
+                    if (irs.size() > 0) {
+                        System.out.println("ISR: Got " + irs.size() + " new IRs!");
+                        for (IssueRequest ir : irs) {
+                            if (ir instanceof IssueStockRequest) { //IssueStockRequest of a Company
+                                System.out.println("Processing ISR ...");
+                                IssueStockRequest isr = (IssueStockRequest)ir;
+                                //Set market Value of new stocks
+                                MarketValue mw = stockPricesContainer.getMarketValue(isr.getId(), transactionId);
+                                if (mw == null) {
+                                    System.out.println("Setting new marketValue for " + isr.getCompany() + " on ISR-price: "+isr.getPrice());
+                                    mw = new MarketValue(isr.getCompany(), isr.getPrice(),isr.getAmount());
+                                    stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
+                                } else {
+                                    System.out.println("Updating marketValue of " + mw.getTradeVolume() + " for "+ isr.getAmount() + " (from ISR) resulting in "+(mw.getTradeVolume() + isr.getAmount()));
+                                    mw.setTradeVolume(mw.getTradeVolume() + isr.getAmount());
+                                    mw.setPriceChanged(false);
+                                    stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
+                                }
 
-                            //Set market Value of new stocks
-                            MarketValue mw = stockPricesContainer.getMarketValue(isr.getCompany().getId(), transactionId);
-                            if (mw == null) {
-                                System.out.println("Setting new marketValue for " + isr.getCompany() + " on ISR-price: "+isr.getPrice());
-                                mw = new MarketValue(isr.getCompany(), isr.getPrice(),isr.getAmount());
-                                stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
-                            } else {
-                                System.out.println("Updating marketValue of " + mw.getTradeVolume() + " for "+ isr.getAmount() + " (from ISR) resulting in "+(mw.getTradeVolume() + isr.getAmount()));
-                                mw.setTradeVolume(mw.getTradeVolume() + isr.getAmount());
-                                mw.setPriceChanged(false);
-                                stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
+                                //Create Trade Order
+                                TradeOrder order = new TradeOrder(isr.getCompany(), isr.getId(), isr.getAmount(), 0d);
+                                order.setJustChanged(true);
+                                tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
+                                System.out.println("ISR: New order: "+order);
+
+                            } else { //IssueFondRequest of a Investor/Fondsmanager
+                                System.out.println("Processing IFR ...");
+                                IssueFondsRequest ifr = (IssueFondsRequest)ir;
+                                MarketValue mw = stockPricesContainer.getMarketValue(ifr.getId(), transactionId);
+                                if (mw == null) {
+
+                                    DepotInvestor depotInvestor = factory.newDepotInvestor(ifr.getInvestor(),transactionId);
+                                    double budget = depotInvestor.getBudget(transactionId);
+                                    double marketValuePrice = budget/(double)ifr.getAmount();
+                                    System.out.println("Setting new marketValue for " + ifr.getInvestor() + " on InvestorBudget/IFR-Amount: "+marketValuePrice);
+                                    mw = new MarketValue(ifr.getInvestor(),marketValuePrice,ifr.getAmount());
+                                    stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
+
+                                    TradeOrder order = new TradeOrder(ifr.getInvestor(), ifr.getId(), TradeOrder.Type.SELL_ORDER, TradeOrder.TradeObjectType.FOND, ifr.getAmount(), 0d);
+                                    order.setJustChanged(true);
+                                    tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
+                                    System.out.println("IFR: New order: " + order);
+                                } else {
+                                    System.out.println("Warning: Fonds may only be set once. Skipping: "+ifr.toString());
+                                }
                             }
-
-                            //Create Trade Order
-                            TradeOrder order = new TradeOrder(isr.getCompany(), isr.getCompany().getId(), isr.getAmount(), 0d);
-                            order.setJustChanged(true);
-                            tradeOrdersContainer.addOrUpdateOrder(order, transactionId);
-                            System.out.println("ISR: New order: "+order);
                         }
                     }
                     System.out.println("ISR: Commit.");
@@ -282,7 +306,7 @@ public class BrokerService extends Service {
         List<TradeObject> boughtTradeObjects;
 
         if (buyOrder.getPendingAmount() >= sellOrder.getPendingAmount()) {
-            System.out.println("Taking all stocks (" + sellOrder.getPendingAmount() + ") from seller depot.");
+            System.out.println("Taking all tradeobjects (" + sellOrder.getPendingAmount() + ") from seller depot.");
             // take ALL stocks from seller depot
             boughtTradeObjects = takeStocksFromSellerDepot(depotSeller, sellOrder, sellOrder.getPendingAmount(), transactionId);
 
@@ -300,7 +324,7 @@ public class BrokerService extends Service {
             // take the amount required in buy order from seller depot
             boughtTradeObjects = takeStocksFromSellerDepot(depotSeller, sellOrder, buyOrder.getPendingAmount(), transactionId);
 
-            System.out.println("Taking " + boughtTradeObjects.size() + " stocks from seller depot.");
+            System.out.println("Taking " + boughtTradeObjects.size() + " tradeobjects from seller depot.");
 
             buyOrder.setStatus(TradeOrder.Status.COMPLETED);
 
@@ -322,13 +346,31 @@ public class BrokerService extends Service {
         System.out.println("SellOrder isPrioritized? : "+sellOrder.isPrioritized()+" -> pab: "+provisionAmountSeller);
         double provisionBuyer = totalValue * (PROVISION_PERCENTAGE * provisionAmountBuyer);
         double provisionSeller = totalValue * (PROVISION_PERCENTAGE * provisionAmountSeller);
+        double fondProvisionBuyer = 0d;
+        double fondProvisionSeller = 0d;
+        if (buyOrder.getTradeObjectType() == TradeOrder.TradeObjectType.FOND) { //Trading fonds?
+            if (!sellOrder.getInvestorId().equals(sellOrder.getTradeObjectId())) { //Is fondmanager == seller? Yes, then no provision for him.
+                fondProvisionSeller = totalValue * 0.02d;
+            }
+            fondProvisionBuyer = totalValue * 0.02d;
+        }
+        System.out.println("FondPrivision Buyer: "+fondProvisionBuyer);
+        System.out.println("FondPrivision Seller: "+fondProvisionSeller);
 
-        System.out.println("Removing " + (totalValue + provisionBuyer) + " from " + depotBuyer.getDepotName());
-        depotBuyer.addToBudget(-(totalValue + provisionBuyer), transactionId);
+        System.out.println("Removing " + (totalValue + provisionBuyer + fondProvisionBuyer) + " from " + depotBuyer.getDepotName());
+        depotBuyer.addToBudget(-(totalValue + provisionBuyer + fondProvisionBuyer), transactionId);
 
         if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.INVESTOR)) {
-            System.out.println("Increasing sellers budget by " + totalValue);
-            ((DepotInvestor) depotSeller).addToBudget(totalValue - provisionSeller, transactionId);
+            System.out.println("Increasing sellers budget by " + (totalValue- provisionSeller - fondProvisionSeller));
+            ((DepotInvestor) depotSeller).addToBudget(totalValue - provisionSeller - fondProvisionSeller, transactionId);
+        }
+
+        if (fondProvisionBuyer > 0) {
+            System.out.println("Increasing fondmanger '" + buyOrder.getId() + "'s budget by: " + (fondProvisionBuyer + fondProvisionSeller));
+            Investor investor = new Investor(buyOrder.getTradeObjectId());
+            investor.setFonds(true);
+            DepotInvestor depotFonds = factory.newDepotInvestor(investor, transactionId);
+            depotFonds.addToBudget(fondProvisionBuyer+fondProvisionSeller, transactionId);
         }
 
         // write transaction to transaction history container
@@ -451,9 +493,9 @@ public class BrokerService extends Service {
                         compatibleMatchingTradeOrders.add(matchingOrders.get(i));
                     }
                 }
+
+                //Debug of comatible orders
                 System.out.println(compatibleMatchingTradeOrders.size() + "/" + matchingOrders.size() + " matching trade orders are compatible with the current stock price:");
-
-
                 for (int i = 0; i < compatibleMatchingTradeOrders.size(); i++) {
                     System.out.println("\t"+compatibleMatchingTradeOrders.get(i));
                     System.out.println();
