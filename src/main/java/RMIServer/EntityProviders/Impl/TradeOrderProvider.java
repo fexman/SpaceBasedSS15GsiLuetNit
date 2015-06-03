@@ -47,11 +47,12 @@ public class TradeOrderProvider implements ITradeOrderProvider {
             }
         }
 
+        System.out.println(getClass().getSimpleName() + ": addOrUpdateOrder: " + order);
+
         List<TradeOrder> newTOs = new ArrayList<TradeOrder>();
         newTOs.add(order);
         if (order.getJustChanged()) {
             bsp.addNewTradeOrders(newTOs);
-            System.out.println(getClass().getSimpleName() + ": addOrUpdateOrder :" + order);
         }
         for (IRmiCallback<TradeOrder> callback : callbacks) {
             callback.newData(newTOs);
@@ -61,6 +62,7 @@ public class TradeOrderProvider implements ITradeOrderProvider {
 
     @Override
     public List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws RemoteException {
+        System.out.println(getClass().getSimpleName() + ": getOrders: Looking for order like " + order);
         ArrayList<TradeOrder> matches = new ArrayList<>();
         synchronized (lock) {
             toLoop: for (TradeOrder to : tradeOrders) {
@@ -110,7 +112,7 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                 }
 
                 if (order.isPrioritized() != null) {
-                    if (to.isPrioritized() != order.isPrioritized()) {
+                    if (!to.isPrioritized().equals(order.isPrioritized())) {
                         continue toLoop;
                     }
                 }
@@ -121,6 +123,7 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                             continue toLoop;
                         }
                         break;
+
                     case STOCK: // STOCK
                         if (to.getTradeObjectType() != TradeOrder.TradeObjectType.STOCK) {
                             continue toLoop;
@@ -129,6 +132,7 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                     case ANY: // I DONT CARE
                         break;
                 }
+
 
                 switch (order.getStatus()) { //LOOKING FOR ORDERS WITH STATUS ...
                     case OPEN: // OPEN
@@ -169,6 +173,16 @@ public class TradeOrderProvider implements ITradeOrderProvider {
                 matches.add(to);
             }
         }
+
+        if (matches.size() > 0) {
+            System.out.println(getClass().getSimpleName() + ": getOrders: Found "+matches.size()+" matches.");
+            for (TradeOrder to : matches) {
+                System.out.println("\t"+to);
+            }
+        } else {
+            System.out.println(getClass().getSimpleName() + ": getOrders: No matches found.");
+        }
+
         return matches;
     }
 
@@ -182,21 +196,14 @@ public class TradeOrderProvider implements ITradeOrderProvider {
 
         synchronized (lock) { // lock provider
 
-
-            System.out.println(this.getClass().getSimpleName()+" IS HERE BIATCH!! DOING SOME TRADE ORDER TAKING.");
-            System.out.println("IM LOOKING FOR: "+tradeOrder);
+            System.out.println(getClass().getSimpleName()+": takeOrder: looking for TradeOrder with Id: "+tradeOrder.getId());
             for (TradeOrder to : tradeOrders) {
-                System.out.println("IVE GOT THIS: "+to);
+                if (to.getId().equals(tradeOrder.getId())) {
+                    System.out.println(getClass().getSimpleName()+": takeOrder: found match "+to);
+                    tradeOrders.remove(to);
+                    return to;
+                }
             }
-
-            List<TradeOrder> results = getOrders(tradeOrder, transactionId);
-            if (results.size() > 0) {
-                System.out.println("SIZE WAS OK");
-                tradeOrders.remove(results.get(0));
-                System.out.println("GONNA RETURN THIS: "+results.get(0));
-                return results.get(0);
-            }
-            System.out.println("SIZE WAS 0 THOUGH");
             return null;
         }
 

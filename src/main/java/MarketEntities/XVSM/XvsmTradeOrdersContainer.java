@@ -25,6 +25,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
     private ContainerReference tradeOrdersContainer;
     private XvsmUtil.XvsmConnection xc;
+    private static final boolean DEBUG_PRINTS = false;
 
     public XvsmTradeOrdersContainer() {
         tradeOrdersContainer = XvsmUtil.getContainer(Container.TRADE_ORDERS);
@@ -73,22 +74,32 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
         //Query building
         Query query = new Query();
-        System.out.print("[XvsmTradeOrdersContainer] WILL QUERY FOR:");
+        if (DEBUG_PRINTS) {
+            System.out.print("[XvsmTradeOrdersContainer] WILL QUERY FOR:");
+        }
         try {
             if (order.getId() != null) { //LOOKING FOR SPECIFIC ORDER WITH ID
                 query.sql("id = '"+order.getId()+"'");
-                System.out.print(" ID");
+                if (DEBUG_PRINTS) {
+                    System.out.print(" ID");
+                }
             }
             if (order.getInvestorId() != null) { //LOOKING FOR INVESTORT/TRADER WITH ID XYZ (COMPANY OR INVESTOR)
                 query.sql("investorId = '"+order.getInvestorId()+"'");
-                System.out.print(" INVESTORID");
+                if (DEBUG_PRINTS) {
+                    System.out.print(" INVESTORID");
+                }
             }
             if (order.getTradeObjectId() != null) { //LOOKING FOR STOCKS OF COMPANY XYZ
                 query.sql("tradeObjectId = '"+order.getTradeObjectId()+"'");
-                System.out.print(" COMPANYID");
+                if (DEBUG_PRINTS) {
+                    System.out.print(" COMPANYID");
+                }
             }
             if (order.getPriceLimit() != null) {
-                System.out.print(" PRICELIMIT");
+                if (DEBUG_PRINTS) {
+                    System.out.print(" PRICELIMIT");
+                }
                 switch (order.getType()) {
                     case BUY_ORDER: //LOOKING FOR BUY ORDER, INFINITE AM TRYING TO SELL SOMETHING -> PRICE SHOULD BY ABOVE (OR EQUAL TO) MY LIMIT
                         query.sql("priceLimit >= "+order.getPriceLimit()); // search for price bigger than/equal to min price of sell order
@@ -104,24 +115,32 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
             if (!order.getType().equals(TradeOrder.Type.ANY)) {
                 Property type = Property.forName("type");
                 query.filter(type.equalTo(order.getType()));
-                System.out.print(" TYPE=" + order.getType());
+                if (DEBUG_PRINTS) {
+                    System.out.print(" TYPE=" + order.getType());
+                }
             }
 
             if (order.isPrioritized() != null) {
                 Property prioritized = Property.forName("prioritized");
                 query.filter(prioritized.equalTo(order.isPrioritized()));
-                System.out.print(" PRIORITIZED");
+                if (DEBUG_PRINTS) {
+                    System.out.print(" PRIORITIZED");
+                }
             }
 
             Property tradeObjectType = Property.forName("tradeObjectType");
             switch (order.getTradeObjectType()) { //LOOKING FOR ORDERS WITH TRADEOBJECTTYPE ...
                 case FOND: // FOND
                     query.filter(tradeObjectType.equalTo(TradeOrder.TradeObjectType.FOND));
-                    System.out.print(" TRADEOBJECTTYPE=FOND");
+                    if (DEBUG_PRINTS) {
+                        System.out.print(" TRADEOBJECTTYPE=FOND");
+                    }
                     break;
                 case STOCK: // STOCK
                     query.filter(tradeObjectType.equalTo(TradeOrder.TradeObjectType.STOCK));
-                    System.out.print(" TRADEOBJECTTYPE=STOCK");
+                    if (DEBUG_PRINTS) {
+                        System.out.print(" TRADEOBJECTTYPE=STOCK");
+                    }
                     break;
                 case ANY: // I DONT CARE, GIVE ME ALL OF THEM
                     break;
@@ -131,33 +150,47 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
             switch (order.getStatus()) { //LOOKING FOR ORDERS WITH STATUS ...
                 case OPEN: // OPEN
                     query.filter(status.equalTo(TradeOrder.Status.OPEN));
-                    System.out.print(" STATUS=OPEN");
+                    if (DEBUG_PRINTS) {
+                        System.out.print(" STATUS=OPEN");
+                    }
                     break;
                 case PARTIALLY_COMPLETED: // PARTIALLY COMPLETED
                     query.filter(status.equalTo(TradeOrder.Status.PARTIALLY_COMPLETED));
-                    System.out.print(" STATUS=PARTIALLY_COMPLETED");
+                    if (DEBUG_PRINTS) {
+                        System.out.print(" STATUS=PARTIALLY_COMPLETED");
+                    }
                     break;
                 case NOT_COMPLETED: //OPEN OR PARTIALLY COMPLETED
                     Matchmaker statusOpen = status.equalTo(TradeOrder.Status.OPEN);
                     Matchmaker statusPartiallyCompleted = status.equalTo(TradeOrder.Status.PARTIALLY_COMPLETED);
                     query.filter(Matchmakers.or(statusOpen, statusPartiallyCompleted));
-                    System.out.print(" STATUS=NOT_COMPLETED");
+                    if (DEBUG_PRINTS) {
+                        System.out.print(" STATUS=NOT_COMPLETED");
+                    }
                     break;
                 case COMPLETED: // COMPLETED
                     query.filter(status.equalTo(TradeOrder.Status.COMPLETED));
-                    System.out.print(" STATUS=COMPLETED");
+                    if (DEBUG_PRINTS) {
+                        System.out.print(" STATUS=COMPLETED");
+                    }
                     break;
                 case DELETED: // DELETED
                     query.filter(status.equalTo(TradeOrder.Status.DELETED));
-                    System.out.print(" STATUS=DELETED");
+                    if (DEBUG_PRINTS) {
+                        System.out.print(" STATUS=DELETED");
+                    }
                     break;
                 case NOT_DELETED: //EVERYTHING EXCEPT DELETED
                     query.filter(status.allNotEqualTo(TradeOrder.Status.DELETED));
-                    System.out.print(" STATUS=NOT_DELETED");
+                    if (DEBUG_PRINTS) {
+                        System.out.print(" STATUS=NOT_DELETED");
+                    }
                 case ANY: // INFINITE DONT CARE, GIVE ME ALL OF THEM
                     break;
             }
-            System.out.print("\n");
+            if (DEBUG_PRINTS) {
+                System.out.print("\n");
+            }
         } catch (ParseException e) {
             System.out.println("Parse Exception on SQL-query while get order by template: " + e.getMessage());
             return new ArrayList<>();

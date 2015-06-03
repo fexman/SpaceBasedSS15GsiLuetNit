@@ -12,6 +12,7 @@ import Model.TradeObject;
 import Model.TradeOrder;
 import Service.ConnectionErrorException;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -20,15 +21,19 @@ import java.util.List;
 public class QueryTester {
 
     public static IFactory factory;
-    public static boolean ALT_MODE = false;
+    public static final boolean  ALT_MODE = true;
 
     public static void main(String args[]) throws Exception {
         factory = QueryTesterFactory.getFactory();
 
         // +++ +++ +++ +++ +++ +++ +++ TRADEORDER TESTS  +++ +++ +++ +++ +++ +++ +++
         /*TradeOrder to = new TradeOrder();
-        Investor investor = new Investor("bob");
-        to.setInvestor(investor);
+        to.setTradeObjectId("FROST");
+        to.setPriceLimit(4d);
+        to.setStatus(TradeOrder.Status.NOT_COMPLETED);
+        to.setType(TradeOrder.Type.SELL_ORDER);
+        //Investor investor = new Investor("dudette");
+        //to.setInvestor(investor);
 
         System.out.print("Filter: "+to);
 
@@ -50,8 +55,16 @@ public class QueryTester {
         List<TradeObject> results = di.readAllTradeObjects(null);
         System.out.println();
         System.out.println(" ++++ Query Results +++ ");
+        HashMap<String, Integer> resultCount = new HashMap<>();
         for (TradeObject to : results) {
-            System.out.println("\t"+to);
+            if (!resultCount.containsKey(to.toString())){
+                resultCount.put(to.toString(),1);
+            } else {
+                resultCount.put(to.toString(),resultCount.get(to.toString())+1);
+            }
+        }
+        for (String s: resultCount.keySet()) {
+            System.out.println("\t"+resultCount.get(s)+"x "+s);
         }
         System.out.println(" ++++ Results End +++ ");
 

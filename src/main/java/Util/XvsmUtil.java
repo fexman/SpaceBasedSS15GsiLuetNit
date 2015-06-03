@@ -23,7 +23,9 @@ import java.util.UUID;
 public class XvsmUtil {
 
     public static final long ACTION_TIMEOUT = 5000l;
-    public static final long INFINITE_TAKE = MzsConstants.RequestTimeout.INFINITE;
+    public static final long INFINITE_TAKE = 10000l; // MzsConstants.RequestTimeout.INFINITE;
+
+    private static final boolean TRANSACTION_DEBUG_PRINTS = false;
 
     private static HashMap<String, TransactionReference> transactions = new HashMap<>();
     private static HashMap<Container, ContainerReference> containers = new HashMap<>();
@@ -155,7 +157,7 @@ public class XvsmUtil {
         return lookUpOrCreateContainer("DEPOT_INVESTOR_" + investorId, xc.getSpace(), xc.getCapi(), tx, coordinatorTypes);
     }
 
-    public static String createTransaction(TransactionTimeout timeout) throws MzsCoreException {
+    public static synchronized String createTransaction(TransactionTimeout timeout) throws MzsCoreException {
 
         long timeoutValue = getTransactionTimeoutValue(timeout);
 
@@ -163,27 +165,37 @@ public class XvsmUtil {
         UUID transactionId = UUID.randomUUID();
         transactions.put(transactionId.toString(), tx);
 
-        System.out.println("CREATED TRANSACTION: "+transactionId.toString()+" / "+tx);
+        if (TRANSACTION_DEBUG_PRINTS) {
+            System.out.println("CREATED TRANSACTION: " + transactionId.toString() + " / " + tx);
+        }
+
         return transactionId.toString();
     }
 
-    public static TransactionReference getTransaction(String transactionId) {
+    public static synchronized TransactionReference getTransaction(String transactionId) {
         return transactions.get(transactionId);
     }
 
-    public static void commitTransaction(String transactionId) throws MzsCoreException {
-        System.out.println("COMMITING TRANSACTION: "+transactionId+" / "+transactions.get(transactionId));
+    public static synchronized void commitTransaction(String transactionId) throws MzsCoreException {
+        if (TRANSACTION_DEBUG_PRINTS) {
+            System.out.println("COMMITING TRANSACTION: " + transactionId + " / " + transactions.get(transactionId));
+        }
         xc.getCapi().commitTransaction(getTransaction(transactionId));
         removeTransaction(transactionId);
     }
 
-    public static void rollbackTransaction(String transactionId) throws MzsCoreException {
-        System.out.println("ROLLBACKING TRANSACTION: "+transactionId+" / "+transactions.get(transactionId));
+    public static synchronized void rollbackTransaction(String transactionId) throws MzsCoreException {
+        if (TRANSACTION_DEBUG_PRINTS) {
+            System.out.println("ROLLBACKING TRANSACTION: " + transactionId + " / " + transactions.get(transactionId));
+        }
         xc.getCapi().rollbackTransaction(getTransaction(transactionId));
         removeTransaction(transactionId);
     }
 
-    public static void removeTransaction(String transactionId) {
+    public  static synchronized void removeTransaction(String transactionId) {
+        if (TRANSACTION_DEBUG_PRINTS) {
+            System.out.println("REMOVING TRANSACTION: " + transactionId);
+        }
         transactions.remove(transactionId);
     }
 

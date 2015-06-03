@@ -285,7 +285,12 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             txtBudget.setText("" + budget);
 
             allTradeObjectsInDepot = depotInvestor.readAllTradeObjects(null);
-            allMarketValues = stockPricesContainer.getAll(null);
+            if (investor.isFonds()) {
+                allMarketValues = stockPricesContainer.getCompanies(null);
+            } else {
+                allMarketValues = stockPricesContainer.getAll(null);
+            }
+
             stockNamesAndCount = new HashMap<>();
             updateStockNamesAndCount(allTradeObjectsInDepot);
 
@@ -421,9 +426,9 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     @Override
     public void pushNewTradeObjects(final List<TradeObject> newTradeObjects) {
         // assumption -> stocks are ALL from the same company
-        if (newTradeObjects != null && newTradeObjects.size() > 0) {
-            String tradeObjectId = newTradeObjects.get(0).getId();
-            if (tradeObjectId != investor.getId()) {
+        for (TradeObject tradeObject : newTradeObjects) {
+            if (!(tradeObject instanceof Fond && investor.isFonds())) { //No Fonds for fondmanagers
+                String tradeObjectId = tradeObject.getId();
                 if (stockNamesAndCount.containsKey(tradeObjectId)) {
                     // stock with company name <xy> already in map -> increase number
                     stockNamesAndCount.put(tradeObjectId, stockNamesAndCount.get(tradeObjectId) + newTradeObjects.size());
@@ -488,7 +493,13 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     @Override
     public void pushNewMarketValues(List<MarketValue> newMarketValues) {
         // here we are only interested in adding/updating market values (not removing)
+
         for (MarketValue newMarketValue : newMarketValues) {
+
+            if (!newMarketValue.isCompany() && investor.isFonds()) { //We are not interested in fonds as a fondmanager
+                return;
+            }
+
             if (allMarketValues.contains(newMarketValue)) {
                 int index = allMarketValues.indexOf(newMarketValue);
                 allMarketValues.set(index, newMarketValue);

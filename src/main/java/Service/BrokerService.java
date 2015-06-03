@@ -341,11 +341,11 @@ public class BrokerService extends Service {
         double currentMarketValue = stockPricesContainer.getMarketValue(buyOrder.getTradeObjectId(), transactionId).getPrice();
         double totalValue = boughtTradeObjects.size() * currentMarketValue;
         double provisionAmountBuyer = (buyOrder.isPrioritized()) ? 2d : 1d;
-        System.out.println("BuyOrder isPrioritized? : "+buyOrder.isPrioritized()+" -> pab: "+provisionAmountBuyer);
         double provisionAmountSeller = (sellOrder.isPrioritized()) ? 2d : 1d;
-        System.out.println("SellOrder isPrioritized? : "+sellOrder.isPrioritized()+" -> pab: "+provisionAmountSeller);
         double provisionBuyer = totalValue * (PROVISION_PERCENTAGE * provisionAmountBuyer);
         double provisionSeller = totalValue * (PROVISION_PERCENTAGE * provisionAmountSeller);
+        System.out.println("BuyOrder isPrioritized? : "+buyOrder.isPrioritized()+" -> pab: "+provisionAmountBuyer+" -> results in: "+provisionBuyer);
+        System.out.println("SellOrder isPrioritized? : "+sellOrder.isPrioritized()+" -> pas: "+provisionAmountSeller+" -> results in: "+provisionSeller);
         double fondProvisionBuyer = 0d;
         double fondProvisionSeller = 0d;
         if (buyOrder.getTradeObjectType() == TradeOrder.TradeObjectType.FOND) { //Trading fonds?

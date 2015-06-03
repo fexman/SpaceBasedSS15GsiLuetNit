@@ -104,11 +104,11 @@ public class TUIMarketAgent {
         public void run() {
             try {
                 operationCounter++;
-                System.out.println("MarketAgent: Performing market analysis.");
+                System.out.println("\n+++ MarketAgent: Performing market analysis. +++\n");
                 marketAgentService.performMarketAnalysis();
                 // on every third operation call, additionally add a random price fluctuation
                 if (operationCounter != 0 && operationCounter % 3 == 0) {
-                    System.out.println("MarketAgent: Adding price fluctuation.");
+                    System.out.println("\n+++ MarketAgent: Adding price fluctuation. +++\n");
                     marketAgentService.addPriceFluctuation(maxFluctuation);
                 }
             } catch (ConnectionErrorException connectionErrorException) {

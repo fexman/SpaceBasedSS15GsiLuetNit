@@ -43,13 +43,14 @@ public class MarketAgentService extends Service {
                 buyOrdersFilter.setType(TradeOrder.Type.BUY_ORDER);
                 buyOrdersFilter.setStatus(TradeOrder.Status.NOT_COMPLETED);
 
+                System.out.println("Processing company: " + marketValue.getId());
                 List<TradeOrder> buyOrders = tradeOrdersContainer.getOrders(buyOrdersFilter, transactionId);
                 int stockDemand = 0;
                 // demand of current stock in circulation (Vk in specification)
                 for (TradeOrder buyOrder : buyOrders) {
                     stockDemand += buyOrder.getPendingAmount();
                 }
-                System.out.println("Found " + buyOrders.size() + " buy orders with demand " + stockDemand + ".");
+                System.out.println("\tFound " + buyOrders.size() + " buy orders with demand " + stockDemand + ".");
 
                 // get all open/partially completed sell orders of current market value
                 TradeOrder sellOrdersFilter = new TradeOrder();
@@ -63,7 +64,7 @@ public class MarketAgentService extends Service {
                 for (TradeOrder sellOrder : sellOrders) {
                     stockSupply += sellOrder.getPendingAmount();
                 }
-                System.out.println("Found " + sellOrders.size() + " sell orders with supply " + stockSupply + ".");
+                System.out.println("\tFound " + sellOrders.size() + " sell orders with supply " + stockSupply + ".");
 
 
                 double currentStockPrice = marketValue.getPrice();
@@ -78,26 +79,31 @@ public class MarketAgentService extends Service {
                 //For fonds (see below)
                 currentPrices.put(marketValue.getId(),newStockPrice);
 
-                System.out.println("Updated " + marketValue.getId() + "'s market value from " + currentStockPrice + " to " + newStockPrice);
+                System.out.println("\tUpdated company " + marketValue.getId() + "'s market value from " + currentStockPrice + " to " + newStockPrice);
             }
 
             for (MarketValue mw : fonds) {
 
+                System.out.println("Processing fond: "+mw.getId());
+                double oldPrice = mw.getPrice();
                 Investor investor = new Investor(mw.getId());
                 investor.setFonds(true);
-                DepotInvestor depotInvestor = factory.newDepotInvestor(investor,transactionId);
+                DepotInvestor depotInvestor = factory.newDepotInvestor(investor, transactionId);
 
                 //Calculate fond price from fond-investor (fondmanager) budget and his current stocks
-                double newFondPrice = depotInvestor.getBudget(transactionId);
+                double budgetFactor =  depotInvestor.getBudget(transactionId)/mw.getTradeVolume();
+                double stockFactor = 0d;
                 for (TradeObject to: depotInvestor.readAllTradeObjects(transactionId)) {
                     if (to instanceof Stock) {
-                        newFondPrice += currentPrices.get(to.getId());
+                        stockFactor += currentPrices.get(to.getId());
                     }
                 }
+                stockFactor = stockFactor/mw.getTradeVolume();
 
                 //write results
-                newFondPrice = newFondPrice/mw.getTradeVolume();
-                mw.setPrice(newFondPrice);
+                mw.setPrice(budgetFactor+stockFactor);
+                System.out.println("\tUpdated fond " + mw.getId() + "'s market value from "+oldPrice+" to " + mw.getPrice());
+                System.out.println("\tfrom Budget: "+budgetFactor+" | from stocks: "+stockFactor);
                 stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
 
             }
@@ -129,6 +135,7 @@ public class MarketAgentService extends Service {
                 }
 
                 MarketValue randomMarketValue = companies.get(randomMarketValueIndex);
+                System.out.println("Processing company: " + randomMarketValue.getId());
 
                 // this calculates a random number between -maxFluctuation and +maxFluctuation
                 double randomFluctuation = -maxFluctuation + (2 * maxFluctuation) * rand.nextDouble();
@@ -140,6 +147,7 @@ public class MarketAgentService extends Service {
                 randomMarketValue.setPrice(newMarketValuePrice);
 
                 stockPricesContainer.addOrUpdateMarketValue(randomMarketValue, transactionId);
+                System.out.println("\tUpdated company " + randomMarketValue.getId() + "'s market value from " + oldMarketValuePrice + " to " + newMarketValuePrice+"by random fluctation: "+randomFluctuation);
 
                 //Update corresponding fonds
                 for (MarketValue mw: stockPricesContainer.getFonds(transactionId)) {
@@ -149,10 +157,12 @@ public class MarketAgentService extends Service {
 
                     int randomCompanyStockAmount = depotInvestor.getTradeObjectAmount(randomMarketValue.getId(),transactionId);
                     if (randomCompanyStockAmount > 0) {
-                        double newPrice = mw.getPrice() - randomCompanyStockAmount*oldMarketValuePrice + randomCompanyStockAmount*newMarketValuePrice;
-                        newPrice = newPrice/mw.getTradeVolume();
+                        System.out.println("Processing fond :" + investor.getId() + " owning " + randomCompanyStockAmount + " " + randomMarketValue.getId() + "-stocks!");
+                        double newPrice = mw.getPrice() - (randomCompanyStockAmount*oldMarketValuePrice)/mw.getTradeVolume() + (randomCompanyStockAmount*newMarketValuePrice)/mw.getTradeVolume();
+                        System.out.println("\tUpdated fonds " + investor.getId() + "'s market value from " + mw.getPrice() + " to " + newPrice + " according to fluctatet market value.");
                         mw.setPrice(newPrice);
                         stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
+
                     }
                 }
 

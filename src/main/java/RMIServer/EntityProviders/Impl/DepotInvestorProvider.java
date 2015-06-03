@@ -7,6 +7,7 @@ import RMIServer.EntityProviders.IDepotInvestorProvider;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by j0h1 on 02.05.2015.
@@ -15,14 +16,14 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
 
     private Investor investor;
     private Double budget;
-    private HashMap<String, Integer> tradeObjects;
+    private ConcurrentHashMap<String, Integer> tradeObjects;
     private Set<String> knownCompanies;
     private Set<IRmiCallback<Serializable>> callbacks;
     private Object lock;
 
     public DepotInvestorProvider(Investor investor) {
         this.investor = investor;
-        this.tradeObjects = new HashMap<>();
+        this.tradeObjects = new ConcurrentHashMap<>();
         this.knownCompanies = new HashSet<>();
         this.budget = 0.0;
         this.lock = new Object();
@@ -125,12 +126,15 @@ public class DepotInvestorProvider implements IDepotInvestorProvider {
     public void addTradeObjects(List<TradeObject> newTradeObjects, String transactionId) throws RemoteException {
 
         synchronized (lock) {
-            if (newTradeObjects.size() > 0) {
-                String stockId = newTradeObjects.get(0).getId();
-                if (tradeObjects.containsKey(stockId)) {
-                    tradeObjects.put(stockId, tradeObjects.get(stockId) + newTradeObjects.size());
+            for (TradeObject tradeObject : newTradeObjects) {
+                String tradeObjectId = tradeObject.getId();
+                if (tradeObject instanceof Stock) {
+                    knownCompanies.add(tradeObjectId);
+                }
+                if (tradeObjects.containsKey(tradeObjectId)) {
+                    tradeObjects.put(tradeObjectId, tradeObjects.get(tradeObjectId) + 1);
                 } else {
-                    tradeObjects.put(stockId, newTradeObjects.size());
+                    tradeObjects.put(tradeObjectId, 1);
                 }
             }
         }
