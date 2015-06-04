@@ -355,18 +355,22 @@ public class BrokerService extends Service {
             fondProvisionBuyer = totalValue * 0.02d;
         }
         System.out.println("FondPrivision Buyer: "+fondProvisionBuyer);
-        System.out.println("FondPrivision Seller: "+fondProvisionSeller);
+        System.out.println("FondPrivision Seller: " + fondProvisionSeller);
 
         System.out.println("Removing " + (totalValue + provisionBuyer + fondProvisionBuyer) + " from " + depotBuyer.getDepotName());
         depotBuyer.addToBudget(-(totalValue + provisionBuyer + fondProvisionBuyer), transactionId);
 
-        if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.INVESTOR)) {
+        //System.out.println("SellOrder.id(): " + sellOrder.getTradeObjectId());
+        //System.out.println("SellOrder.investorId(): "+sellOrder.getInvestorId());
+        if (sellOrder.getInvestorType().equals(TradeOrder.InvestorType.INVESTOR) && !sellOrder.getTradeObjectId().equals(sellOrder.getInvestorId())) {
             System.out.println("Increasing sellers budget by " + (totalValue- provisionSeller - fondProvisionSeller));
             ((DepotInvestor) depotSeller).addToBudget(totalValue - provisionSeller - fondProvisionSeller, transactionId);
+        } else {
+            System.out.println("No budget increase for seller, because of seller being a company or a fondsmanager selling his own fonds.");
         }
 
         if (fondProvisionBuyer > 0) {
-            System.out.println("Increasing fondmanger '" + buyOrder.getId() + "'s budget by: " + (fondProvisionBuyer + fondProvisionSeller));
+            System.out.println("Transferring " +(fondProvisionBuyer + fondProvisionSeller)+ " to fondmanager "+ buyOrder.getTradeObjectId() + "'s budget as fondmanager-provision.");
             Investor investor = new Investor(buyOrder.getTradeObjectId());
             investor.setFonds(true);
             DepotInvestor depotFonds = factory.newDepotInvestor(investor, transactionId);

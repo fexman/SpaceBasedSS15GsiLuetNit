@@ -431,10 +431,10 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 String tradeObjectId = tradeObject.getId();
                 if (stockNamesAndCount.containsKey(tradeObjectId)) {
                     // stock with company name <xy> already in map -> increase number
-                    stockNamesAndCount.put(tradeObjectId, stockNamesAndCount.get(tradeObjectId) + newTradeObjects.size());
+                    stockNamesAndCount.put(tradeObjectId, stockNamesAndCount.get(tradeObjectId) + 1);
                 } else {
                     // stocks of a new company acquired
-                    stockNamesAndCount.put(tradeObjectId, newTradeObjects.size());
+                    stockNamesAndCount.put(tradeObjectId, 1);
                 }
             }
         }
