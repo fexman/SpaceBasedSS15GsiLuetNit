@@ -10,10 +10,10 @@ public class AddressInfo implements Serializable {
     private static final long serialVersionUID = 1888623978750776945L;
 
     private String address;
-    private String protocol;
+    private Protocol protocol;
 
-    public AddressInfo(String address, String protocol) {
-        this.address = address;
+    public AddressInfo(String address, Protocol protocol) {
+        setAddress(address);
         setProtocol(protocol);
 
     }
@@ -26,16 +26,52 @@ public class AddressInfo implements Serializable {
         this.address = address;
     }
 
-    public String getProtocol() {
+    public Protocol getProtocol() {
         return protocol;
     }
 
-    public void setProtocol(String protocol) {
-        if (protocol.equalsIgnoreCase("XVSM")) {
-            this.protocol = "XVSM";
-        } else {
-            this.protocol = "RMI";
+    public void setProtocol(Protocol protocol) {
+        this.protocol = protocol;
+    }
+
+    public enum Protocol {
+
+        XVSM("XVSM"),
+        RMI("RMI");
+
+        private final String text;
+
+        /**
+         * @param text
+         */
+        Protocol(final String text) {
+            this.text = text;
         }
+
+        /* (non-Javadoc)
+         * @see java.lang.Enum#toString()
+         */
+        @Override
+        public String toString() {
+            return text;
+        }
+
+        public static Protocol byName(String name) {
+            if (name.equalsIgnoreCase(XVSM.toString())) {
+                return XVSM;
+            } else if (name.equalsIgnoreCase(RMI.toString())) {
+                return RMI;
+            }
+            return null;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "AddressInfo{" +
+                "address='" + address + '\'' +
+                ", protocol=" + protocol +
+                '}';
     }
 
     @Override
@@ -46,7 +82,7 @@ public class AddressInfo implements Serializable {
         AddressInfo that = (AddressInfo) o;
 
         if (address != null ? !address.equals(that.address) : that.address != null) return false;
-        return !(protocol != null ? !protocol.equals(that.protocol) : that.protocol != null);
+        return protocol == that.protocol;
 
     }
 

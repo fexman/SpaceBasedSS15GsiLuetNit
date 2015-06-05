@@ -3,16 +3,14 @@ package GUI.investor;
 import Factory.IFactory;
 import Factory.RmiFactory;
 import Factory.XvsmFactory;
-import MarketEntities.Depot;
-import MarketEntities.DepotInvestor;
-import MarketEntities.StockPricesContainer;
+import MarketEntities.*;
 import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
 import MarketEntities.Subscribing.MarketValues.IStockPricesSub;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
-import MarketEntities.TradeOrderContainer;
 import Model.*;
 import Service.ConnectionErrorException;
 import Util.TransactionTimeout;
+import com.sun.org.apache.xalan.internal.xsltc.dom.AdaptiveResultTreeImpl;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -49,6 +47,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     private HashMap<String,TradeOrderContainer> tradeOrderContainers;
     private HashMap<String,StockPricesContainer> stockPricesContainers;
     private HashMap<String,DepotInvestor> depots;
+    private FondsIndexContainer fondsIndexContainer;
 
     private ObservableList<TradeOrder> activeOrders;
     private TradeOrder ORDER_FILTER;
@@ -126,7 +125,6 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
     private TradeOrder selectedOrder;
 
-    ObservableList<String> protocols;
 
 
 
@@ -138,7 +136,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     private void initialize() {
 
         //init Multi-address table
-        protocols = FXCollections.observableArrayList("XVSM", "RMI");
+
         addressColumn.setCellValueFactory(new PropertyValueFactory<AddressInfo, String>("address"));
         addressColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         addressColumn.setOnEditCommit(
@@ -151,20 +149,21 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                     }
                 }
         );
+        ObservableList<AddressInfo.Protocol> protocols = FXCollections.observableArrayList(AddressInfo.Protocol.values());
         protocolColumn.setCellFactory((ComboBoxTableCell.forTableColumn(new DefaultStringConverter(), protocols)));
-        protocolColumn.setCellValueFactory(new PropertyValueFactory<AddressInfo, String>("protocol"));
+        protocolColumn.setCellValueFactory(new PropertyValueFactory<AddressInfo, AddressInfo.Protocol>("protocol"));
         protocolColumn.setOnEditCommit(
                 new EventHandler<TableColumn.CellEditEvent<AddressInfo, String>>() {
                     @Override
                     public void handle(TableColumn.CellEditEvent<AddressInfo, String> t) {
                         ((AddressInfo) t.getTableView().getItems().get(
                                 t.getTablePosition().getRow())
-                        ).setProtocol(t.getNewValue());
+                        ).setProtocol(AddressInfo.Protocol.byName(t.getNewValue()));
                     }
                 }
         );
         addresses = FXCollections.observableList(new ArrayList<AddressInfo>());
-        addresses.add(new AddressInfo("xvsm://localhost:12345", "XVSM"));
+        addresses.add(new AddressInfo("xvsm://localhost:12345", AddressInfo.Protocol.XVSM));
         marketsTable.setItems(addresses);
 
         colOrderId.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("id"));
@@ -210,7 +209,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 fxmlLoader.setController(new BudgetController(factory, investor));
                 Parent root1 = (Parent) fxmlLoader.load();
                 Stage stage = new Stage();
-                stage.setTitle("Increase Budget: "+address+" - "+factory.getProtocolString());
+                stage.setTitle("Increase Budget: " + address + " - " + factory.getProtocolString());
                 stage.setScene(new Scene(root1));
                 stage.show();
             }
@@ -220,7 +219,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     }
 
     public void addMarketButtonClicked() {
-        addresses.add(new AddressInfo("localhost:12346", "RMI"));
+        addresses.add(new AddressInfo("localhost:12346", AddressInfo.Protocol.RMI));
         marketsTable.setItems(addresses);
     }
 
@@ -278,7 +277,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         try {
             markets = new HashMap<>();
             for (AddressInfo a: addresses) {
-                if (a.getProtocol().equals("XVSM")) {
+                if (a.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
                     markets.put(a.getAddress(),new XvsmFactory(a.getAddress()));
                 } else {
                     markets.put(a.getAddress(),new RmiFactory(a.getAddress()));
@@ -337,11 +336,24 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 }
             }
 
-
             if (investor.isFonds()) {
                 modeLabel.setText("FONDSMANAGER MODE");
                 btnEditBudget.setVisible(false); //Fondsmanager may not change its budget
                 ORDER_FILTER.setTradeObjectType(TradeOrder.TradeObjectType.STOCK); //Fondsmanager may only buy/sell stocks
+
+                //Register all markets for markagent
+                List<AddressInfo> addresses = new ArrayList<>();
+                for (String address : markets.keySet()) {
+                    if (address.startsWith("xvsm")) {
+                        addresses.add(new AddressInfo(address, AddressInfo.Protocol.XVSM));
+                    } else {
+                        addresses.add(new AddressInfo(address, AddressInfo.Protocol.RMI));
+                    }
+                }
+                for (IFactory factory : markets.values()) {
+                    FondsIndexContainer fondsIndexContainer = factory.newFondsIndexContainer();
+                    fondsIndexContainer.registerMarkets(investor,addresses,null);
+                }
             } else {
                 modeLabel.setText("INVESTOR MODE");
             }
@@ -389,7 +401,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             setDataContainerVisible(true);
         } catch (ConnectionErrorException connectionErrorException) {
             statusLabel.textFillProperty().setValue(Color.RED);
-            statusLabel.setText("Loading data for investor failed.");
+            statusLabel.setText("Loading data for investor failed.\n\n"+connectionErrorException.getMessage()+"\n"+connectionErrorException.getCause());
+            connectionErrorException.printStackTrace();
         }
     }
 

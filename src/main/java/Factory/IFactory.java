@@ -33,6 +33,8 @@ public interface IFactory {
 
     BrokerSupportContainer newBrokerSupportContainer();
 
+    FondsIndexContainer newFondsIndexContainer();
+
     //Subscription-manager
 
     AIssueRequestSubManager newIssueRequestSubManager(IIssueRequestSub subscription);

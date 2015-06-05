@@ -4,12 +4,10 @@ import Factory.IFactory;
 import Factory.RmiFactory;
 import Factory.XvsmFactory;
 import MarketEntities.DepotInvestor;
+import MarketEntities.FondsIndexContainer;
 import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
-import Model.Investor;
-import Model.MarketValue;
-import Model.TradeObject;
-import Model.TradeOrder;
+import Model.*;
 import Service.ConnectionErrorException;
 
 import java.util.HashMap;
@@ -21,7 +19,7 @@ import java.util.List;
 public class QueryTester {
 
     public static IFactory factory;
-    public static final boolean  ALT_MODE = false;
+    public static final boolean  ALT_MODE = true;
 
     public static void main(String args[]) throws Exception {
         factory = QueryTesterFactory.getFactory();
@@ -47,7 +45,7 @@ public class QueryTester {
         System.out.println(" ++++ Results End +++ ");*/
 
         // +++ +++ +++ +++ +++ +++ +++ INVESTOR TESTS  +++ +++ +++ +++ +++ +++ +++
-        Investor inv = new Investor("dudette");
+        /*Investor inv = new Investor("dudette");
         inv.setFonds(true);
 
         DepotInvestor di = factory.newDepotInvestor(inv,null);
@@ -66,7 +64,7 @@ public class QueryTester {
         for (String s: resultCount.keySet()) {
             System.out.println("\t"+resultCount.get(s)+"x "+s);
         }
-        System.out.println(" ++++ Results End +++ ");
+        System.out.println(" ++++ Results End +++ ");*/
 
         // +++ +++ +++ +++ +++ +++ +++ MARKETVALUE TESTS  +++ +++ +++ +++ +++ +++ +++
         /*StockPricesContainer sps = factory.newStockPricesContainer();
@@ -78,6 +76,20 @@ public class QueryTester {
             System.out.println("\t"+mw);
         }
         System.out.println(" ++++ Results End +++ ");*/
+
+        // +++ +++ +++ +++ +++ +++ +++ FONDS INDEX TESTS  +++ +++ +++ +++ +++ +++ +++
+        Investor inv = new Investor("dudette");
+        inv.setFonds(true);
+
+        FondsIndexContainer fondsIndexContainer = factory.newFondsIndexContainer();
+
+        List<AddressInfo> results = fondsIndexContainer.getMarkets(inv,null);
+        System.out.println();
+        System.out.println(" ++++ Query Results +++ ");
+        for (AddressInfo address : results) {
+            System.out.println(address);
+        }
+        System.out.println(" ++++ Results End +++ ");
 
         System.exit(0);
     }

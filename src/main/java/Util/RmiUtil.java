@@ -43,6 +43,7 @@ public class RmiUtil {
             providers.put(Container.STOCK_PRICES, rc.getRmiServer().getStockPricesContainer());
             providers.put(Container.TRANSACTION_HISTORY, rc.getRmiServer().getTransactionHistoryContainer());
             providers.put(Container.BROKER_TOSUPPORT, rc.getRmiServer().getBrokerSupportContainer());
+            providers.put(Container.FONDS_INDEX_CONTAINER, rc.getRmiServer().getFondsIndexContainer());
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }

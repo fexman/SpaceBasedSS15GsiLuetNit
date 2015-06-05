@@ -63,6 +63,11 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
+    public FondsIndexContainer newFondsIndexContainer() {
+        return new RmiFondsIndexContainer();
+    }
+
+    @Override
     public AIssueRequestSubManager newIssueRequestSubManager(IIssueRequestSub subscription) {
         try {
             return new RmiIssueRequestSubManager(subscription);

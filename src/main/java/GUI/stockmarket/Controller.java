@@ -161,7 +161,7 @@ public class Controller implements ITradeOrderSub, IStockPricesSub, ITransaction
         if (protocolField.getValue().equals("XVSM")) {
             adressField.setText("xvsm://localhost:12345");
         } else {
-            adressField.setText("localhost:12345");
+            adressField.setText("localhost:12346");
         }
     }
 

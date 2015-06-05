@@ -28,6 +28,7 @@ public class RmiServer extends Thread implements IRmiServer {
     private IStockPricesProvider stockPricesProvider;
     private ITransactionHistoryProvider transactionHistoryProvider;
     private IBrokerSupportProvider brokerSupportProvider;
+    private IFondsIndexProvider fondsIndexProvider;
 
 
     public RmiServer(int port) {
@@ -35,6 +36,7 @@ public class RmiServer extends Thread implements IRmiServer {
 
         irContainerProvider = new IssueRequestsProvider();
         brokerSupportProvider = new BrokerSupportProvider();
+        fondsIndexProvider = new FondsIndexProvider();
         tradeOrderContainerProvider = new TradeOrderProvider(brokerSupportProvider);
         stockPricesProvider = new StockPricesProvider(brokerSupportProvider);
         transactionHistoryProvider = new TransactionHistoryProvider();
@@ -53,6 +55,7 @@ public class RmiServer extends Thread implements IRmiServer {
 
             //Export providers
             UnicastRemoteObject.exportObject(brokerSupportProvider,0);
+            UnicastRemoteObject.exportObject(fondsIndexProvider,0);
             UnicastRemoteObject.exportObject(irContainerProvider, 0);
             UnicastRemoteObject.exportObject(tradeOrderContainerProvider, 0);
             UnicastRemoteObject.exportObject(stockPricesProvider, 0);
@@ -63,32 +66,11 @@ public class RmiServer extends Thread implements IRmiServer {
             System.exit(-1);
         }
 
-        System.out.println("StockMarketServer with port "+port+" is up! Enter !exit to shutdown, !help for help.");
+        System.out.println("StockMarketServer with port "+port+" is up! Enter !exit to shutdown.");
         Scanner scan = new Scanner(System.in);
         while (scan.hasNext()) {
             String input = scan.next();
             switch (input) {
-                case "!spinfo":
-                    System.out.println(stockPricesProvider.toString());
-                    break;
-                case "!toinfo":
-                    System.out.println(tradeOrderContainerProvider.toString());
-                    break;
-                case "!irinfo":
-                    System.out.println(irContainerProvider.toString());
-                    break;
-                case "!thinfo":
-                    System.out.println(transactionHistoryProvider.toString());
-                case "!depots_c":
-                    String info = "======== COMPANY DEPOTS ========\n";
-                    int counter = 1;
-                    for (IDepotCompanyProvider dcp : companyDepots.values()) {
-                        info += "["+counter+"]: "+dcp.toString()+"\n";
-                        counter++;
-                    }
-                    info += "================================\n";
-                    System.out.println(info);
-                    break;
                 case "!exit":
                     try {
                         System.in.close();
@@ -97,13 +79,8 @@ public class RmiServer extends Thread implements IRmiServer {
                     }
                     shutDown();
                     break;
-                case "!help":
-                    System.out.print("Available commands:\n\t!exit\t\trollbackOpenTransactions server\n\t!help\t\tcommand info\n\n\t!isrinfo\tisr container provider info\n" +
-                            "\t!toinfo\t\ttrade order container provider info\n" +
-                            "\t!spinfo\t\tstock prices container provider info\n\n\t!depots_c\tcompany depots info\n\t!depots_i\tinvestor depots info\n");
-                    break;
                 default:
-                    System.out.println("Unkown command.");
+
             }
         }
     }
@@ -116,6 +93,7 @@ public class RmiServer extends Thread implements IRmiServer {
             UnicastRemoteObject.unexportObject(tradeOrderContainerProvider, true);
             UnicastRemoteObject.unexportObject(stockPricesProvider, true);
             UnicastRemoteObject.unexportObject(transactionHistoryProvider, true);
+            UnicastRemoteObject.exportObject(fondsIndexProvider, 0);
 
             //Unexport depots
             for (IDepotCompanyProvider iDepotCompanyHandler : companyDepots.values()) {
@@ -144,6 +122,11 @@ public class RmiServer extends Thread implements IRmiServer {
     @Override
     public IBrokerSupportProvider getBrokerSupportContainer() throws RemoteException {
         return brokerSupportProvider;
+    }
+
+    @Override
+    public IFondsIndexProvider getFondsIndexContainer() throws RemoteException {
+        return fondsIndexProvider;
     }
 
 

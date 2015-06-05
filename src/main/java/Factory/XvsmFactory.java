@@ -68,6 +68,11 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
+    public FondsIndexContainer newFondsIndexContainer() {
+        return new XvsmFondsIndexContainer();
+    }
+
+    @Override
     public AIssueRequestSubManager newIssueRequestSubManager(IIssueRequestSub subscription) {
         return new XvsmIssueRequestSubManager(subscription);
     }

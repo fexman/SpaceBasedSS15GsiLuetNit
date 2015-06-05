@@ -2,6 +2,7 @@ package Service;
 
 import Factory.IFactory;
 import MarketEntities.DepotInvestor;
+import MarketEntities.FondsIndexContainer;
 import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
 import Model.*;
@@ -99,6 +100,10 @@ public class MarketAgentService extends Service {
                     }
                 }
                 stockFactor = stockFactor/mw.getTradeVolume();
+
+                //Query remote markets
+                FondsIndexContainer fondsIndexContainer = factory.newFondsIndexContainer();
+                int remoteCounter;
 
                 //write results
                 mw.setPrice(budgetFactor+stockFactor);

@@ -11,7 +11,8 @@ public enum Container {
     BROKER_SPSUPPORT("brokerStockPrices"),
     BROKER_TOSUPPORT("brokerTradeOrders"),
     DEPOT_COMPANY_TOKEN("depot_company_"),
-    DEPOT_INVESTOR_TOKEN("depot_investor_");
+    DEPOT_INVESTOR_TOKEN("depot_investor_"),
+    FONDS_INDEX_CONTAINER("fondsIndexContainer");
 
     private final String text;
 

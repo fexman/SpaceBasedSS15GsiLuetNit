@@ -24,4 +24,6 @@ public class Investor extends StockOwner {
     public void setFonds(boolean fonds) {
         this.fonds = fonds;
     }
+
+
 }
