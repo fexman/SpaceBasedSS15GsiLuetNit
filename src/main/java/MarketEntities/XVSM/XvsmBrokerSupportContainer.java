@@ -24,16 +24,18 @@ public class XvsmBrokerSupportContainer extends BrokerSupportContainer {
     private ContainerReference spSupportContainer;
     private ContainerReference toSupportContainer;
     private XvsmUtil.XvsmConnection xc;
+    private XvsmUtil util;
 
-    public XvsmBrokerSupportContainer() {
-        spSupportContainer = XvsmUtil.getContainer(Container.BROKER_SPSUPPORT);
-        toSupportContainer = XvsmUtil.getContainer(Container.BROKER_TOSUPPORT);
-        xc = XvsmUtil.getXvsmConnection();
+    public XvsmBrokerSupportContainer(XvsmUtil util) {
+        this.util = util;
+        spSupportContainer = util.getContainer(Container.BROKER_SPSUPPORT);
+        toSupportContainer = util.getContainer(Container.BROKER_TOSUPPORT);
+        xc = util.getXvsmConnection();
     }
 
     @Override
     public List<TradeOrder> takeNewTradeOrders(String transactionId) throws ConnectionErrorException, TransactionTimeoutException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         Selector selector = FifoCoordinator.newSelector();
 
@@ -48,7 +50,7 @@ public class XvsmBrokerSupportContainer extends BrokerSupportContainer {
 
     @Override
     public List<MarketValue> takeNewStockPrices(String transactionId) throws ConnectionErrorException, TransactionTimeoutException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         Selector selector = FifoCoordinator.newSelector();
 

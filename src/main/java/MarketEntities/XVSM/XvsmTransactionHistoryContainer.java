@@ -23,15 +23,17 @@ public class XvsmTransactionHistoryContainer extends TransactionHistoryContainer
 
     private ContainerReference transactionHistoryContainer;
     private XvsmUtil.XvsmConnection xc;
+    private XvsmUtil util;
 
-    public XvsmTransactionHistoryContainer() {
-        transactionHistoryContainer = XvsmUtil.getContainer(Container.TRANSACTION_HISTORY);
-        xc = XvsmUtil.getXvsmConnection();
+    public XvsmTransactionHistoryContainer(XvsmUtil util) {
+        this.util = util;
+        transactionHistoryContainer = util.getContainer(Container.TRANSACTION_HISTORY);
+        xc = util.getXvsmConnection();
     }
 
     @Override
     public void addHistoryEntry(HistoryEntry historyEntry, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         try {
             xc.getCapi().write(new Entry(historyEntry), transactionHistoryContainer, XvsmUtil.ACTION_TIMEOUT, tx);
@@ -42,7 +44,7 @@ public class XvsmTransactionHistoryContainer extends TransactionHistoryContainer
 
     @Override
     public List<HistoryEntry> getTransactionHistory(String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         FifoCoordinator.FifoSelector selector = FifoCoordinator.newSelector(MzsConstants.Selecting.COUNT_ALL);
 

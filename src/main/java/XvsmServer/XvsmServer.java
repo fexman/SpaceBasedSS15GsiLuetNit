@@ -18,9 +18,9 @@ public class XvsmServer extends Thread {
 
     public void run() {
         try {
-            XvsmUtil.initConnection(uri, true);
+            XvsmUtil util = new XvsmUtil(uri, true);
             Scanner scan = new Scanner(System.in);
-            System.out.println("Hit <enter> to rollbackOpenTransactions!");
+            System.out.println("Hit <enter> to shutdown!");
             scan.nextLine();
             System.exit(0);
         } catch (MzsCoreException e) {

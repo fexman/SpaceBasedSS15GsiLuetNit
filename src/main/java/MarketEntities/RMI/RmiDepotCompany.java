@@ -18,15 +18,17 @@ import java.util.List;
 public class RmiDepotCompany extends DepotCompany {
 
     private IDepotCompanyProvider depotCompany;
+    private RmiUtil util;
 
-    public RmiDepotCompany(Company comp, String transactionId) throws ConnectionErrorException {
+    public RmiDepotCompany(RmiUtil util, Company comp, String transactionId) throws ConnectionErrorException {
         super(comp, transactionId);
 
+        this.util = util;
         //Setting Depot-name
         this.depotName = Container.DEPOT_COMPANY_TOKEN + comp.getId();
 
         //get handler
-        depotCompany = RmiUtil.getDepot(comp);
+        depotCompany = util.getDepot(comp);
     }
 
     @Override

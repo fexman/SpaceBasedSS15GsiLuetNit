@@ -1,6 +1,8 @@
 package Service;
 
 import Factory.IFactory;
+import Factory.RmiFactory;
+import Factory.XvsmFactory;
 import MarketEntities.DepotInvestor;
 import MarketEntities.FondsIndexContainer;
 import MarketEntities.StockPricesContainer;
@@ -103,7 +105,17 @@ public class MarketAgentService extends Service {
 
                 //Query remote markets
                 FondsIndexContainer fondsIndexContainer = factory.newFondsIndexContainer();
-                int remoteCounter;
+                int remoteCounter = 0;
+                for (AddressInfo addressInfo : fondsIndexContainer.getMarkets(investor,transactionId)) {
+                    IFactory remoteFactory;
+                    if (addressInfo.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
+                        remoteFactory = new XvsmFactory(addressInfo.getAddress());
+                    } else {
+                        remoteFactory = new RmiFactory(addressInfo.getAddress());
+                    }
+                    StockPricesContainer remoteStockPrices = remoteFactory.newStockPricesContainer();
+
+                }
 
                 //write results
                 mw.setPrice(budgetFactor+stockFactor);

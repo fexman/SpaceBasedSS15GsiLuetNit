@@ -32,11 +32,11 @@ import java.util.TimerTask;
  */
 public class XvsmFactory implements IFactory {
 
-    private XvsmUtil.XvsmConnection xc;
+    private XvsmUtil util;
 
     public XvsmFactory(String uri) throws ConnectionErrorException {
         try {
-            this.xc = XvsmUtil.initConnection(uri, false);
+            this.util = new XvsmUtil(uri,false);
         } catch (MzsCoreException e) {
             throw new ConnectionErrorException(e);
         }
@@ -44,32 +44,32 @@ public class XvsmFactory implements IFactory {
 
     @Override
     public IssueRequestContainer newIssueRequestContainer() {
-        return new XvsmIssueRequestContainer();
+        return new XvsmIssueRequestContainer(util);
     }
 
     @Override
     public TradeOrderContainer newTradeOrdersContainer() {
-        return new XvsmTradeOrdersContainer();
+        return new XvsmTradeOrdersContainer(util);
     }
 
     @Override
     public StockPricesContainer newStockPricesContainer() {
-        return new XvsmStockPricesContainer();
+        return new XvsmStockPricesContainer(util);
     }
 
     @Override
     public TransactionHistoryContainer newTransactionHistoryContainer() {
-        return new XvsmTransactionHistoryContainer();
+        return new XvsmTransactionHistoryContainer(util);
     }
 
     @Override
     public BrokerSupportContainer newBrokerSupportContainer() {
-        return new XvsmBrokerSupportContainer();
+        return new XvsmBrokerSupportContainer(util);
     }
 
     @Override
     public FondsIndexContainer newFondsIndexContainer() {
-        return new XvsmFondsIndexContainer();
+        return new XvsmFondsIndexContainer(util);
     }
 
     @Override
@@ -99,18 +99,18 @@ public class XvsmFactory implements IFactory {
 
     @Override
     public DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionErrorException {
-        return new XvsmDepotInvestor(investor, transactionId);
+        return new XvsmDepotInvestor(util, investor, transactionId);
     }
 
     @Override
     public DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionErrorException {
-        return new XvsmDepotCompany(comp, transactionId);
+        return new XvsmDepotCompany(util, comp, transactionId);
     }
 
     @Override
     public String createTransaction(TransactionTimeout timeout) throws ConnectionErrorException {
         try {
-            return XvsmUtil.createTransaction(timeout);
+            return util.createTransaction(timeout);
         } catch (MzsCoreException e) {
             throw new ConnectionErrorException(e);
         }
@@ -118,13 +118,13 @@ public class XvsmFactory implements IFactory {
 
     @Override
     public void removeTransaction(String transactionId) {
-        XvsmUtil.removeTransaction(transactionId);
+        util.removeTransaction(transactionId);
     }
 
     @Override
     public void commitTransaction(String transactionId) throws ConnectionErrorException {
         try {
-            XvsmUtil.commitTransaction(transactionId);
+            util.commitTransaction(transactionId);
         } catch (MzsCoreException e) {
             throw new ConnectionErrorException(e);
         }
@@ -135,7 +135,7 @@ public class XvsmFactory implements IFactory {
     @Override
     public void rollbackTransaction(String transactionId) throws ConnectionErrorException {
         try {
-            XvsmUtil.rollbackTransaction(transactionId);
+            util.rollbackTransaction(transactionId);
         } catch (MzsCoreException e) {
             throw new ConnectionErrorException(e);
         }
@@ -144,9 +144,9 @@ public class XvsmFactory implements IFactory {
     @Override
     public void destroy() {
 
-        XvsmUtil.rollbackOpenTransactions();
+        util.rollbackOpenTransactions();
 
-        xc.getCore().shutdown(false);
+        util.getXvsmConnection().getCore().shutdown(false);
         TimerTask shutdownTask = new TimerTask() {
 
             @Override

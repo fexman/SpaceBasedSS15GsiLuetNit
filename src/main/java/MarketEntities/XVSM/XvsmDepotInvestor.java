@@ -27,16 +27,18 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
     private ContainerReference investorDepot;
     private XvsmUtil.XvsmConnection xc;
+    private XvsmUtil util;
 
-    public XvsmDepotInvestor(Investor investor, String transactionId) throws ConnectionErrorException {
+    public XvsmDepotInvestor(XvsmUtil util, Investor investor, String transactionId) throws ConnectionErrorException {
         super(investor, transactionId);
 
         this.depotName = Util.Container.DEPOT_INVESTOR_TOKEN.toString() + investor.getId();
 
-        xc = XvsmUtil.getXvsmConnection();
+        this.util = util;
+        xc = util.getXvsmConnection();
         try {
-            TransactionReference tx = XvsmUtil.getTransaction(transactionId);
-            investorDepot = XvsmUtil.getDepot(investor.getId(), tx);
+            TransactionReference tx = util.getTransaction(transactionId);
+            investorDepot = util.getDepot(investor.getId(), tx);
         } catch (MzsCoreException e) {
             throw new ConnectionErrorException(e);
         }
@@ -44,7 +46,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
     @Override
     public double getBudget(String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         LabelCoordinator.LabelSelector selector = LabelCoordinator.newSelector("BUDGET", MzsConstants.Selecting.COUNT_MAX);
         try {
@@ -63,7 +65,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
     @Override
     public void setBudget(double amount, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         LabelCoordinator.LabelSelector selector = LabelCoordinator.newSelector("BUDGET", MzsConstants.Selecting.COUNT_MAX);
         try {
@@ -76,7 +78,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
     @Override
     public List<TradeObject> takeTradeObjects(String toId, int amount, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         LabelCoordinator.LabelSelector selector = LabelCoordinator.newSelector(toId, amount);
         try {
@@ -89,7 +91,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
     @Override
     public int getTradeObjectAmount(String toId, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         LabelCoordinator.LabelSelector selector = LabelCoordinator.newSelector(toId, MzsConstants.Selecting.COUNT_MAX);
         try {
@@ -101,7 +103,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
     @Override
     public List<TradeObject> readAllTradeObjects(String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         TypeCoordinator.TypeSelector selector = TypeCoordinator.newSelector(TradeObject.class, MzsConstants.Selecting.COUNT_MAX);
         try {
@@ -113,7 +115,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
     @Override
     public int getTotalAmountOfTradeObjects(String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         TypeCoordinator.TypeSelector selector = TypeCoordinator.newSelector(Stock.class, MzsConstants.Selecting.COUNT_MAX);
         try {
@@ -125,7 +127,7 @@ public class XvsmDepotInvestor extends DepotInvestor {
 
     @Override
     public void addTradeObjects(List<TradeObject> tradeObjects, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         for (TradeObject tradeObject : tradeObjects) {
             try {

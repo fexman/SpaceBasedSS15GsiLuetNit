@@ -17,12 +17,12 @@ import java.util.HashMap;
  */
 public class RmiUtil {
 
-    private static RmiConnection rc;
-
-    private static HashMap<Container, IProvider> providers = new HashMap<>();
     public static final String RMI_SERVER_BINDING = "MarketServer";
 
-    public static RmiConnection initConnection(String uri) throws ConnectionErrorException {
+    private RmiConnection rc;
+    private HashMap<Container, IProvider> providers = new HashMap<>();
+
+    public RmiUtil(String uri) throws ConnectionErrorException {
         String[] uriSplit = uri.split(":");
         if (uriSplit.length != 2) {
             throw new ConnectionErrorException("Could not parse uri: Invalid format");
@@ -47,14 +47,13 @@ public class RmiUtil {
         } catch (RemoteException e) {
             throw new ConnectionErrorException(e);
         }
-        return rc;
     }
 
-    public static IProvider getContainer(Container cont) {
+    public IProvider getContainer(Container cont) {
         return providers.get(cont);
     }
 
-    public static IDepotCompanyProvider getDepot(Company company) throws ConnectionErrorException {
+    public IDepotCompanyProvider getDepot(Company company) throws ConnectionErrorException {
         try {
             return rc.getRmiServer().getDepotCompany(company);
         } catch (RemoteException e) {
@@ -62,7 +61,7 @@ public class RmiUtil {
         }
     }
 
-    public static IDepotInvestorProvider getDepot(String investorId) throws ConnectionErrorException {
+    public IDepotInvestorProvider getDepot(String investorId) throws ConnectionErrorException {
         try {
             return rc.getRmiServer().getDepotInvestor(investorId);
         } catch (RemoteException e) {
@@ -70,7 +69,7 @@ public class RmiUtil {
         }
     }
 
-    public static RmiConnection getRmiConnection() {
+    public RmiConnection getRmiConnection() {
         return rc;
     }
 

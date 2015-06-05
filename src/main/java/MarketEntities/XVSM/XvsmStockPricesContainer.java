@@ -24,16 +24,18 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
 
     private ContainerReference stockPricesContainer;
     private XvsmUtil.XvsmConnection xc;
+    private XvsmUtil util;
 
-    public XvsmStockPricesContainer() {
-        stockPricesContainer = XvsmUtil.getContainer(Container.STOCK_PRICES);
-        xc = XvsmUtil.getXvsmConnection();
+    public XvsmStockPricesContainer(XvsmUtil util) {
+        this.util = util;
+        stockPricesContainer = util.getContainer(Container.STOCK_PRICES);
+        xc = util.getXvsmConnection();
     }
 
 
     @Override
     public void addOrUpdateMarketValue(MarketValue marketValue, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         Selector selector = KeyCoordinator.newSelector(marketValue.getId(), Selector.COUNT_MAX);
         CoordinationData coordData = KeyCoordinator.newCoordinationData(marketValue.getId());
@@ -49,7 +51,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
 
     @Override
     public MarketValue getMarketValue(String id, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         Selector selector = KeyCoordinator.newSelector(id, Selector.COUNT_MAX);
         List<MarketValue> result;
@@ -69,7 +71,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
 
     @Override
     public List<MarketValue> getAll(String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         Selector selector = FifoCoordinator.newSelector(Selector.COUNT_MAX);
 
@@ -83,7 +85,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
     @Override
     public List<MarketValue> getFonds(String transactionId) throws ConnectionErrorException {
 
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         Query query = new Query();
 
@@ -101,7 +103,7 @@ public class XvsmStockPricesContainer  extends StockPricesContainer {
 
     @Override
     public List<MarketValue> getCompanies(String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         Query query = new Query();
 

@@ -22,9 +22,11 @@ public class RmiTradeOrderContainer extends TradeOrderContainer {
 
     private ITradeOrderProvider toContainer;
     private Set<IRmiCallback<TradeOrder>> callbacks;
+    private RmiUtil util;
 
-    public RmiTradeOrderContainer() {
-        toContainer = (ITradeOrderProvider) RmiUtil.getContainer(Container.TRADE_ORDERS);
+    public RmiTradeOrderContainer(RmiUtil util) {
+        this.util = util;
+        toContainer = (ITradeOrderProvider) util.getContainer(Container.TRADE_ORDERS);
         callbacks = new HashSet<>();
     }
 

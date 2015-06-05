@@ -27,53 +27,11 @@ public class XvsmUtil {
 
     private static final boolean TRANSACTION_DEBUG_PRINTS = false;
 
-    private static HashMap<String, TransactionReference> transactions = new HashMap<>();
-    private static HashMap<Container, ContainerReference> containers = new HashMap<>();
-    private static XvsmConnection xc;
+    private HashMap<String, TransactionReference> transactions = new HashMap<>();
+    private HashMap<Container, ContainerReference> containers = new HashMap<>();
+    private XvsmConnection xc;
 
-    /**
-     * Looks up container from space with given capi and uri, or creates new one if not existent.
-     *
-     * @param containerName
-     * @param space
-     * @param capi
-     * @return
-     * @throws MzsCoreException Thrown if container could neither be looked up, nor created.
-     */
-    private static ContainerReference lookUpOrCreateContainer(String containerName, URI space, Capi capi, TransactionReference tx, List<CoordinatorType> types) throws MzsCoreException {
-        ContainerReference cref;
-        try {
-            cref = capi.lookupContainer(containerName, space, MzsConstants.RequestTimeout.DEFAULT, tx);
-        } catch (MzsCoreException e) {
-            ArrayList<Coordinator> obligatoryCoords = new ArrayList<Coordinator>();
-            for (CoordinatorType ct : types) {
-                obligatoryCoords.add(CoordinatorType.getCoordinator(ct));
-            }
-            cref = capi.createContainer(containerName, space, MzsConstants.Container.UNBOUNDED, obligatoryCoords, null, tx);
-        }
-        return cref;
-    }
-
-
-    public static void rollbackOpenTransactions() {
-        if (xc != null) {
-            for (TransactionReference tx : transactions.values()) {
-                try {
-                    xc.getCapi().rollbackTransaction(tx);
-                } catch (MzsCoreException e) {
-                    System.out.println("What happend to: "+tx+"?");
-                }
-            }
-        }
-    }
-
-    /**
-     * Connects to a XVSM-Space and returns XvsmConnection.
-     *
-     * @param spaceUri Uri of the XVSM-Space
-     * @return XvsmConnection containing capi and space Uri
-     */
-    public static XvsmConnection initConnection(String spaceUri, boolean withSpace) throws MzsCoreException {
+    public XvsmUtil(String spaceUri, boolean withSpace) throws MzsCoreException {
 
         if (xc != null) {
             xc.getCore().shutdown(false);
@@ -113,12 +71,52 @@ public class XvsmUtil {
                     add(CoordinatorType.FIFO_COORDINATOR);
                 }}));
 
+        containers.put(Container.FONDS_INDEX_CONTAINER, lookUpOrCreateContainer(Container.FONDS_INDEX_CONTAINER.toString(), xc.getSpace(), xc.getCapi(), null,
+                new ArrayList<CoordinatorType>() {{
+                    add(CoordinatorType.LABEL_COORDINATOR);
+                }}));
+
+
         //Server only
         if (withSpace) {
             xc.getCapi().addContainerAspect(new BrokerStockPricesAspect(), containers.get(Container.STOCK_PRICES), ContainerIPoint.POST_WRITE);
             xc.getCapi().addContainerAspect(new BrokerTradeOrdersAspect(), containers.get(Container.TRADE_ORDERS), ContainerIPoint.POST_WRITE);
         }
-        return xc;
+    }
+    /**
+     * Looks up container from space with given capi and uri, or creates new one if not existent.
+     *
+     * @param containerName
+     * @param space
+     * @param capi
+     * @return
+     * @throws MzsCoreException Thrown if container could neither be looked up, nor created.
+     */
+    private static ContainerReference lookUpOrCreateContainer(String containerName, URI space, Capi capi, TransactionReference tx, List<CoordinatorType> types) throws MzsCoreException {
+        ContainerReference cref;
+        try {
+            cref = capi.lookupContainer(containerName, space, MzsConstants.RequestTimeout.DEFAULT, tx);
+        } catch (MzsCoreException e) {
+            ArrayList<Coordinator> obligatoryCoords = new ArrayList<Coordinator>();
+            for (CoordinatorType ct : types) {
+                obligatoryCoords.add(CoordinatorType.getCoordinator(ct));
+            }
+            cref = capi.createContainer(containerName, space, MzsConstants.Container.UNBOUNDED, obligatoryCoords, null, tx);
+        }
+        return cref;
+    }
+
+
+    public void rollbackOpenTransactions() {
+        if (xc != null) {
+            for (TransactionReference tx : transactions.values()) {
+                try {
+                    xc.getCapi().rollbackTransaction(tx);
+                } catch (MzsCoreException e) {
+                    System.out.println("What happend to: "+tx+"?");
+                }
+            }
+        }
     }
 
     /**
@@ -128,7 +126,7 @@ public class XvsmUtil {
      * @param cont
      * @return
      */
-    public static ContainerReference getContainer(Container cont) {
+    public ContainerReference getContainer(Container cont) {
         return containers.get(cont);
     }
 
@@ -139,7 +137,7 @@ public class XvsmUtil {
      * @return
      * @throws MzsCoreException
      */
-    public static ContainerReference getDepot(Company company, TransactionReference tx) throws MzsCoreException {
+    public ContainerReference getDepot(Company company, TransactionReference tx) throws MzsCoreException {
         return lookUpOrCreateContainer("DEPOT_COMPANY_" + company.getId(), xc.getSpace(), xc.getCapi(), tx, new ArrayList<CoordinatorType>());
     }
 
@@ -150,14 +148,14 @@ public class XvsmUtil {
      * @return
      * @throws MzsCoreException
      */
-    public static ContainerReference getDepot(String investorId, TransactionReference tx) throws MzsCoreException {
+    public ContainerReference getDepot(String investorId, TransactionReference tx) throws MzsCoreException {
         List<CoordinatorType> coordinatorTypes = new ArrayList<>();
         coordinatorTypes.add(CoordinatorType.LABEL_COORDINATOR);
         coordinatorTypes.add(CoordinatorType.TYPE_COORDINATOR);
         return lookUpOrCreateContainer("DEPOT_INVESTOR_" + investorId, xc.getSpace(), xc.getCapi(), tx, coordinatorTypes);
     }
 
-    public static synchronized String createTransaction(TransactionTimeout timeout) throws MzsCoreException {
+    public synchronized String createTransaction(TransactionTimeout timeout) throws MzsCoreException {
 
         long timeoutValue = getTransactionTimeoutValue(timeout);
 
@@ -172,11 +170,11 @@ public class XvsmUtil {
         return transactionId.toString();
     }
 
-    public static synchronized TransactionReference getTransaction(String transactionId) {
+    public synchronized TransactionReference getTransaction(String transactionId) {
         return transactions.get(transactionId);
     }
 
-    public static synchronized void commitTransaction(String transactionId) throws MzsCoreException {
+    public synchronized void commitTransaction(String transactionId) throws MzsCoreException {
         if (TRANSACTION_DEBUG_PRINTS) {
             System.out.println("COMMITING TRANSACTION: " + transactionId + " / " + transactions.get(transactionId));
         }
@@ -184,7 +182,7 @@ public class XvsmUtil {
         removeTransaction(transactionId);
     }
 
-    public static synchronized void rollbackTransaction(String transactionId) throws MzsCoreException {
+    public synchronized void rollbackTransaction(String transactionId) throws MzsCoreException {
         if (TRANSACTION_DEBUG_PRINTS) {
             System.out.println("ROLLBACKING TRANSACTION: " + transactionId + " / " + transactions.get(transactionId));
         }
@@ -192,7 +190,7 @@ public class XvsmUtil {
         removeTransaction(transactionId);
     }
 
-    public  static synchronized void removeTransaction(String transactionId) {
+    public synchronized void removeTransaction(String transactionId) {
         if (TRANSACTION_DEBUG_PRINTS) {
             System.out.println("REMOVING TRANSACTION: " + transactionId);
         }
@@ -216,7 +214,7 @@ public class XvsmUtil {
      *
      * @return
      */
-    public static XvsmConnection getXvsmConnection() {
+    public XvsmConnection getXvsmConnection() {
         return xc;
     }
 
@@ -284,7 +282,7 @@ public class XvsmUtil {
         }
     }
 
-    private static class BrokerStockPricesAspect extends AbstractContainerAspect {
+    private class BrokerStockPricesAspect extends AbstractContainerAspect {
 
         @Override
         public AspectResult postWrite(WriteEntriesRequest request,
@@ -306,7 +304,7 @@ public class XvsmUtil {
         }
     }
 
-    private static class BrokerTradeOrdersAspect extends AbstractContainerAspect {
+    private class BrokerTradeOrdersAspect extends AbstractContainerAspect {
 
         public AspectResult postWrite(WriteEntriesRequest request,
                                       Transaction tx, SubTransaction stx, Capi3AspectPort capi3,

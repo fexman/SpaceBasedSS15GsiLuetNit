@@ -19,17 +19,19 @@ public class XvsmDepotCompany extends DepotCompany {
 
     private ContainerReference companyDepot;
     private XvsmUtil.XvsmConnection xc;
+    private XvsmUtil util;
 
-    public XvsmDepotCompany(Company comp, String transactionId) throws ConnectionErrorException {
+    public XvsmDepotCompany(XvsmUtil util, Company comp, String transactionId) throws ConnectionErrorException {
         super(comp, transactionId);
 
         //Setting Depot-name
         this.depotName = Container.DEPOT_COMPANY_TOKEN.toString()+comp.getId();
 
-        xc = XvsmUtil.getXvsmConnection();
+        this.util = util;
+        xc = util.getXvsmConnection();
         try {
-            TransactionReference tx = XvsmUtil.getTransaction(transactionId);
-            companyDepot = XvsmUtil.getDepot(comp,tx);
+            TransactionReference tx = util.getTransaction(transactionId);
+            companyDepot = util.getDepot(comp,tx);
         } catch (MzsCoreException e) {
             throw new ConnectionErrorException(e);
         }
@@ -37,7 +39,7 @@ public class XvsmDepotCompany extends DepotCompany {
 
     @Override
     public List<Stock> takeStocks(int amount, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         AnyCoordinator.AnySelector selector = AnyCoordinator.newSelector(amount);
         try {
@@ -49,7 +51,7 @@ public class XvsmDepotCompany extends DepotCompany {
 
     @Override
     public int getTotalAmountOfTradeObjects(String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         AnyCoordinator.AnySelector selector = AnyCoordinator.newSelector(MzsConstants.Selecting.COUNT_MAX);
         try {
@@ -61,7 +63,7 @@ public class XvsmDepotCompany extends DepotCompany {
 
     @Override
     public void addTradeObjects(List<TradeObject> tradeObjects, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
         for (TradeObject tradeObject : tradeObjects) {
             try {
                 xc.getCapi().write(new Entry(tradeObject), companyDepot, XvsmUtil.ACTION_TIMEOUT, tx);

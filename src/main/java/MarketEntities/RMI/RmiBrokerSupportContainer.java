@@ -20,9 +20,11 @@ import java.util.List;
 public class RmiBrokerSupportContainer extends BrokerSupportContainer {
 
     private IBrokerSupportProvider bspContainer;
+    private RmiUtil util;
 
-    public RmiBrokerSupportContainer() {
-        bspContainer = (IBrokerSupportProvider) RmiUtil.getContainer(Container.BROKER_TOSUPPORT);
+    public RmiBrokerSupportContainer(RmiUtil util) {
+        this.util = util;
+        bspContainer = (IBrokerSupportProvider) util.getContainer(Container.BROKER_TOSUPPORT);
     }
 
     @Override

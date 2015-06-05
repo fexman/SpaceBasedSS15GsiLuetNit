@@ -24,15 +24,17 @@ public class XvsmFondsIndexContainer extends FondsIndexContainer {
 
     private ContainerReference fondsIndexContainer;
     private XvsmUtil.XvsmConnection xc;
+    private XvsmUtil util;
 
-    public XvsmFondsIndexContainer() {
-        fondsIndexContainer = XvsmUtil.getContainer(Container.FONDS_INDEX_CONTAINER);
-        xc = XvsmUtil.getXvsmConnection();
+    public XvsmFondsIndexContainer(XvsmUtil util) {
+        this.util = util;
+        fondsIndexContainer = util.getContainer(Container.FONDS_INDEX_CONTAINER);
+        xc = util.getXvsmConnection();
     }
 
     @Override
     public List<AddressInfo> getMarkets(Investor investor, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         Selector selector = LabelCoordinator.newSelector(investor.getId(), Selector.COUNT_MAX);
         List<AddressInfo> result;
@@ -51,7 +53,7 @@ public class XvsmFondsIndexContainer extends FondsIndexContainer {
 
     @Override
     public void registerMarkets(Investor investor, List<AddressInfo> markets, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         //Remove old entries, if any
         Selector selector = LabelCoordinator.newSelector(investor.getId(), Selector.COUNT_MAX);

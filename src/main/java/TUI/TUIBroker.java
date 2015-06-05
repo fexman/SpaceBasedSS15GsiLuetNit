@@ -45,7 +45,7 @@ public class TUIBroker {
 
         //Issue stocks
         BrokerService broker = new BrokerService(brokerId, factory);
-        System.out.println("Will broke now. Press any key at any time to rollbackOpenTransactions.");
+        System.out.println("Will broke now. Press any key at any time to shutdown.");
         try {
             broker.startBroking();
         } catch (ConnectionErrorException connectionErrorException) {

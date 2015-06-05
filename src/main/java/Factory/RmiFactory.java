@@ -31,40 +31,40 @@ import java.rmi.RemoteException;
  */
 public class RmiFactory implements IFactory {
 
-    RmiUtil.RmiConnection rc;
+    private RmiUtil util;
 
     public RmiFactory(String uri) throws ConnectionErrorException {
-        rc = RmiUtil.initConnection(uri);
+        util = new RmiUtil(uri);
     }
 
     @Override
     public IssueRequestContainer newIssueRequestContainer() {
-        return new RmiIssueRequestContainer();
+        return new RmiIssueRequestContainer(util);
     }
 
     @Override
     public TradeOrderContainer newTradeOrdersContainer() {
-        return new RmiTradeOrderContainer();
+        return new RmiTradeOrderContainer(util);
     }
 
     @Override
     public StockPricesContainer newStockPricesContainer() {
-        return new RmiStockPricesContainer();
+        return new RmiStockPricesContainer(util);
     }
 
     @Override
     public TransactionHistoryContainer newTransactionHistoryContainer() {
-        return new RmiTransactionHistoryContainer();
+        return new RmiTransactionHistoryContainer(util);
     }
 
     @Override
     public BrokerSupportContainer newBrokerSupportContainer() {
-        return new RmiBrokerSupportContainer();
+        return new RmiBrokerSupportContainer(util);
     }
 
     @Override
     public FondsIndexContainer newFondsIndexContainer() {
-        return new RmiFondsIndexContainer();
+        return new RmiFondsIndexContainer(util);
     }
 
     @Override
@@ -119,12 +119,12 @@ public class RmiFactory implements IFactory {
 
     @Override
     public DepotInvestor newDepotInvestor(Investor investor, String transactionId) throws ConnectionErrorException {
-        return new RmiDepotInvestor(investor, transactionId);
+        return new RmiDepotInvestor(util, investor, transactionId);
     }
 
     @Override
     public DepotCompany newDepotCompany(Company comp, String transactionId) throws ConnectionErrorException {
-        return new RmiDepotCompany(comp, transactionId);
+        return new RmiDepotCompany(util, comp, transactionId);
     }
 
     @Override

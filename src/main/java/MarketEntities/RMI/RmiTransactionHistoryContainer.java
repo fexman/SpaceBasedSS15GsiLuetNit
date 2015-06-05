@@ -22,9 +22,11 @@ public class RmiTransactionHistoryContainer extends TransactionHistoryContainer 
 
     private ITransactionHistoryProvider transactionHistoryContainer;
     private Set<IRmiCallback<HistoryEntry>> callbacks;
+    private RmiUtil util;
 
-    public RmiTransactionHistoryContainer() {
-        transactionHistoryContainer = (ITransactionHistoryProvider) RmiUtil.getContainer(Container.TRANSACTION_HISTORY);
+    public RmiTransactionHistoryContainer(RmiUtil util) {
+        this.util = util;
+        transactionHistoryContainer = (ITransactionHistoryProvider) util.getContainer(Container.TRANSACTION_HISTORY);
         callbacks = new HashSet<>();
     }
 

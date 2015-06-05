@@ -24,9 +24,11 @@ public class RmiIssueRequestContainer extends IssueRequestContainer {
 
     private IIssueRequestsProvider irContainer;
     private Set<IRmiCallback<IssueRequest>> callbacks;
+    private RmiUtil util;
 
-    public RmiIssueRequestContainer() {
-        irContainer = (IIssueRequestsProvider)RmiUtil.getContainer(Container.ISSUED_REQUESTS);
+    public RmiIssueRequestContainer(RmiUtil util) {
+        this.util = util;
+        irContainer = (IIssueRequestsProvider)util.getContainer(Container.ISSUED_REQUESTS);
         callbacks = new HashSet<>();
     }
 

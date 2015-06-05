@@ -23,9 +23,11 @@ public class RmiStockPricesContainer extends StockPricesContainer{
 
     private IStockPricesProvider spContainer;
     private Set<IRmiCallback<MarketValue>> callbacks;
+    private RmiUtil util;
 
-    public RmiStockPricesContainer() {
-        spContainer = (IStockPricesProvider) RmiUtil.getContainer(Container.STOCK_PRICES);
+    public RmiStockPricesContainer(RmiUtil util) {
+        this.util = util;
+        spContainer = (IStockPricesProvider) util.getContainer(Container.STOCK_PRICES);
         callbacks = new HashSet<>();
     }
 

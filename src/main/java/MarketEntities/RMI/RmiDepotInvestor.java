@@ -22,13 +22,15 @@ import java.util.List;
 public class RmiDepotInvestor extends DepotInvestor {
 
     private IDepotInvestorProvider depotInvestor;
+    private RmiUtil util;
 
-    public RmiDepotInvestor(Investor investor, String transactionId) throws ConnectionErrorException {
+    public RmiDepotInvestor(RmiUtil util, Investor investor, String transactionId) throws ConnectionErrorException {
         super(investor, transactionId);
 
+        this.util = util;
         this.depotName = Container.DEPOT_INVESTOR_TOKEN + investor.getId();
 
-        depotInvestor = RmiUtil.getDepot(investor.getId());
+        depotInvestor = util.getDepot(investor.getId());
     }
 
     @Override

@@ -27,15 +27,17 @@ public class XvsmIssueRequestContainer extends IssueRequestContainer {
 
     private ContainerReference irContainer;
     private XvsmUtil.XvsmConnection xc;
+    private XvsmUtil util;
 
-    public XvsmIssueRequestContainer() {
-        irContainer = XvsmUtil.getContainer(Container.ISSUED_REQUESTS);
-        xc = XvsmUtil.getXvsmConnection();
+    public XvsmIssueRequestContainer(XvsmUtil util) {
+        this.util = util;
+        irContainer = util.getContainer(Container.ISSUED_REQUESTS);
+        xc = util.getXvsmConnection();
     }
 
     @Override
     public void addIssueRequest(IssueRequest ir, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         try {
             xc.getCapi().write(irContainer, XvsmUtil.ACTION_TIMEOUT, tx, new Entry(ir));
@@ -46,7 +48,7 @@ public class XvsmIssueRequestContainer extends IssueRequestContainer {
 
     @Override
     public List<IssueRequest> takeIssueRequests(String transactionId) throws ConnectionErrorException, TransactionTimeoutException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         ArrayList<Selector> selectors = new ArrayList<>();
         selectors.add(FifoCoordinator.newSelector());

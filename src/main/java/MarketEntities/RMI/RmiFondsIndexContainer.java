@@ -17,9 +17,11 @@ import java.util.List;
 public class RmiFondsIndexContainer extends FondsIndexContainer {
 
     private IFondsIndexProvider fiContainer;
+    private RmiUtil util;
 
-    public RmiFondsIndexContainer() {
-        fiContainer = (IFondsIndexProvider) RmiUtil.getContainer(Container.FONDS_INDEX_CONTAINER);
+    public RmiFondsIndexContainer(RmiUtil util) {
+        this.util = util;
+        fiContainer = (IFondsIndexProvider) util.getContainer(Container.FONDS_INDEX_CONTAINER);
     }
 
     @Override

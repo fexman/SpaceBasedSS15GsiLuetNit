@@ -25,17 +25,19 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
     private ContainerReference tradeOrdersContainer;
     private XvsmUtil.XvsmConnection xc;
+    private XvsmUtil util;
     private static final boolean DEBUG_PRINTS = false;
 
-    public XvsmTradeOrdersContainer() {
-        tradeOrdersContainer = XvsmUtil.getContainer(Container.TRADE_ORDERS);
-        xc = XvsmUtil.getXvsmConnection();
+    public XvsmTradeOrdersContainer(XvsmUtil util) {
+        this.util = util;
+        tradeOrdersContainer = util.getContainer(Container.TRADE_ORDERS);
+        xc = util.getXvsmConnection();
     }
 
 
     @Override
     public void addOrUpdateOrder(TradeOrder order, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         //Filtering using orderId (should be unique)
         Query query = new Query();
@@ -70,7 +72,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
     @Override
     public List<TradeOrder> getOrders(TradeOrder order, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
 
         //Query building
         Query query = new Query();
@@ -207,7 +209,7 @@ public class XvsmTradeOrdersContainer extends TradeOrderContainer {
 
     @Override
     public TradeOrder takeOrder(TradeOrder tradeOrder, String transactionId) throws ConnectionErrorException {
-        TransactionReference tx = XvsmUtil.getTransaction(transactionId);
+        TransactionReference tx = util.getTransaction(transactionId);
         Query query = new Query();
         try {
             query.sql("id = '" + tradeOrder.getId() + "'");
