@@ -3,6 +3,7 @@ package GUI.investor;
 import Factory.IFactory;
 import Factory.RmiFactory;
 import Factory.XvsmFactory;
+import MarketEntities.Depot;
 import MarketEntities.DepotInvestor;
 import MarketEntities.StockPricesContainer;
 import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
@@ -26,12 +27,15 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.converter.DefaultStringConverter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,20 +45,22 @@ import java.util.Map;
 
 public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IStockPricesSub {
 
-    private IFactory factory;
 
-    private TradeOrderContainer tradeOrderContainer;
+    private HashMap<String,TradeOrderContainer> tradeOrderContainers;
+    private HashMap<String,StockPricesContainer> stockPricesContainers;
+    private HashMap<String,DepotInvestor> depots;
+
     private ObservableList<TradeOrder> activeOrders;
     private TradeOrder ORDER_FILTER;
 
-    private DepotInvestor depotInvestor;
+
     private ObservableList<StockStats> stockStats;
 
     private List<TradeObject> allTradeObjectsInDepot;
     private List<MarketValue> allMarketValues;
     private HashMap<String, Integer> stockNamesAndCount;
-
-    private StockPricesContainer stockPricesContainer;
+    private HashMap<String, IFactory> markets;
+    private ObservableList<AddressInfo> addresses;
 
 
     @FXML
@@ -63,8 +69,6 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     private TextField txtUsername;
     @FXML
     private CheckBox isFondsmanager;
-    @FXML
-    private ComboBox<String> protocolField;
     @FXML
     private Button btnLogin;
     @FXML
@@ -98,6 +102,10 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     @FXML
     private TableColumn colOrderOpenAmount;
     @FXML
+    private TableColumn addressColumn;
+    @FXML
+    private TableColumn protocolColumn;
+    @FXML
     private Label statusLabel;
     @FXML
     private Label modeLabel;
@@ -107,6 +115,10 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     private HBox loginContainer;
     @FXML
     private Button btnDeleteOrder;
+    @FXML
+    private TableView<AddressInfo> marketsTable;
+    @FXML
+    private Button addMarketBtn;
 
     private Investor investor;
 
@@ -114,18 +126,46 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
     private TradeOrder selectedOrder;
 
+    ObservableList<String> protocols;
+
+
+
     public InvestorController() {
 
     }
 
     @FXML
     private void initialize() {
-        ObservableList<String> protocols = FXCollections.observableArrayList();
-        protocols.add("XVSM");
-        protocols.add("RMI");
-        protocolField.setItems(protocols);
-        protocolField.setValue(protocols.get(0));
-        serverAdressAndPort = "xvsm://localhost:12345";
+
+        //init Multi-address table
+        protocols = FXCollections.observableArrayList("XVSM", "RMI");
+        addressColumn.setCellValueFactory(new PropertyValueFactory<AddressInfo, String>("address"));
+        addressColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        addressColumn.setOnEditCommit(
+                new EventHandler<TableColumn.CellEditEvent<AddressInfo, String>>() {
+                    @Override
+                    public void handle(TableColumn.CellEditEvent<AddressInfo, String> t) {
+                        ((AddressInfo) t.getTableView().getItems().get(
+                                t.getTablePosition().getRow())
+                        ).setAddress(t.getNewValue());
+                    }
+                }
+        );
+        protocolColumn.setCellFactory((ComboBoxTableCell.forTableColumn(new DefaultStringConverter(), protocols)));
+        protocolColumn.setCellValueFactory(new PropertyValueFactory<AddressInfo, String>("protocol"));
+        protocolColumn.setOnEditCommit(
+                new EventHandler<TableColumn.CellEditEvent<AddressInfo, String>>() {
+                    @Override
+                    public void handle(TableColumn.CellEditEvent<AddressInfo, String> t) {
+                        ((AddressInfo) t.getTableView().getItems().get(
+                                t.getTablePosition().getRow())
+                        ).setProtocol(t.getNewValue());
+                    }
+                }
+        );
+        addresses = FXCollections.observableList(new ArrayList<AddressInfo>());
+        addresses.add(new AddressInfo("xvsm://localhost:12345", "XVSM"));
+        marketsTable.setItems(addresses);
 
         colOrderId.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("id"));
         colOrderType.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("type"));
@@ -162,26 +202,26 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         }
     }
 
-    public void protocolFieldChanged() {
-        if (protocolField.getValue().equals("XVSM")) {
-            serverAdressAndPort = "xvsm://localhost:12345";
-        } else {
-            serverAdressAndPort = "localhost:12345";
-        }
-    }
-
     public void editBudgetButtonClicked() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("increase_budget.fxml"));
-            fxmlLoader.setController(new BudgetController(factory, investor));
-            Parent root1 = (Parent) fxmlLoader.load();
-            Stage stage = new Stage();
-            stage.setTitle("Increase Budget");
-            stage.setScene(new Scene(root1));
-            stage.show();
+            for (String address : markets.keySet()) {
+                IFactory factory = markets.get(address);
+                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("increase_budget.fxml"));
+                fxmlLoader.setController(new BudgetController(factory, investor));
+                Parent root1 = (Parent) fxmlLoader.load();
+                Stage stage = new Stage();
+                stage.setTitle("Increase Budget: "+address+" - "+factory.getProtocolString());
+                stage.setScene(new Scene(root1));
+                stage.show();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void addMarketButtonClicked() {
+        addresses.add(new AddressInfo("localhost:12346", "RMI"));
+        marketsTable.setItems(addresses);
     }
 
     public void loginButtonClicked() {
@@ -201,19 +241,32 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         ORDER_FILTER.setInvestor(investor);
         ORDER_FILTER.setStatus(TradeOrder.Status.NOT_COMPLETED);
 
-        initFactory();
+        initFactories();
 
         try {
+            depots = new HashMap<>();
+            tradeOrderContainers = new HashMap<>();
+            stockPricesContainers = new HashMap<>();
             // get/create necessary containers
-            depotInvestor = factory.newDepotInvestor(investor, null);
-            depotInvestor.subscribe(factory.newInvestorDepotSubManager(this), null);
+            for (String address: markets.keySet()) {
+                IFactory factory = markets.get(address);
+                System.out.println("Creating containers for: " + address + " - " + factory.getProtocolString());
 
-            tradeOrderContainer = factory.newTradeOrdersContainer();
-            tradeOrderContainer.subscribe(factory.newTradeOrderSubManager(this), null);
 
-            stockPricesContainer = factory.newStockPricesContainer();
-            stockPricesContainer.subscribe(factory.newStockPricesSubManager(this), null);
 
+                DepotInvestor depotInvestor = factory.newDepotInvestor(investor, null);
+                depotInvestor.subscribe(factory.newInvestorDepotSubManager(this), null);
+                depots.put(address,depotInvestor);
+
+                TradeOrderContainer tradeOrderContainer = factory.newTradeOrdersContainer();
+                tradeOrderContainer.subscribe(factory.newTradeOrderSubManager(this), null);
+                tradeOrderContainers.put(address, tradeOrderContainer);
+
+                StockPricesContainer stockPricesContainer = factory.newStockPricesContainer();
+                stockPricesContainer.subscribe(factory.newStockPricesSubManager(this), null);
+                stockPricesContainers.put(address, stockPricesContainer);
+
+            }
             // initialize rest of UI after references to containers are set
             initUi();
         } catch (ConnectionErrorException connectionErrorException) {
@@ -221,14 +274,17 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         }
     }
 
-    private void initFactory() {
+    private void initFactories() {
         try {
-            if (protocolField.getValue().equals("XVSM")) {
-                factory = new XvsmFactory(serverAdressAndPort);
-            } else {
-                factory = new RmiFactory(serverAdressAndPort);
-            }
-        } catch (ConnectionErrorException e) {
+            markets = new HashMap<>();
+            for (AddressInfo a: addresses) {
+                if (a.getProtocol().equals("XVSM")) {
+                    markets.put(a.getAddress(),new XvsmFactory(a.getAddress()));
+                } else {
+                    markets.put(a.getAddress(),new RmiFactory(a.getAddress()));
+                }
+        }
+        } catch (Exception e) {
             statusLabel.textFillProperty().setValue(Color.RED);
             statusLabel.setText("Connection failed.");
             e.printStackTrace();
@@ -243,11 +299,15 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             loginContainer.setPrefHeight(0);
 
             //Check for existing investor type and adjust mode if necessary
-            boolean investorExists = (depotInvestor.getBudget(null) != 0.0) ? true : false;
-            boolean marketValueExists = (stockPricesContainer.getMarketValue(investor.getId(),null) != null) ? true : false;
+            boolean investorExists = false;
+            boolean marketValueExists = false;
+            for (String address : depots.keySet()) {
+                investorExists = (depots.get(address).getBudget(null) != 0.0) ? true : false;
+                marketValueExists = (stockPricesContainers.get(address).getMarketValue(investor.getId(), null) != null) ? true : false;
+                break; //ASSUMING INVESTOR IS THE SAME TYPE OF INVESTOR ACROSS ALL MARKETS
+            }
 
-            // load initial data
-            double budget = depotInvestor.getBudget(null);
+
             if (!investorExists) {
                 if (!investor.isFonds()) {
                     // show budget prompt
@@ -255,13 +315,16 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 } else {
                     // show fonds prompt
                     try {
-                        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("set_fonds.fxml"));
-                        fxmlLoader.setController(new FondsController(factory, investor));
-                        Parent root1 = (Parent) fxmlLoader.load();
-                        Stage stage = new Stage();
-                        stage.setTitle("Init Fonds");
-                        stage.setScene(new Scene(root1));
-                        stage.show();
+                        for (String address : markets.keySet()) {
+                            IFactory factory = markets.get(address);
+                            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("set_fonds.fxml"));
+                            fxmlLoader.setController(new FondsController(factory, investor));
+                            Parent root1 = (Parent) fxmlLoader.load();
+                            Stage stage = new Stage();
+                            stage.setTitle("Init Fonds: "+address+" - "+factory.getProtocolString());
+                            stage.setScene(new Scene(root1));
+                            stage.show();
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -274,6 +337,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 }
             }
 
+
             if (investor.isFonds()) {
                 modeLabel.setText("FONDSMANAGER MODE");
                 btnEditBudget.setVisible(false); //Fondsmanager may not change its budget
@@ -282,13 +346,29 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 modeLabel.setText("INVESTOR MODE");
             }
 
+            double budget = 0d;
+            System.out.println("depots-size: "+depots.size());
+            for (DepotInvestor depotInvestor : depots.values()) {
+                double curBudget = depotInvestor.getBudget(null);
+                System.out.println("Found budget: "+curBudget);
+                budget +=curBudget;
+            }
+
+            System.out.println("SETTINGS BUDGET TO: "+budget);
             txtBudget.setText("" + budget);
 
-            allTradeObjectsInDepot = depotInvestor.readAllTradeObjects(null);
-            if (investor.isFonds()) {
-                allMarketValues = stockPricesContainer.getCompanies(null);
-            } else {
-                allMarketValues = stockPricesContainer.getAll(null);
+            allTradeObjectsInDepot = new ArrayList<>();
+            for (DepotInvestor depotInvestor: depots.values()) {
+                allTradeObjectsInDepot.addAll(depotInvestor.readAllTradeObjects(null));
+            }
+
+            allMarketValues = new ArrayList<>();
+            for (StockPricesContainer stockPricesContainer: stockPricesContainers.values()) {
+                if (investor.isFonds()) {
+                    allMarketValues.addAll(stockPricesContainer.getCompanies(null));
+                } else {
+                    allMarketValues.addAll(stockPricesContainer.getAll(null));
+                }
             }
 
             stockNamesAndCount = new HashMap<>();
@@ -299,7 +379,10 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             populateStockStatsTable();
 
             // init open orders table
-            activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
+            activeOrders = FXCollections.observableList(new ArrayList<TradeOrder>());
+            for (TradeOrderContainer tradeOrderContainer: tradeOrderContainers.values()) {
+                activeOrders = FXCollections.observableList(tradeOrderContainer.getOrders(ORDER_FILTER, null));
+            }
             tabOrders.setItems(activeOrders);
 
             // make data container visible
@@ -326,7 +409,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     public void addOrderButtonClicked() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("new_order.fxml"));
-            fxmlLoader.setController(new NewOrderController(factory, investor));
+            fxmlLoader.setController(new NewOrderController(markets, investor));
             Parent root1 = (Parent) fxmlLoader.load();
             Stage stage = new Stage();
             stage.setTitle("Add trade order");
@@ -341,11 +424,21 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         if (selectedOrder != null) {
             System.out.println("To delete: " + selectedOrder);
             try {
-                String transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
-                selectedOrder.setStatus(TradeOrder.Status.DELETED);
-                selectedOrder.setJustChanged(false);
-                tradeOrderContainer.addOrUpdateOrder(selectedOrder, transactionId);
-                factory.commitTransaction(transactionId);
+
+
+                lookForMarket: for (String address : markets.keySet()) {
+                    IFactory factory = markets.get(address);
+
+                    //Select correct market
+                    if (tradeOrderContainers.get(address).getOrders(selectedOrder,null).size() > 0) {
+                        String transactionId = factory.createTransaction(TransactionTimeout.DEFAULT);
+                        selectedOrder.setStatus(TradeOrder.Status.DELETED);
+                        selectedOrder.setJustChanged(false);
+                        tradeOrderContainers.get(address).addOrUpdateOrder(selectedOrder, transactionId);
+                        factory.commitTransaction(transactionId);
+                        break lookForMarket;
+                    }
+                }
 
                 Platform.runLater(new Runnable() {
                     @Override
@@ -363,8 +456,10 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                if (factory != null) {
-                    factory.destroy();
+                if (markets != null) {
+                    for (IFactory factory : markets.values()) {
+                        factory.destroy();
+                    }
                 }
             }
         });
@@ -400,6 +495,15 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
 
                 if (tradeOrder.getType().equals(TradeOrder.Type.SELL_ORDER)) {
                     try {
+                        DepotInvestor depotInvestor = null;
+                        depotLoop: for (DepotInvestor di : depots.values()) {
+
+                            //Assuming that no tradeObjects are shared accross markets and each tradeObjectId is unique accross markets.
+                            if (di.getTradeObjectAmount(tradeOrder.getTradeObjectId(),null) > 0) {
+                                depotInvestor = di;
+                                break depotLoop;
+                            }
+                        }
                         // update stock amount when selling stocks from own depot
                         int updatedAmountOfStock = depotInvestor.getTradeObjectAmount(tradeOrder.getTradeObjectId(), null);
                         if (updatedAmountOfStock > 0) {
@@ -462,7 +566,16 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                txtBudget.setText("" + budget.doubleValue());
+                double curBudget = 0d;
+                for (DepotInvestor depotInvestor: depots.values()) {
+                    try {
+                        curBudget += depotInvestor.getBudget(null);
+                    } catch (ConnectionErrorException e) {
+                        System.out.println("Failed getting budget on pushNewBudget!");
+                        e.printStackTrace();
+                    }
+                }
+                txtBudget.setText("" + curBudget);
                 txtTotalStockValue.setText("" + calculateTotalValueOfStocks());
             }
         });

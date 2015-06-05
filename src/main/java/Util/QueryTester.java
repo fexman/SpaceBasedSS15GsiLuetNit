@@ -21,7 +21,7 @@ import java.util.List;
 public class QueryTester {
 
     public static IFactory factory;
-    public static final boolean  ALT_MODE = true;
+    public static final boolean  ALT_MODE = false;
 
     public static void main(String args[]) throws Exception {
         factory = QueryTesterFactory.getFactory();
@@ -85,12 +85,14 @@ public class QueryTester {
     private static class QueryTesterFactory {
 
         private static final String CONN_URI = "xvsm://localhost:12345";
-        private static final String CONN_URI_ALT = "localhost:12345";
+        private static final String CONN_URI_ALT = "localhost:12346";
 
         public static IFactory getFactory() throws ConnectionErrorException {
             if (ALT_MODE) {
+                System.out.println("ALT_MODE");
                 return new RmiFactory(CONN_URI_ALT);
             } else {
+                System.out.println("NORMAL_MODE");
                 return new XvsmFactory(CONN_URI);
             }
         }

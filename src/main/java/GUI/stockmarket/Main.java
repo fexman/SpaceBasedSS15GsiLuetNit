@@ -19,7 +19,6 @@ public class Main extends Application {
         primaryStage.setTitle("MarketInspector");
         primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.show();
-
     }
 
     public static void main(String[] args) {

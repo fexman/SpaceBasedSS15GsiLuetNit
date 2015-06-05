@@ -152,4 +152,9 @@ public class XvsmFactory implements IFactory {
         Timer shutdownTimer = new Timer();
         shutdownTimer.schedule(shutdownTask,250);
     }
+
+    @Override
+    public String getProtocolString() {
+        return "XVSM";
+    }
 }

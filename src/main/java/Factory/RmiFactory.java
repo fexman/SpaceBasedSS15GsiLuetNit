@@ -147,6 +147,11 @@ public class RmiFactory implements IFactory {
         System.exit(0);
     }
 
+    @Override
+    public String getProtocolString() {
+        return "RMI";
+    }
+
     private void remoteExceptionThrown() {
         System.out.println("FATAL ERROR GOT REMOTE EXCEPTION: SHUTTING DOWN.");
         destroy();

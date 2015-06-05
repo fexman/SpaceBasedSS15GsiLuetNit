@@ -8,6 +8,8 @@ import Model.Investor;
 import Model.TradeOrder;
 import Service.ConnectionErrorException;
 import javafx.animation.FadeTransition;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
@@ -27,13 +29,15 @@ import java.util.UUID;
  */
 public class NewOrderController {
 
-    private IFactory factory;
+    private HashMap<String, IFactory> markets;
 
-    private TradeOrderContainer tradeOrderContainer;
-    private StockPricesContainer stockpricesContainer;
+    private HashMap<String, TradeOrderContainer> tradeOrderContainers;
+    private HashMap<String, StockPricesContainer> stockpricesContainers;
 
     private Investor investor;
 
+    @FXML
+    private ComboBox<String> stockMarket;
     @FXML
     private ComboBox<String> stockName;
     @FXML
@@ -56,16 +60,22 @@ public class NewOrderController {
     public NewOrderController() {
     }
 
-    public NewOrderController(IFactory factory, Investor investor) {
-        this.factory = factory;
+    public NewOrderController(HashMap<String, IFactory> markets, Investor investor) {
+        this.markets = markets;
         this.investor = investor;
 
-        tradeOrderContainer = factory.newTradeOrdersContainer();
-        stockpricesContainer = factory.newStockPricesContainer();
+        tradeOrderContainers = new HashMap<>();
+        stockpricesContainers = new HashMap<>();
+
+        for (String address: markets.keySet()) {
+            IFactory factory = markets.get(address);
+            tradeOrderContainers.put(address,factory.newTradeOrdersContainer());
+            stockpricesContainers.put(address,factory.newStockPricesContainer());
+        }
     }
 
-    public void setFactory(IFactory factory) {
-        this.factory = factory;
+    public void setFactories(HashMap<String, IFactory> markets) {
+        this.markets = markets;
     }
 
     public void setInvestor(Investor investor) {
@@ -74,15 +84,29 @@ public class NewOrderController {
 
     @FXML
     private void initialize() {
-        populateStockNames();
+        String address = populateMarkets();
+
+        address = address.split("-")[0].trim();
+        populateStockNames(tradeOrderContainers.get(address));
 
         orderType.getItems().addAll(TradeOrder.Type.BUY_ORDER, TradeOrder.Type.SELL_ORDER);
     }
 
-    private void populateStockNames() {
+    private String populateMarkets() {
+        ObservableList<String> marketNames = FXCollections.observableArrayList(new ArrayList<String>());
+        for (String address : markets.keySet()) {
+            marketNames.add(address + " - "+markets.get(address).getProtocolString());
+        }
+        stockMarket.setItems(marketNames);
+        stockMarket.setValue(marketNames.get(0));
+        return marketNames.get(0);
+    }
+
+    private void populateStockNames(TradeOrderContainer tradeOrderContainer) {
         // show all companies that currently sell stocks
         try {
             // using a HashMap to ensure distinct selection of company names
+            stockName.getItems().clear();
             List<TradeOrder> availableTradeOrders = tradeOrderContainer.getAllOrders(null);
             HashMap<String, Company> availableCompanies = new HashMap<>();
             for (TradeOrder tradeOrder : availableTradeOrders) {
@@ -97,6 +121,10 @@ public class NewOrderController {
         } catch (ConnectionErrorException connectionErrorException) {
             connectionErrorException.printStackTrace();
         }
+    }
+
+    public void stockMarketChanged() {
+        populateStockNames(tradeOrderContainers.get(stockMarket.getValue().split(" - ")[0].trim()));
     }
 
     public void orderTypeSelected() {
@@ -124,9 +152,13 @@ public class NewOrderController {
             tradeOrder.setPrioritized(isPrioritized.isSelected());
             tradeOrder.setJustChanged(true);
 
+            String address = stockMarket.getValue().split(" - ")[0].trim();
+            StockPricesContainer stockPricesContainer = stockpricesContainers.get(address);
+            TradeOrderContainer tradeOrderContainer = tradeOrderContainers.get(address);
+
             try {
 
-                if (stockpricesContainer.getMarketValue(stockName.getValue(),null).isCompany()) {
+                if (stockPricesContainer.getMarketValue(stockName.getValue(),null).isCompany()) {
                     tradeOrder.setTradeObjectType(TradeOrder.TradeObjectType.STOCK);
                 } else {
                     tradeOrder.setTradeObjectType(TradeOrder.TradeObjectType.FOND);

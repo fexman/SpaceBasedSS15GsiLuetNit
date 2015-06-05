@@ -65,4 +65,6 @@ public interface IFactory {
 
     void destroy();
 
+    String getProtocolString();
+
 }
