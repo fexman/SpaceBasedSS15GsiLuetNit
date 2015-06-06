@@ -104,6 +104,11 @@ public class InvestorService extends Service implements ITradeOrderSub {
 
                 //Wait for and get Fonds Markets
                 System.out.println("Wating "+MULTI_MARKET_TRADEVOLUME_TIMEOUT+" miliseconds for market to register requests");
+                try {
+                    Thread.sleep(MULTI_MARKET_TRADEVOLUME_TIMEOUT);
+                } catch (InterruptedException e) {
+                    //Nvm
+                }
                 List<AddressInfo> addresses = fiContainer.getMarkets(investor,transactionId);
 
                 //Acumulate TradeVolume
