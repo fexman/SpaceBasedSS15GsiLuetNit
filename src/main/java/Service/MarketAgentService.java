@@ -38,7 +38,7 @@ public class MarketAgentService extends Service {
 
             List<MarketValue> companies = stockPricesContainer.getCompanies(transactionId);
             List<MarketValue> fonds = stockPricesContainer.getFonds(transactionId); //To seperate fonds. Their prices are calculated after companies.
-            HashMap<String,Double> currentPrices = new HashMap<>(); //To save bandwith when calculating fond price
+            List<MarketValue> updatedCompanyStockPrices = new ArrayList<>(); //To save bandwith when calculating fond price
             for (MarketValue marketValue : companies) {
                 // get all open/partially completed buy orders of current market value
                 TradeOrder buyOrdersFilter = new TradeOrder();
@@ -80,47 +80,78 @@ public class MarketAgentService extends Service {
                 stockPricesContainer.addOrUpdateMarketValue(marketValue, transactionId);
 
                 //For fonds (see below)
-                currentPrices.put(marketValue.getId(),newStockPrice);
+                updatedCompanyStockPrices.add(marketValue);
 
                 System.out.println("\tUpdated company " + marketValue.getId() + "'s market value from " + currentStockPrice + " to " + newStockPrice);
             }
 
+            //For each fond ..
             for (MarketValue mw : fonds) {
 
                 System.out.println("Processing fond: "+mw.getId());
-                double oldPrice = mw.getPrice();
+
+                double budgetFactor = 0d; //Budget part of the fonds price
+                double stockFactor = 0d; //Stock part
+                double oldPrice = mw.getPrice(); //just for prints
+
                 Investor investor = new Investor(mw.getId());
                 investor.setFonds(true);
-                DepotInvestor depotInvestor = factory.newDepotInvestor(investor, transactionId);
 
-                //Calculate fond price from fond-investor (fondmanager) budget and his current stocks
-                double budgetFactor =  depotInvestor.getBudget(transactionId)/mw.getTradeVolume();
-                double stockFactor = 0d;
-                for (TradeObject to: depotInvestor.readAllTradeObjects(transactionId)) {
-                    if (to instanceof Stock) {
-                        stockFactor += currentPrices.get(to.getId());
-                    }
-                }
-                stockFactor = stockFactor/mw.getTradeVolume();
-
-                //Query remote markets
                 FondsIndexContainer fondsIndexContainer = factory.newFondsIndexContainer();
-                int remoteCounter = 0;
-                for (AddressInfo addressInfo : fondsIndexContainer.getMarkets(investor,transactionId)) {
-                    IFactory remoteFactory;
-                    if (addressInfo.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
-                        remoteFactory = new XvsmFactory(addressInfo.getAddress());
-                    } else {
-                        remoteFactory = new RmiFactory(addressInfo.getAddress());
+                List<AddressInfo> remoteMarkets =  fondsIndexContainer.getMarkets(investor,transactionId);
+
+                //For each market where the fond is registred ...
+                for (AddressInfo addressInfo : remoteMarkets) {
+                    System.out.println("\tCurrent market: "+addressInfo);
+
+                    IFactory currentFactory;
+                    List<MarketValue> companyStockPrices;
+                    DepotInvestor depotInvestor;
+                    String subTransactionId;
+
+                    //Use local data OR connect to remote market
+                    if (factory.getAddressInfo().equals(addressInfo)) { //LOCAL
+                        System.out.println("\tIs local market, using cached data.");
+                        currentFactory = factory;
+                        subTransactionId = transactionId; //Just a local transaction
+                        companyStockPrices = updatedCompanyStockPrices; //As calculated above
+                    } else { //REMOTE
+                        System.out.println("\tIs remote market, querying data with new sub-transaction.");
+                        if (addressInfo.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
+                            currentFactory = new XvsmFactory(addressInfo.getAddress());
+                        } else {
+                            currentFactory = new RmiFactory(addressInfo.getAddress());
+                        }
+                        subTransactionId = currentFactory.createTransaction(TransactionTimeout.DEFAULT);
+                        companyStockPrices = currentFactory.newStockPricesContainer().getCompanies(subTransactionId);
                     }
-                    StockPricesContainer remoteStockPrices = remoteFactory.newStockPricesContainer();
+
+                    depotInvestor = currentFactory.newDepotInvestor(investor,subTransactionId);
+
+                    //Calculate budget-factor contribution of current market
+                    double budgetFactorContribution = depotInvestor.getBudget(subTransactionId)/mw.getTradeVolume();
+                    budgetFactor += budgetFactorContribution;
+                    System.out.println("\t\tCurrent budget-factor contribution: "+budgetFactorContribution);
+
+                    //Calculate stock-factor contribution of current market by iterating over companies of this market
+                    for (MarketValue companyMw : companyStockPrices) {
+                        int amount = depotInvestor.getTradeObjectAmount(companyMw.getId(),subTransactionId);
+                        double stockFactorContribution = (amount*companyMw.getPrice())/mw.getTradeVolume();
+                        System.out.println("\t\tStocks by "+companyMw.getId()+" found "+amount+"x result in: "+stockFactorContribution);
+                        stockFactor += stockFactorContribution;
+                    }
+
+                    //If subTransactionId is remote, commit changes remotely
+                    if (subTransactionId != transactionId) {
+                        currentFactory.commitTransaction(subTransactionId);
+                    }
 
                 }
 
                 //write results
                 mw.setPrice(budgetFactor+stockFactor);
                 System.out.println("\tUpdated fond " + mw.getId() + "'s market value from "+oldPrice+" to " + mw.getPrice());
-                System.out.println("\tfrom Budget: "+budgetFactor+" | from stocks: "+stockFactor);
+                System.out.println("\tfrom Budget: "+budgetFactor+" | from stocks: "+stockFactor+" | tradeVolume: "+mw.getTradeVolume());
                 stockPricesContainer.addOrUpdateMarketValue(mw, transactionId);
 
             }

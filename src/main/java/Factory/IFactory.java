@@ -5,6 +5,7 @@ import MarketEntities.Subscribing.InvestorDepot.AInvestorDepotSubManager;
 import MarketEntities.Subscribing.InvestorDepot.IInvestorDepotSub;
 import MarketEntities.Subscribing.TransactionHistory.ATransactionHistorySubManager;
 import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
+import Model.AddressInfo;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionErrorException;
@@ -67,6 +68,6 @@ public interface IFactory {
 
     void destroy();
 
-    String getProtocolString();
+    AddressInfo getAddressInfo();
 
 }

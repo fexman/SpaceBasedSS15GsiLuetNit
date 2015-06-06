@@ -1,14 +1,15 @@
 package Service;
 
 import Factory.IFactory;
-import MarketEntities.DepotInvestor;
-import MarketEntities.IssueRequestContainer;
+import Factory.RmiFactory;
+import Factory.XvsmFactory;
+import MarketEntities.*;
 import MarketEntities.Subscribing.TradeOrders.ITradeOrderSub;
-import MarketEntities.TradeOrderContainer;
-import Model.Investor;
-import Model.IssueFondsRequest;
-import Model.TradeOrder;
+import Model.*;
+import RMIServer.EntityProviders.Impl.FondsIndexProvider;
 import Util.TransactionTimeout;
+
+import java.util.List;
 
 /**
  * Created by j0h1 on 24.04.2015.
@@ -19,6 +20,10 @@ public class InvestorService extends Service implements ITradeOrderSub {
     private DepotInvestor depotInvestor;
     private TradeOrderContainer tradeOrderContainer;
     private IssueRequestContainer irContainer;
+    private FondsIndexContainer fiContainer;
+    private StockPricesContainer spContainer;
+
+    private static final long MULTI_MARKET_TRADEVOLUME_TIMEOUT = 2000l;
 
     public InvestorService(IFactory factory) {
         super(factory);
@@ -29,6 +34,8 @@ public class InvestorService extends Service implements ITradeOrderSub {
         this.investor = investor;
         this.tradeOrderContainer = factory.newTradeOrdersContainer();
         this.irContainer = factory.newIssueRequestContainer();
+        this.fiContainer = factory.newFondsIndexContainer();
+        this.spContainer = factory.newStockPricesContainer();
         try {
             this.depotInvestor = factory.newDepotInvestor(investor,null);
         } catch (ConnectionErrorException e)  {
@@ -94,6 +101,80 @@ public class InvestorService extends Service implements ITradeOrderSub {
                 System.out.print("Writing IF-request to container ... ");
                 irContainer.addIssueRequest(ifr, transactionId);
                 System.out.println("done.");
+
+                //Wait for and get Fonds Markets
+                System.out.println("Wating "+MULTI_MARKET_TRADEVOLUME_TIMEOUT+" miliseconds for market to register requests");
+                List<AddressInfo> addresses = fiContainer.getMarkets(investor,transactionId);
+
+                //Acumulate TradeVolume
+                boolean multiMarket = false;
+                int accumulatedTradeVolume = 0;
+                System.out.println("Accumulating trade volume ...");
+                for (AddressInfo addressInfo : addresses) { //Non-multi market
+                    if (addressInfo.equals(factory.getAddressInfo())) {
+                        accumulatedTradeVolume += amount;
+                        System.out.println("\tAdded local: "+amount);
+                    } else {
+                        multiMarket = true; //Multi-market mode
+                        IFactory remoteFactory;
+                        if (addressInfo.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
+                            remoteFactory = new XvsmFactory(addressInfo.getAddress());
+                        } else {
+                            remoteFactory = new RmiFactory(addressInfo.getAddress());
+                        }
+
+                        MarketValue remoteMarketValue = remoteFactory.newStockPricesContainer().getMarketValue(investor.getId(),null);
+
+                        if (remoteMarketValue != null) {
+                            accumulatedTradeVolume += remoteMarketValue.getTradeVolume();
+                            System.out.println("\tAdded remote ("+addressInfo.getAddress()+" - "+addressInfo.getProtocol()+"): "+amount);
+                        }
+                    }
+                }
+
+                //Set accumulated TradeVolume at every market
+                System.out.println("Accumlated trade volume: "+accumulatedTradeVolume);
+                System.out.println("Setting acummulated trade Volume ...");
+                if (multiMarket) {
+                    for (AddressInfo addressInfo : addresses) {
+                        StockPricesContainer currentSpConainer;
+                        String subTransactionId;
+                        IFactory remoteFactory;
+                        if (addressInfo.equals(factory.getAddressInfo())) {
+                            remoteFactory = factory;
+                            currentSpConainer = spContainer;
+                            subTransactionId = transactionId;
+                            System.out.println("\tSet local.");
+                        } else {
+                            if (addressInfo.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
+                                remoteFactory = new XvsmFactory(addressInfo.getAddress());
+                            } else {
+                                remoteFactory = new RmiFactory(addressInfo.getAddress());
+                            }
+                            currentSpConainer = remoteFactory.newStockPricesContainer();
+                            subTransactionId = remoteFactory.createTransaction(TransactionTimeout.DEFAULT);
+                            System.out.println("\tSet remote (" + addressInfo.getAddress() + " - " + addressInfo.getProtocol() + ").");
+                        }
+
+                        MarketValue currentMw = currentSpConainer.getMarketValue(investor.getId(),subTransactionId);
+                        if (currentMw != null) {
+                            currentMw.setTradeVolume(accumulatedTradeVolume);
+                            currentSpConainer.addOrUpdateMarketValue(currentMw, subTransactionId);
+
+                            if (subTransactionId != transactionId) {
+                                remoteFactory.commitTransaction(subTransactionId);
+                            }
+                        } else {
+                            if (subTransactionId != transactionId) {
+                                remoteFactory.rollbackTransaction(subTransactionId);
+                            }
+                        }
+
+
+                    }
+                } else {
+                    System.out.println("Dropped accumulated tradeVolume since this fondsmanager is not multimarket (yet).");
+                }
 
                 factory.commitTransaction(transactionId);
             } catch (ConnectionErrorException e) {

@@ -12,6 +12,7 @@ import MarketEntities.Subscribing.TradeOrders.RmiTradeOrderSubManager;
 import MarketEntities.Subscribing.TransactionHistory.ATransactionHistorySubManager;
 import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import MarketEntities.Subscribing.TransactionHistory.RmiTransactionHistorySubManager;
+import Model.AddressInfo;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionErrorException;
@@ -32,9 +33,11 @@ import java.rmi.RemoteException;
 public class RmiFactory implements IFactory {
 
     private RmiUtil util;
+    private AddressInfo address;
 
     public RmiFactory(String uri) throws ConnectionErrorException {
         util = new RmiUtil(uri);
+        this.address = new AddressInfo(uri, AddressInfo.Protocol.RMI);
     }
 
     @Override
@@ -153,8 +156,8 @@ public class RmiFactory implements IFactory {
     }
 
     @Override
-    public String getProtocolString() {
-        return "RMI";
+    public AddressInfo getAddressInfo() {
+        return address;
     }
 
     private void remoteExceptionThrown() {

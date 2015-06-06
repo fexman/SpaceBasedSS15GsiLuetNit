@@ -209,7 +209,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 fxmlLoader.setController(new BudgetController(factory, investor));
                 Parent root1 = (Parent) fxmlLoader.load();
                 Stage stage = new Stage();
-                stage.setTitle("Increase Budget: " + address + " - " + factory.getProtocolString());
+                stage.setTitle("Increase Budget: " + address + " - " + factory.getAddressInfo().getProtocol());
                 stage.setScene(new Scene(root1));
                 stage.show();
             }
@@ -249,7 +249,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
             // get/create necessary containers
             for (String address: markets.keySet()) {
                 IFactory factory = markets.get(address);
-                System.out.println("Creating containers for: " + address + " - " + factory.getProtocolString());
+                System.out.println("Creating containers for: " + address + " - " + factory.getAddressInfo().getProtocol());
 
 
 
@@ -320,7 +320,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                             fxmlLoader.setController(new FondsController(factory, investor));
                             Parent root1 = (Parent) fxmlLoader.load();
                             Stage stage = new Stage();
-                            stage.setTitle("Init Fonds: "+address+" - "+factory.getProtocolString());
+                            stage.setTitle("Init Fonds: "+address+" - "+factory.getAddressInfo().getProtocol());
                             stage.setScene(new Scene(root1));
                             stage.show();
                         }

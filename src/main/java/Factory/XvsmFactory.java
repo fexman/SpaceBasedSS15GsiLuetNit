@@ -8,6 +8,7 @@ import MarketEntities.Subscribing.TransactionHistory.ATransactionHistorySubManag
 import MarketEntities.Subscribing.TransactionHistory.ITransactionHistorySub;
 import MarketEntities.Subscribing.TransactionHistory.XvsmTransactionHistorySubManager;
 import MarketEntities.XVSM.*;
+import Model.AddressInfo;
 import Model.Company;
 import Model.Investor;
 import Service.ConnectionErrorException;
@@ -33,10 +34,12 @@ import java.util.TimerTask;
 public class XvsmFactory implements IFactory {
 
     private XvsmUtil util;
+    private AddressInfo address;
 
     public XvsmFactory(String uri) throws ConnectionErrorException {
         try {
             this.util = new XvsmUtil(uri,false);
+            this.address = new AddressInfo(uri, AddressInfo.Protocol.XVSM);
         } catch (MzsCoreException e) {
             throw new ConnectionErrorException(e);
         }
@@ -159,7 +162,7 @@ public class XvsmFactory implements IFactory {
     }
 
     @Override
-    public String getProtocolString() {
-        return "XVSM";
+    public AddressInfo getAddressInfo() {
+        return address;
     }
 }

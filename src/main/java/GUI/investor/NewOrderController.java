@@ -3,6 +3,7 @@ package GUI.investor;
 import Factory.IFactory;
 import MarketEntities.StockPricesContainer;
 import MarketEntities.TradeOrderContainer;
+import Model.AddressInfo;
 import Model.Company;
 import Model.Investor;
 import Model.TradeOrder;
@@ -94,8 +95,9 @@ public class NewOrderController {
 
     private String populateMarkets() {
         ObservableList<String> marketNames = FXCollections.observableArrayList(new ArrayList<String>());
-        for (String address : markets.keySet()) {
-            marketNames.add(address + " - "+markets.get(address).getProtocolString());
+        for (IFactory factory : markets.values()) {
+            AddressInfo address = factory.getAddressInfo();
+            marketNames.add(address.getAddress() + " - "+address.getProtocol());
         }
         stockMarket.setItems(marketNames);
         stockMarket.setValue(marketNames.get(0));
