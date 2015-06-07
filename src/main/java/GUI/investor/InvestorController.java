@@ -151,16 +151,19 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                     }
                 }
         );
+
+        //FXCollections.observableArrayList(AddressInfo.Protocol.values());
         ObservableList<AddressInfo.Protocol> protocols = FXCollections.observableArrayList(AddressInfo.Protocol.values());
-        protocolColumn.setCellFactory((ComboBoxTableCell.forTableColumn(new DefaultStringConverter(), protocols)));
+        System.out.println("Protocols: " + protocols);
+        protocolColumn.setCellFactory(ComboBoxTableCell.<AddressInfo, AddressInfo.Protocol>forTableColumn(AddressInfo.Protocol.values()));
         protocolColumn.setCellValueFactory(new PropertyValueFactory<AddressInfo, AddressInfo.Protocol>("protocol"));
         protocolColumn.setOnEditCommit(
-                new EventHandler<TableColumn.CellEditEvent<AddressInfo, String>>() {
+                new EventHandler<TableColumn.CellEditEvent<AddressInfo, AddressInfo.Protocol>>() {
                     @Override
-                    public void handle(TableColumn.CellEditEvent<AddressInfo, String> t) {
+                    public void handle(TableColumn.CellEditEvent<AddressInfo, AddressInfo.Protocol> t) {
                         ((AddressInfo) t.getTableView().getItems().get(
                                 t.getTablePosition().getRow())
-                        ).setProtocol(AddressInfo.Protocol.byName(t.getNewValue()));
+                        ).setProtocol(t.getNewValue());
                     }
                 }
         );
@@ -243,7 +246,15 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         ORDER_FILTER.setInvestor(investor);
         ORDER_FILTER.setStatus(TradeOrder.Status.NOT_COMPLETED);
 
-        initFactories();
+        try {
+            initFactories();
+        } catch (Exception e) {
+            String msgError = "Error on connect: "+e.getMessage();
+            statusLabel.textFillProperty().setValue(Color.RED);
+            statusLabel.setText(msgError);
+            System.out.println(msgError);
+            return;
+        }
 
         try {
             depots = new HashMap<>();
@@ -276,21 +287,18 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         }
     }
 
-    private void initFactories() {
-        try {
-            markets = new HashMap<>();
-            for (AddressInfo a: addresses) {
-                if (a.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
-                    markets.put(a.getAddress(),new XvsmFactory(a.getAddress()));
-                } else {
-                    markets.put(a.getAddress(),new RmiFactory(a.getAddress()));
-                }
+    private void initFactories() throws ConnectionErrorException {
+
+        markets = new HashMap<>();
+        for (AddressInfo a: addresses) {
+            if (a.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
+                markets.put(a.getAddress(),new XvsmFactory(a.getAddress()));
+            } else {
+                markets.put(a.getAddress(),new RmiFactory(a.getAddress()));
+            }
         }
-        } catch (Exception e) {
-            statusLabel.textFillProperty().setValue(Color.RED);
-            statusLabel.setText("Connection failed.");
-            e.printStackTrace();
-        }
+
+
     }
 
     private void initUi() throws ConnectionErrorException {

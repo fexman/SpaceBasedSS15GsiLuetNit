@@ -110,7 +110,17 @@ public class InvestorService extends Service implements ITradeOrderSub {
                 //Set accumulated TradeVolume at every market
                 System.out.println("Accumlated trade volume: "+accumulatedTradeVolume);
                 System.out.println("Setting acummulated trade Volume ...");
+
+                //Commiting first part
+                factory.commitTransaction(transactionId);
+
                 if (multiMarket) {
+
+                    System.out.println("Waiting "+MULTI_MARKET_TRADEVOLUME_TIMEOUT+" miliseconds for Broker to create initial MarketValue.");
+                    try {
+                        Thread.sleep(MULTI_MARKET_TRADEVOLUME_TIMEOUT);
+                    } catch (InterruptedException e) {}
+
                     List<AddressInfo> addresses = fiContainer.getMarkets(investor,transactionId);
                     for (AddressInfo addressInfo : addresses) {
                         StockPricesContainer currentSpConainer;
@@ -119,7 +129,6 @@ public class InvestorService extends Service implements ITradeOrderSub {
                         if (addressInfo.equals(factory.getAddressInfo())) {
                             remoteFactory = factory;
                             currentSpConainer = spContainer;
-                            subTransactionId = transactionId;
                             System.out.println("\tSet local.");
                         } else {
                             if (addressInfo.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
@@ -128,9 +137,10 @@ public class InvestorService extends Service implements ITradeOrderSub {
                                 remoteFactory = new RmiFactory(addressInfo.getAddress());
                             }
                             currentSpConainer = remoteFactory.newStockPricesContainer();
-                            subTransactionId = remoteFactory.createTransaction(TransactionTimeout.DEFAULT);
                             System.out.println("\tSet remote (" + addressInfo.getAddress() + " - " + addressInfo.getProtocol() + ").");
                         }
+
+                        subTransactionId = remoteFactory.createTransaction(TransactionTimeout.DEFAULT);
 
                         MarketValue currentMw = currentSpConainer.getMarketValue(investor.getId(),subTransactionId);
                         if (currentMw != null) {
@@ -148,11 +158,14 @@ public class InvestorService extends Service implements ITradeOrderSub {
 
 
                     }
+
+                    factory.commitTransaction(transactionId);
+
                 } else {
                     System.out.println("Dropped accumulated tradeVolume since this fondsmanager is not multimarket (yet).");
                 }
 
-                factory.commitTransaction(transactionId);
+
             } catch (ConnectionErrorException e) {
                 factory.rollbackTransaction(transactionId);
                 throw e;

@@ -1,3 +1,4 @@
+C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Model\AddressInfo.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\Subscribing\TradeOrders\XvsmTradeOrderSubManager.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\RMIServer\EntityProviders\Impl\IssueRequestsProvider.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\RMIServer\CallbackDummy.java
@@ -20,6 +21,7 @@ C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Model\TradeObject.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\XVSM\XvsmIssueRequestContainer.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\DepotCompany.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\RMIServer\IRmiServer.java
+C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\XVSM\XvsmFondsIndexContainer.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\RMIServer\EntityProviders\IDepotProvider.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\TransactionHistoryContainer.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\RMIServer\EntityProviders\IBrokerSupportProvider.java
@@ -30,6 +32,7 @@ C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\RMIServer\EntityProvide
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\XVSM\ISubscribeable.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\TUI\TUIRmiServer.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\Subscribing\MarketValues\RmiStockPricesSubManager.java
+C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\RMIServer\EntityProviders\IFondsIndexProvider.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\XVSM\XvsmDepotCompany.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Model\Stock.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\Subscribing\TransactionHistory\ATransactionHistorySubManager.java
@@ -82,6 +85,7 @@ C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\Subscrib
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\RMI\RmiStockPricesContainer.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Model\IssueFondsRequest.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Model\StockStats.java
+C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\FondsIndexContainer.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\Subscribing\TransactionHistory\XvsmTransactionHistorySubManager.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Model\TradeOrder.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\IssueRequestContainer.java
@@ -93,10 +97,12 @@ C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Model\IssueStockRequest
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\Subscribing\MarketValues\AStockPricesSubManager.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\RMIServer\EntityProviders\Impl\StockPricesProvider.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Service\TransactionTimeoutException.java
+C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\RMI\RmiFondsIndexContainer.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\Subscribing\TransactionHistory\RmiTransactionHistorySubManager.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Service\InvestorService.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\Subscribing\IssueRequests\RmiIssueRequestSubManager.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\Service\BrokerService.java
+C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\RMIServer\EntityProviders\Impl\FondsIndexProvider.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\Subscribing\Subscription.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\MarketEntities\XVSM\XvsmDepotInvestor.java
 C:\Users\Felix\IdeaProjects\SpaceBasedSS15\src\main\java\GUI\investor\NewOrderController.java
