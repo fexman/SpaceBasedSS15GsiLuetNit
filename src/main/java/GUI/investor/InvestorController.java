@@ -347,6 +347,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
                 }
             }
 
+            //Set mode of GUI
             if (investor.isFonds()) {
                 modeLabel.setText("FONDSMANAGER MODE");
                 btnEditBudget.setVisible(false); //Fondsmanager may not change its budget

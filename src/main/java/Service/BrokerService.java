@@ -355,7 +355,7 @@ public class BrokerService extends Service {
             fondProvisionBuyer = totalValue * 0.02d;
         }
         System.out.println("FondPrivision Buyer: "+fondProvisionBuyer);
-        System.out.println("FondPrivision Seller: " + fondProvisionSeller);
+        System.out.println("FondPrivision Seller: "+fondProvisionSeller);
 
         System.out.println("Removing " + (totalValue + provisionBuyer + fondProvisionBuyer) + " from " + depotBuyer.getDepotName());
         depotBuyer.addToBudget(-(totalValue + provisionBuyer + fondProvisionBuyer), transactionId);
@@ -543,8 +543,10 @@ public class BrokerService extends Service {
         // check if investor has enough money to perform transaction
         double currentMarketValue = stockPricesContainer.getMarketValue(tradeOrder.getTradeObjectId(), transactionId).getPrice();
         double provisonAmount = (tradeOrder.isPrioritized()) ? 2d : 1d;
+        double provisionFonds = (tradeOrder.getTradeObjectType().equals(TradeOrder.TradeObjectType.FOND)) ? 0.02d : 0d;
+        double totalValue = (double) tradeOrder.getTotalAmount() * currentMarketValue;
 
-        double transactionCost = ((double) tradeOrder.getTotalAmount() * currentMarketValue) * (1.0 + (PROVISION_PERCENTAGE * provisonAmount));
+        double transactionCost = totalValue * (1.0 + (PROVISION_PERCENTAGE * provisonAmount) + provisionFonds);
 
         double investorBudget = depotInvestor.getBudget(transactionId);
 
