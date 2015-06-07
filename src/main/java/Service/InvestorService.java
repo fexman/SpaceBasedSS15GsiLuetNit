@@ -23,6 +23,7 @@ public class InvestorService extends Service implements ITradeOrderSub {
     private FondsIndexContainer fiContainer;
     private StockPricesContainer spContainer;
 
+    private static int accumulatedTradeVolume = 0;
     private static final long MULTI_MARKET_TRADEVOLUME_TIMEOUT = 2000l;
 
     public InvestorService(IFactory factory) {
@@ -102,45 +103,15 @@ public class InvestorService extends Service implements ITradeOrderSub {
                 irContainer.addIssueRequest(ifr, transactionId);
                 System.out.println("done.");
 
-                //Wait for and get Fonds Markets
-                System.out.println("Wating "+MULTI_MARKET_TRADEVOLUME_TIMEOUT+" miliseconds for market to register requests");
-                try {
-                    Thread.sleep(MULTI_MARKET_TRADEVOLUME_TIMEOUT);
-                } catch (InterruptedException e) {
-                    //Nvm
-                }
-                List<AddressInfo> addresses = fiContainer.getMarkets(investor,transactionId);
-
                 //Acumulate TradeVolume
-                boolean multiMarket = false;
-                int accumulatedTradeVolume = 0;
-                System.out.println("Accumulating trade volume ...");
-                for (AddressInfo addressInfo : addresses) { //Non-multi market
-                    if (addressInfo.equals(factory.getAddressInfo())) {
-                        accumulatedTradeVolume += amount;
-                        System.out.println("\tAdded local: "+amount);
-                    } else {
-                        multiMarket = true; //Multi-market mode
-                        IFactory remoteFactory;
-                        if (addressInfo.getProtocol().equals(AddressInfo.Protocol.XVSM)) {
-                            remoteFactory = new XvsmFactory(addressInfo.getAddress());
-                        } else {
-                            remoteFactory = new RmiFactory(addressInfo.getAddress());
-                        }
-
-                        MarketValue remoteMarketValue = remoteFactory.newStockPricesContainer().getMarketValue(investor.getId(),null);
-
-                        if (remoteMarketValue != null) {
-                            accumulatedTradeVolume += remoteMarketValue.getTradeVolume();
-                            System.out.println("\tAdded remote ("+addressInfo.getAddress()+" - "+addressInfo.getProtocol()+"): "+amount);
-                        }
-                    }
-                }
+                boolean multiMarket = (accumulatedTradeVolume != 0) ? true : false;
+                accumulatedTradeVolume += amount;
 
                 //Set accumulated TradeVolume at every market
                 System.out.println("Accumlated trade volume: "+accumulatedTradeVolume);
                 System.out.println("Setting acummulated trade Volume ...");
                 if (multiMarket) {
+                    List<AddressInfo> addresses = fiContainer.getMarkets(investor,transactionId);
                     for (AddressInfo addressInfo : addresses) {
                         StockPricesContainer currentSpConainer;
                         String subTransactionId;

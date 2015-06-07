@@ -114,10 +114,11 @@
                   <TableView id="tabOrders" fx:id="tabOrders" prefHeight="292.0" prefWidth="432.0">
                      <columns>
                         <TableColumn id="colOrderId" fx:id="colOrderId" prefWidth="90.0" text="Order ID" />
-                        <TableColumn id="colOrderType" fx:id="colOrderType" prefWidth="77.0" text="Type" />
-                        <TableColumn id="colOrderStockId" fx:id="colOrderStockId" prefWidth="122.0" text="TradeObject ID" />
-                        <TableColumn id="colOrderLimit" fx:id="colOrderLimit" prefWidth="95.0" text="Limit" />
-                        <TableColumn id="colOrderOpenAmount" fx:id="colOrderOpenAmount" prefWidth="140.0" text="Amount (pending)" />
+                        <TableColumn id="colOrderType" fx:id="colOrderType" prefWidth="93.0" text="Type" />
+                        <TableColumn id="colOrderStockId" fx:id="colOrderStockId" prefWidth="191.0" text="TradeObject ID" />
+                        <TableColumn id="colOrderLimit" fx:id="colOrderLimit" prefWidth="68.0" text="Limit" />
+                        <TableColumn id="colOrderOpenAmount" fx:id="colOrderOpenAmount" prefWidth="139.0" text="Amount (pending)" />
+                        <TableColumn id="colOrderPrioritized" fx:id="colOrderPrioritized" prefWidth="84.0" text="Prioritized" />
                      </columns>
                      <VBox.margin>
                         <Insets top="10.0" />

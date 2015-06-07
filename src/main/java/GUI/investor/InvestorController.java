@@ -101,6 +101,8 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
     @FXML
     private TableColumn colOrderOpenAmount;
     @FXML
+    private TableColumn colOrderPrioritized;
+    @FXML
     private TableColumn addressColumn;
     @FXML
     private TableColumn protocolColumn;
@@ -171,6 +173,7 @@ public class InvestorController implements ITradeOrderSub, IInvestorDepotSub, IS
         colOrderStockId.setCellValueFactory(new PropertyValueFactory<TradeOrder, String>("tradeObjectId"));
         colOrderLimit.setCellValueFactory(new PropertyValueFactory<TradeOrder, Double>("priceLimit"));
         colOrderOpenAmount.setCellValueFactory(new PropertyValueFactory<TradeOrder, TradeOrder.Type>("openAmount"));
+        colOrderPrioritized.setCellValueFactory(new PropertyValueFactory<TradeOrder, Boolean>("prioritized"));
 
         colStockId.setCellValueFactory(new PropertyValueFactory<StockStats, String>("stockName"));
         colStockAmount.setCellValueFactory(new PropertyValueFactory<StockStats, Integer>("amount"));
