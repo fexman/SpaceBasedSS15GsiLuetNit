@@ -155,11 +155,8 @@ public class InvestorService extends Service implements ITradeOrderSub {
                                 remoteFactory.rollbackTransaction(subTransactionId);
                             }
                         }
-
-
+                        factory.commitTransaction(subTransactionId);
                     }
-
-                    factory.commitTransaction(transactionId);
 
                 } else {
                     System.out.println("Dropped accumulated tradeVolume since this fondsmanager is not multimarket (yet).");

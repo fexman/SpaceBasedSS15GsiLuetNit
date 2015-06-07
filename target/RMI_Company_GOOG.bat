@@ -1,1 +1,0 @@
-java -jar TUICompany.jar 1 localhost:12345 GOOG 50 20
